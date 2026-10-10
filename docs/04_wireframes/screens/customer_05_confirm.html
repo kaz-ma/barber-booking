@@ -32,8 +32,8 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.1 / S-C-04 予約 ステップ 4 確認（/ja/book/confirm）</h1>
-    <p class="muted">全入力を再入力なしで確認し、ポリシーに同意して確定する。料金 ¥— は OI-01 確定まで。</p>
+    <h1>WF-C v0.2 / S-C-04 予約 ステップ 4 確認（/ja/book/confirm）</h1>
+    <p class="muted">全入力を再入力なしで確認し、ポリシーに同意して確定する。前の段は「メニュー → 日時 → お客様情報」（OI-19 決定）。料金 ¥— は OI-01 確定まで。</p>
   </div>
 
   <div class="artboard">
@@ -41,12 +41,12 @@
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step done"><b>3</b><br>日時を選ぶ</li><li class="step current"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>日時を選ぶ</li><li class="step done"><b>3</b><br>お客様情報</li><li class="step current"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="stack"><h2>ご予約内容の確認</h2><p class="help">内容を確認し、よろしければ確定してください。</p></div>
         <dl class="answers anc">
           <div class="ans"><dt class="k">メニュー</dt><dd>カット</dd><a class="change" aria-label="メニューを変更">変更</a></div>
-          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><a class="change" aria-label="料金を変更">変更</a></div>
+          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><span></span></div>
           <div class="ans"><dt class="k">所要時間</dt><dd>60分</dd><span></span></div>
           <div class="ans"><dt class="k">日時</dt><dd>10月13日(火)<br>19:00–20:00（日本時間）</dd><a class="change" aria-label="日時を変更">変更</a></div>
           <div class="ans"><dt class="k">お名前</dt><dd>山田 太郎（やまだ たろう）</dd><a class="change" aria-label="お名前を変更">変更</a></div>
@@ -76,8 +76,8 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>Check-answers 形式（<code>&lt;dl&gt;</code>）で全入力を一覧し、各行に対象名入りの「変更」。戻って直しても他の値は保持し、再入力を求めない（FR-C-09、WCAG 3.3.7）。</li>
-      <li><span class="n">2</span>学生を選んだ場合は「学生料金」ラベル付きで適用料金を表示。確定値はサーバーで再計算しスナップショット（FR-C-04, FR-C-09）。</li>
+      <li><span class="n">1</span>Check-answers 形式（<code>&lt;dl&gt;</code>）で全入力を一覧し、各行に対象名入りの「変更」。メニュー → <code>/ja/book</code>、日時 → <code>/ja/book/time</code>（選択を保持した (a')）、お客様情報 → <code>/ja/book/info</code> の該当段。戻って直しても他の値は保持し、再入力を求めない。直したあとは確認へ直行する（FR-C-09、WCAG 3.3.7）。</li>
+      <li><span class="n">2</span>学生を選んだ場合は「学生料金」ラベル付きで適用料金を表示。確定値はサーバーで再計算しスナップショット。料金の行には「変更」を置かない（料金はメニューと職業で決まるため、それぞれの行の「変更」で直す）（FR-C-04, FR-C-09、HE-03）。</li>
       <li><span class="n">3</span>日時は曜日つき・「日本時間」を明記。/en は “Tue, Oct 13, 7:00 PM–8:00 PM JST”（FR-C-09, FR-C-13）。</li>
       <li><span class="n">4</span>確定ボタン直上にキャンセルポリシー要点（締切は <code>cancel_deadline_min</code> から算出、OI-05）と全文リンク。リンクは同じタブで開き、戻っても下書きが残る（FR-C-09, FR-C-15）。</li>
       <li><span class="n">5</span>同意チェックは必須・ラベル全体がタップ領域（56px）。プライバシー文言とセットで <code>consents</code> に版と共に記録（FR-C-09、要件 12.3）。</li>
@@ -91,12 +91,12 @@
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step done"><b>3</b><br>日時を選ぶ</li><li class="step current"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>日時を選ぶ</li><li class="step done"><b>3</b><br>お客様情報</li><li class="step current"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="stack"><h2>ご予約内容の確認</h2><p class="help">内容を確認し、よろしければ確定してください。</p></div>
         <dl class="answers anc">
           <div class="ans"><dt class="k">メニュー</dt><dd>カット</dd><a class="change" aria-label="メニューを変更">変更</a></div>
-          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><a class="change" aria-label="料金を変更">変更</a></div>
+          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><span></span></div>
           <div class="ans"><dt class="k">所要時間</dt><dd>60分</dd><span></span></div>
           <div class="ans"><dt class="k">日時</dt><dd>10月13日(火)<br>19:00–20:00（日本時間）</dd><a class="change" aria-label="日時を変更">変更</a></div>
           <div class="ans"><dt class="k">お名前</dt><dd>山田 太郎（やまだ たろう）</dd><a class="change" aria-label="お名前を変更">変更</a></div>
@@ -134,12 +134,12 @@
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step done"><b>3</b><br>日時を選ぶ</li><li class="step current"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>日時を選ぶ</li><li class="step done"><b>3</b><br>お客様情報</li><li class="step current"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="stack"><h2>ご予約内容の確認</h2><p class="help">内容を確認し、よろしければ確定してください。</p></div>
         <dl class="answers anc">
           <div class="ans"><dt class="k">メニュー</dt><dd>カット</dd><a class="change" aria-disabled="true" aria-label="メニューを変更">変更</a></div>
-          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><a class="change" aria-disabled="true" aria-label="料金を変更">変更</a></div>
+          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><span></span></div>
           <div class="ans"><dt class="k">所要時間</dt><dd>60分</dd><span></span></div>
           <div class="ans"><dt class="k">日時</dt><dd>10月13日(火)<br>19:00–20:00（日本時間）</dd><a class="change" aria-disabled="true" aria-label="日時を変更">変更</a></div>
           <div class="ans"><dt class="k">お名前</dt><dd>山田 太郎（やまだ たろう）</dd><a class="change" aria-disabled="true" aria-label="お名前を変更">変更</a></div>
@@ -169,6 +169,47 @@
     <ul class="notes-list">
       <li><span class="n">1</span>送信中はボタンを <code>aria-disabled</code> にし文言を「確定しています…」へ。<code>submissionNonce</code> により同じ内容の二重送信でも予約は 1 件（23505 は既存予約を返す）（FR-C-10）。</li>
       <li><span class="n">2</span>送信中は「変更」も操作不可。結果 <code>ok</code> → S-C-05 へ <code>replace</code>、<code>slot_taken</code> → S-C-03 (d)、<code>rate_limited</code> 等 → エラーサマリー＋電話（FR-C-10, CT-04〜06）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(d) /en 同意未チェック<small>/en/book/confirm — 英語の締切文・同意文（CW-03）</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">Booking</div><span class="lang">日本語</span><a class="btn small secondary">Call</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>Menu</li><li class="step done"><b>2</b><br>Date &amp; time</li><li class="step done"><b>3</b><br>Your details</li><li class="step current"><b>4</b><br>Review</li></ol>
+      <div class="content">
+        <div class="stack"><h2>Review your booking</h2><p class="help">Check the details, then confirm.</p></div>
+        <dl class="answers anc">
+          <div class="ans"><dt class="k">Menu</dt><dd>Haircut</dd><a class="change" aria-label="Change menu">Change</a></div>
+          <div class="ans"><dt class="k">Price</dt><dd><b>¥—</b> (student rate)<br><span class="caption">Student rate applied to standard ¥—</span></dd><span></span></div>
+          <div class="ans"><dt class="k">Duration</dt><dd>60 min</dd><span></span></div>
+          <div class="ans"><dt class="k">Date &amp; time</dt><dd>Tue, Oct 13<br>7:00 PM–8:00 PM JST</dd><a class="change" aria-label="Change date and time">Change</a></div>
+          <div class="ans"><dt class="k">Name</dt><dd>Emma Wilson</dd><a class="change" aria-label="Change name">Change</a></div>
+          <div class="ans"><dt class="k">Occupation</dt><dd>Student</dd><a class="change" aria-label="Change occupation">Change</a></div>
+          <div class="ans"><dt class="k">Phone</dt><dd>+44 7700 900123</dd><a class="change" aria-label="Change phone number">Change</a></div>
+          <div class="ans"><dt class="k">Requests</dt><dd>—</dd><a class="change" aria-label="Change requests">Change</a></div>
+          <div class="note" style="top:-14px;right:72px"><span class="n">1</span>EN 表記</div>
+        </dl>
+        <div class="card sunken anc">
+          <h3>Cancellation</h3>
+          <p class="muted">You can cancel from the link on the confirmation screen until 2 hours before your visit (Tue, Oct 13, 5:00 PM JST). After that, please call us.</p>
+          <a class="btn ghost">Read the full Cancellation Policy</a>
+          <div class="note" style="top:-14px;right:8px"><span class="n">2</span>締切を日時で</div>
+        </div>
+        <p class="muted">We use your name and phone number only to manage your booking and contact you about it. We do not share them with third parties.</p>
+        <label class="checkbox anc"><span class="box"></span><span>I agree to the Privacy Policy and the Cancellation Policy<span class="req">Required</span></span>
+          <div class="note" style="top:-14px;right:8px"><span class="n">3</span>同意文</div></label>
+        <div class="turnstile">Cloudflare Turnstile<br>(non-interactive, usually invisible)</div>
+      </div>
+      <div class="sticky-cta">
+        <a class="btn primary" aria-disabled="true">Confirm booking</a>
+        <p class="help">Tick the box above to confirm.</p>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>/en は項目名・値とも英語。日時は曜日つき＋12 時間制＋JST。お名前はふりがななし（OI-13 既定）（FR-C-09, FR-C-13）。</li>
+      <li><span class="n">2</span>締切は「2 hours before your visit」と具体的な日時（JST）の両方で示す。分数は <code>cancel_deadline_min</code>（OI-05）（FR-C-12, FR-C-13）。</li>
+      <li><span class="n">3</span>同意文・プライバシー文言の英語版。<code>consents</code> にはロケールと版を記録する（FR-C-09, FR-C-15）。英語の行の高さが増えても横はみ出しがないことを検証対象にした（CW-03）。</li>
     </ul>
   </div>
 </div>

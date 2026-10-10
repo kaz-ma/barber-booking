@@ -1,11 +1,15 @@
-// Render admin wireframes to PNG and verify layout rules.
-// usage: node render.mjs [filter]
-import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+// Render admin wireframes to PNG and verify layout rules, then run post_admin.py (JPEG + contact sheet).
+// usage (from the repo root): node docs/04_wireframes/tools/render_admin.mjs [filter]   e.g. filter = 06_time
 import { readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-const DIR = '/home/user/barber-booking/docs/04_wireframes/screens';
+let chromium;
+try { ({ chromium } = await import('playwright')); }
+catch { ({ chromium } = await import('/opt/node-tools/node_modules/playwright/index.mjs')); }
+
+const DIR = fileURLToPath(new URL('../screens', import.meta.url));
 const filter = process.argv[2] || '';
 const files = readdirSync(DIR).filter(f => /^admin_\d\d_.*\.html$/.test(f) && f.includes(filter)).sort();
 
@@ -58,5 +62,5 @@ for (const r of report) {
 }
 console.log(fail ? `\nVERIFY: ${fail} issue(s)` : `\nVERIFY: all checks passed (${report.length} files)`);
 // PNG -> JPG + contact sheet (python3 PIL)
-execFileSync('python3', ['-I', new URL('./post_admin.py', import.meta.url).pathname, DIR], { stdio: 'inherit' });
+execFileSync('python3', ['-I', fileURLToPath(new URL('./post_admin.py', import.meta.url)), DIR], { stdio: 'inherit' });
 process.exitCode = fail ? 1 : 0;

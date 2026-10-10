@@ -36,13 +36,22 @@
 .sticky-cta .btn.small{flex:none}
 .content{gap:12px}
 .radio-group .radio{padding:0 10px;font-size:15px;white-space:nowrap}
+.sheet-modal .list .item.pre{align-items:flex-start;line-height:1.4}
+.sheet-modal .list .item.pre>div{flex:1;min-width:0}
+.sheet-modal .list .item.pre .rng{margin-left:auto;font-size:13px;color:var(--wf-muted);white-space:nowrap}
+.sheet-modal .list .item.pre .sub{display:block;font-size:12px;color:var(--wf-muted)}
+.sheet-modal .list .item.pre .ov{display:block;font-size:12px;font-weight:700}
+.sheet-modal .list .item.pre .ov::before{content:"!";display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--wf-ink);color:#fff;font-size:11px;margin-right:4px}
+.sheet-modal .effect{font-size:12px;color:var(--wf-muted);margin:0}
+.toast .msg{display:flex;flex-direction:column}
+.toast .msg small{font-size:12px;opacity:.85}
 </style>
 </head>
 <body>
 <div class="sheet">
 <header class="doc">
   <h1>S-A-06 時間ブロック（＋S-A-02 FAB プリセット）</h1>
-  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-06 ／ AT-21 ・ 例: 10/11(日) 18:02、19:00–20:00 に佐藤様の予約あり</p>
+  <p class="muted">WF-A v0.2（2026-10-10）・関連: FR-A-06 ／ AT-21 ・ 例: 10/11(日) 18:02、19:00–20:00 に佐藤様の予約あり</p>
 </header>
 
 <!-- (a) FAB sheet -->
@@ -59,18 +68,23 @@
       <div class="grip"></div>
       <div class="list">
         <div class="item"><b>手動予約</b><span class="caption">S-A-05 へ</span></div>
-        <div class="item">今から 30 分ブロック<span class="caption">18:00–18:30</span></div>
-        <div class="item" style="border:2px solid var(--wf-ink);border-radius:8px;padding:8px"><b>今から 1 時間ブロック</b><span class="caption">18:00–19:00</span></div>
-        <div class="item">終日ブロック<span class="caption">10/11 臨時休業</span></div>
+        <div class="item pre" style="border:2px solid var(--wf-ink);border-radius:8px;padding:8px"><div><b>今から 1 時間ブロック</b><span class="sub">休憩として ・ お客様側の変化なし（19:00 まで受付終了済み）</span></div><span class="rng">18:00–19:00</span></div>
+        <div class="item pre"><div>今から 2 時間ブロック<span class="sub">休憩として</span><span class="ov">19:00–20:00 佐藤 健様と重なります</span></div><span class="rng">18:00–20:00</span></div>
+        <div class="item pre"><div>今日はここまで（閉店まで）<span class="sub">臨時休業として ・ お客様側は今日 20:00 以降の枠を止める</span><span class="ov">19:00–20:00 佐藤 健様と重なります</span></div><span class="rng">18:00–24:00</span></div>
         <div class="item">期間を指定してブロック…<span class="caption">S-A-06 へ</span></div>
       </div>
+      <p class="effect">お客様の予約サイトは締切（開始 60 分前）より後の枠だけが変わります。</p>
     </div>
-    <div class="note" style="top:700px;left:140px;z-index:7"><span class="n">1</span>タップ 2 で即保存</div>
+    <div class="note" style="top:388px;left:150px;z-index:7"><span class="n">1</span>タップ 2 で即保存</div>
     <div class="note" style="top:120px;right:8px;z-index:7"><span class="n">2</span>5 分単位で切り捨て</div>
+    <div class="note" style="top:594px;right:8px;z-index:7"><span class="n">12</span>重なりを事前表示</div>
+    <div class="note" style="bottom:20px;right:8px;z-index:7"><span class="n">13</span>お客様側への影響</div>
   </div>
   <ul class="notes-list">
-    <li><span class="n">1</span>「今から 30 分 / 1 時間 / 終日」は確認画面なしで <code>createTimeBlock({ preset })</code>。FAB → プリセットの 2 タップで完了（FR-A-06, AT-21, MT-03）。</li>
-    <li><span class="n">2</span>開始 = 現在時刻を 5 分単位で切り捨て（18:02 → 18:00）。各行に実際の区間を出し、押す前に結果が分かる。重なりがある場合だけ即保存せず (d) の警告へ（FR-A-06）。</li>
+    <li><span class="n">1</span>プリセットは「今から 1 時間 / 今から 2 時間 / 今日はここまで（閉店まで）」と「期間を指定」。v0.1 の「30 分」はリードタイムより短く、お客様側に効かないため外し、「終日」は「今日はここまで」と期間指定（臨時休業）に置き換えた（CW-19）。重ならないプリセットは確認画面なしで <code>createTimeBlock({ preset })</code>、FAB → プリセットの 2 タップで完了（FR-A-06, AT-21, MT-03）。各行の補足に保存される種別（「休憩として」「臨時休業として」）を出す。種別はブロックをタップして後から変えられる（CW-21）。</li>
+    <li><span class="n">2</span>開始 = 現在時刻を 5 分単位で切り捨て（18:02 → 18:00）。各行に実際の区間を出し、押す前に結果が分かる（FR-A-06）。</li>
+    <li><span class="n">12</span>シートを開いた時点で各プリセットと予約の重なりを判定し、行に「! 19:00–20:00 佐藤 健様と重なります」と出す。重なる行は即保存せず (d) の警告に進む（予約は消さない）。2 タップ目で予想外の画面に切り替わらない（FR-A-06、CW-18）。</li>
+    <li><span class="n">13</span>お客様の予約サイトへの影響を各行とシート下の 1 行で示す。締切（<code>lead_time_min</code>、仮 60 分）より前の枠はもともと受付終了のため、この例では 1 時間・2 時間ブロックではお客様側は変わらず、「今日はここまで」で 20:00 以降の枠が止まる（FR-A-06、AT-21、CW-19）。</li>
   </ul>
 </section>
 
@@ -90,12 +104,12 @@
     </div></div>
     <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
   </div>
-    <div class="toast"><span>18:00–19:00 をブロックしました</span><span class="undo">取り消す</span></div>
+    <div class="toast"><span class="msg">18:00–19:00 をブロックしました<small>お客様側の変化なし（19:00 まで受付終了済み）</small></span><span class="undo">取り消す</span></div>
     <div class="note" style="top:120px;right:8px"><span class="n">3</span>境界は衝突しない</div>
     <div class="note" style="bottom:156px;right:8px"><span class="n">4</span>取り消し = 作成の取消</div>
   </div>
   <ul class="notes-list">
-    <li><span class="n">3</span>区間は半開 <code>[18:00, 19:00)</code>。19:00 開始の予約とは重ならない（FR-S-01）。顧客サイトの 18:00・18:15… の枠は次回取得から消える（非キャッシュ、AT-21）。</li>
+    <li><span class="n">3</span>区間は半開 <code>[18:00, 19:00)</code>。19:00 開始の予約とは重ならない（FR-S-01）。トーストの 2 行目にお客様側への影響を出す（「今日はここまで」なら「お客様側は今日 20:00 以降の枠を止めました」）。空き枠は非キャッシュで、影響があれば次回取得から消える（AT-21、CW-19）。</li>
     <li><span class="n">4</span>5 秒以内の「取り消す」で <code>deleteTimeBlock</code>。トーストはタブバーの上（親指圏）に出す（FR-A-06）。</li>
   </ul>
 </section>
@@ -108,7 +122,7 @@
     <div class="header"><span class="back">←</span><span class="title">時間をブロック</span></div>
     <div class="content">
       <div class="field"><span class="label">かんたん設定</span>
-        <div class="seg"><div class="radio">今から 30 分</div><div class="radio">今から 1 時間</div><div class="radio">終日</div><div class="radio on">期間指定</div></div>
+        <div class="seg"><div class="radio">今から 1 時間</div><div class="radio">今から 2 時間</div><div class="radio">今日はここまで</div><div class="radio on">期間指定</div></div>
       </div>
       <div class="field"><span class="label">種別</span>
         <div class="radio-group"><div class="radio"><span class="dot"></span>休憩</div><div class="radio on"><span class="dot"></span>私用</div><div class="radio"><span class="dot"></span>臨時休業</div></div>
@@ -116,7 +130,7 @@
       <div class="field"><span class="label">開始</span><div class="two"><div class="input sel filled">10/16(金)</div><div class="input sel filled">20:00</div></div></div>
       <div class="field"><span class="label">終了</span><div class="two"><div class="input sel filled">10/16(金)</div><div class="input sel filled">21:30</div></div></div>
       <div class="field"><span class="label">ラベル<span class="req">任意・自分用</span></span><div class="input filled">歯医者</div></div>
-      <p class="help">重なる予約はありません。顧客サイトでは 20:00–21:30 の枠が表示されなくなります。</p>
+      <p class="help">重なる予約はありません。お客様の予約サイトでは 20:00–21:30 の枠が表示されなくなります。</p>
     </div>
     <div class="sticky-cta"><button class="btn primary">ブロックする</button></div>
   </div>
@@ -157,7 +171,7 @@
   </div>
   <ul class="notes-list">
     <li><span class="n">8</span>同一トランザクション（advisory lock 下）で有効予約との重なりを確認し警告。行タップで S-A-04 を開き、連絡・キャンセルできる（FR-A-06）。</li>
-    <li><span class="n">9</span>既定は「期間を変更」。「それでもブロック」で保存しても予約は残り、新規受付だけが止まる（FR-A-06, AT-21）。</li>
+    <li><span class="n">9</span>既定は「期間を変更」。「それでもブロック」で保存しても予約は残り、新規受付だけが止まる（FR-A-06, AT-21）。手動予約の「それでも保存」は OI-11 の決定で削除したが、ブロックは予約を消さないためこのボタンは残す。</li>
   </ul>
 </section>
 

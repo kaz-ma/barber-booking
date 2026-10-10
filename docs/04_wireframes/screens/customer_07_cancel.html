@@ -25,7 +25,7 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.1 / S-C-06 キャンセル（/ja/cancel/{token}）</h1>
+    <h1>WF-C v0.2 / S-C-06 キャンセル（/ja/cancel/{token}）</h1>
     <p class="muted">完了画面・ICS のリンクから開く。締切前のみセルフキャンセル、締切後は電話へ。予約日 = 2026-10-13(火) 19:00、締切 = 17:00（仮: 2 時間前）。</p>
   </div>
 
@@ -77,15 +77,15 @@
       <div class="scrim"></div>
       <div class="sheet-modal" role="dialog" aria-modal="true">
         <div class="grip"></div>
-        <h2>本当にキャンセルしますか？</h2>
+        <h2>この予約を取り消しますか？</h2>
         <p class="muted">10月13日(火) 19:00–20:00 カット のご予約を取り消します。この操作は元に戻せません。</p>
-        <div class="row"><a class="btn secondary">戻る</a><a class="btn danger">キャンセルする</a></div>
-          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>初期 focus: 戻る</div>
+        <div class="row"><a class="btn secondary">予約を残す</a><a class="btn danger">予約を取り消す</a></div>
+          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>初期 focus: 予約を残す</div>
           <div class="note" style="bottom:88px;right:8px"><span class="n">2</span></div>
       </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span><code>&lt;dialog aria-modal&gt;</code>。初期フォーカスは安全側の「戻る」、Esc で閉じてトリガーへフォーカスを戻す（FR-C-12）。</li>
-      <li><span class="n">2</span>「キャンセルする」で <code>cancelBooking</code> がトークン再照合・締切再判定 → <code>cancelled_by_customer</code> → 管理者へ Push（FR-C-12, FR-A-10）。</li>
+      <li><span class="n">1</span><code>&lt;dialog aria-modal&gt;</code>。ボタンは結果を表す動詞句「予約を残す」「予約を取り消す」にし、「キャンセルする＝ダイアログを閉じる」と読み違えないようにする（CW-16）。初期フォーカスは安全側の「予約を残す」、Esc で閉じてトリガーへフォーカスを戻す（FR-C-12）。</li>
+      <li><span class="n">2</span>「予約を取り消す」で <code>cancelBooking</code> がトークン再照合・締切再判定 → <code>cancelled_by_customer</code> → 管理者へ Push（FR-C-12, FR-A-10）。</li>
     </ul>
   </div>
   <div class="artboard">
@@ -94,8 +94,9 @@
       <div class="statusbar"><span>13:21</span><span>5G ▮▮▮</span></div>
       <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
       <div class="content">
-        <h1 class="anc">✓ キャンセルしました          <div class="note" style="top:2px;right:0"><span class="n">1</span>aria-live</div></h1>
+        <h1 class="anc">✓ 予約を取り消しました          <div class="note" style="top:2px;right:0"><span class="n">1</span>aria-live</div></h1>
         <p>10月13日(火) 19:00–20:00 カット のご予約を取り消しました。</p>
+        <p class="anc"><b>店主に通知しました。お電話は不要です。</b><span class="note" style="bottom:-20px;right:0"><span class="n">3</span>店に伝わった</span></p>
         <div class="card sunken"><div class="kv"><span class="k">予約番号</span><span class="mono">K7Q2-M9XD</span><span class="k">状態</span><span>キャンセル済み</span></div></div>
         <a class="btn primary anc">もう一度予約する          <div class="note" style="top:-14px;right:-4px"><span class="n">2</span>再予約</div></a>
         <a class="btn ghost">トップへ戻る</a>
@@ -104,8 +105,9 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>完了を見出しで伝え <code>aria-live</code> で通知。同じリンクを再度開くと (e) になる（トークンハッシュを NULL 化）（FR-C-12）。</li>
+      <li><span class="n">1</span>完了を見出し「予約を取り消しました」（確認シートの語に揃える、CW-16）で伝え <code>aria-live</code> で通知。同じリンクを再度開くと (e) になる（トークンハッシュを NULL 化）（FR-C-12）。</li>
       <li><span class="n">2</span>「もう一度予約する」→ <code>/ja/book</code>。日時変更はこの導線で行う（FR-C-12, CT-08）。</li>
+      <li><span class="n">3</span>店に伝わったかで迷って電話しないよう「店主に通知しました。お電話は不要です。」を 1 行（取り消しと同時に管理 PWA の受信箱・Push に届く）（FR-C-12, FR-A-10、CW-17）。</li>
     </ul>
   </div>
   <div class="artboard">
@@ -146,6 +148,29 @@
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span>存在の有無を推測されないよう理由は 1 文にまとめて区別しない（列挙対策）。無効トークンは IP あたり 10 回/分で 429（FR-C-12）。予約 CTA と電話で行き止まりにしない（FR-C-16）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(f) /en 予約内容の再表示（締切前）<small>/en/cancel/{token} — 英語の締切文（CW-03）</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>13:20</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">日本語</span><a class="btn small secondary">Call</a></header>
+      <div class="content">
+        <h1>Cancel your booking</h1>
+        <div class="card">
+          <p>Booking no. <b class="mono">K7Q2-M9XD</b></p>
+          <p class="when">Tue, Oct 13<br>7:00 PM–8:00 PM JST</p>
+          <div class="kv"><span class="k">Menu</span><span>Haircut</span><span class="k">Price</span><span>¥— (student rate)</span><span class="k">Name</span><span>Emma Wilson</span></div>
+        </div>
+        <p class="anc"><b>You can cancel online until Tue, Oct 13, 5:00 PM JST.</b><span class="note" style="bottom:-20px;right:0"><span class="n">1</span>締切を日時で</span></p>
+        <a class="btn danger">Cancel this booking</a>
+        <p class="muted">To change the date or time, cancel and book again.</p>
+        <div class="spacer"></div>
+        <div class="footer-tel"><p class="caption">Need help? Please call us.</p><a class="btn secondary">Call +81 6-xxxx-xxxx</a></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>/en は締切を曜日つき英語日付＋12 時間制＋JST で明記。確認シートは “Cancel this booking?” と “Keep booking / Cancel booking”、完了は “Your booking has been cancelled. We've let the shop know — no need to call.”（FR-C-12, FR-C-13、CW-16, CW-17）。</li>
     </ul>
   </div>
 </div>

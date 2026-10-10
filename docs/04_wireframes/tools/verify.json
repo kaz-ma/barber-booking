@@ -1,0 +1,132 @@
+[
+  {
+    "file": "admin_01_login_install.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 4,
+      "interactive": 9,
+      "bookings": 0,
+      "notes": 11
+    }
+  },
+  {
+    "file": "admin_02_today.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 4,
+      "interactive": 26,
+      "bookings": 15,
+      "notes": 15
+    }
+  },
+  {
+    "file": "admin_03_week.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 3,
+      "interactive": 27,
+      "bookings": 0,
+      "notes": 8
+    }
+  },
+  {
+    "file": "admin_04_booking_detail.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 2,
+      "interactive": 15,
+      "bookings": 0,
+      "notes": 9
+    }
+  },
+  {
+    "file": "admin_05_manual_booking.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 4,
+      "interactive": 51,
+      "bookings": 0,
+      "notes": 15
+    }
+  },
+  {
+    "file": "admin_06_time_block.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 6,
+      "interactive": 43,
+      "bookings": 3,
+      "notes": 13
+    }
+  },
+  {
+    "file": "admin_07_inbox.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 3,
+      "interactive": 22,
+      "bookings": 0,
+      "notes": 8
+    }
+  },
+  {
+    "file": "admin_08_settings_hours_menus.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 5,
+      "interactive": 91,
+      "bookings": 0,
+      "notes": 15
+    }
+  },
+  {
+    "file": "admin_09_settings_notifications.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 4,
+      "interactive": 41,
+      "bookings": 0,
+      "notes": 11
+    }
+  },
+  {
+    "file": "admin_10_customers.html",
+    "errors": [],
+    "overflow": [],
+    "small": [],
+    "cards": [],
+    "counts": {
+      "frames": 4,
+      "interactive": 27,
+      "bookings": 0,
+      "notes": 10
+    }
+  }
+]

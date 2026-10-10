@@ -25,7 +25,7 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.1 / S-C-01 トップ（/ja・/en）</h1>
+    <h1>WF-C v0.2 / S-C-01 トップ（/ja・/en）</h1>
     <p class="muted">グレースケール構造のみ。¥— は価格未確定（OI-01）。【要確認】は第 2 回打ち合わせで確定する項目。</p>
   </div>
 
@@ -68,10 +68,10 @@
         <section class="section anc">
           <h2>アクセス</h2>
           <div class="img map">地図（静的画像）</div>
-          <p>大阪市阿倍野区…【要確認: OI-09】</p>
-          <p class="muted">○○駅 ○番出口から徒歩 ○分</p>
+          <p><b>Neuer Barber</b><br>大阪市阿倍野区阿倍野筋2-4-48<br>金村ビル3階南（B）</p>
+          <p class="muted">天王寺駅から徒歩 5 分</p>
           <a class="btn secondary">地図アプリで開く</a>
-          <div class="note" style="top:0;right:0"><span class="n">5</span>住所【要確認】</div>
+          <div class="note" style="top:0;right:0"><span class="n">5</span>店名・住所</div>
         </section>
         <section class="section anc">
           <h2>対応言語・お支払い</h2>
@@ -96,7 +96,7 @@
       <li><span class="n">2</span>言語切替は相手言語名をネイティブ表記（EN / 日本語）、国旗なし。Cookie に保存し、自動リダイレクトはしない（FR-C-13）。</li>
       <li><span class="n">3</span>受付時間・定休・予約締切は <code>business_hours</code> と <code>settings.lead_time_min</code> から差し込む。仮値 18:00–24:00・月曜定休・60 分（FR-C-08、OI-02/06）。</li>
       <li><span class="n">4</span>メニュー概要は 3 件のみ。価格・所要時間は <code>menus</code> から取得しハードコードしない（FR-C-02, FR-C-14）。¥— は OI-01 確定まで。</li>
-      <li><span class="n">5</span>アクセスは最寄駅出口＋地図リンク。店名・住所の掲載可否は未決（FR-C-14、OI-09）。非掲載なら「予約確定後にご案内」に置換。</li>
+      <li><span class="n">5</span>店名「Neuer Barber」、住所「大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）」、天王寺駅から徒歩 5 分、「地図アプリで開く」（地図アプリの検索 URL）。OI-09 で掲載可と決定（FR-C-14）。地図は静的画像で、出口番号は確認後に追記。</li>
       <li><span class="n">6</span>対応言語・決済手段は placeholder。決済はサイト上で扱わない（FR-C-14【要確認】）。</li>
       <li><span class="n">7</span>Instagram プロフィールへの外部リンク。逆方向（Instagram → 予約 URL）の定型文は納品物（FR-C-17）。</li>
       <li><span class="n">8</span>フッターに <code>tel:</code> とポリシー 2 ページを常設（FR-C-16, FR-C-15）。掲載番号は OI-10。</li>
@@ -139,12 +139,14 @@
           <a class="btn secondary">See all 9 menus and prices</a>
           <div class="note" style="top:0;right:0"><span class="n">3</span>name_en</div>
         </section>
-        <section class="section">
+        <section class="section anc">
           <h2>Access</h2>
           <div class="img map">Map (static image)</div>
-          <p>Abeno-ku, Osaka … [TBC: OI-09]</p>
-          <p class="muted">○ min walk from ○○ Station, Exit ○</p>
+          <p><b>Neuer Barber</b><br>Kanamura Bldg 3F South (B), 2-4-48 Abenosuji, Abeno-ku, Osaka</p>
+          <p class="caption">大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）</p>
+          <p class="muted">5 min walk from Tennoji Station</p>
           <a class="btn secondary">Open in Maps</a>
+          <div class="note" style="top:0;right:0"><span class="n">5</span>日本語住所も</div>
         </section>
         <section class="section">
           <h2>Languages &amp; payment</h2>
@@ -167,7 +169,8 @@
       <li><span class="n">1</span>/en ではトグルが「日本語」。<code>&lt;html lang&gt;</code> と hreflang を切替（FR-C-13）。</li>
       <li><span class="n">2</span>時刻は 12 時間制＋「JST」、端末 TZ に変換しない。「All times are Japan Standard Time (JST)」を明記（FR-C-08, FR-C-13）。</li>
       <li><span class="n">3</span>メニュー名は <code>menus.name_en</code>（仮訳）。日本語の混在なし（固有名詞を除く）（FR-C-02, FR-C-13）。</li>
-      <li><span class="n">4</span>店名・氏名は固有名詞として日本語のまま（ローマ字表記は【要確認】）。訪日客向けに国番号付きで表示（<code>tel:+816…</code>）（FR-C-16、P-02）。</li>
+      <li><span class="n">4</span>担当者名は固有名詞として日本語のまま（ローマ字表記は【要確認】）。訪日客向けに国番号付きで表示（<code>tel:+816…</code>）（FR-C-16、P-02）。</li>
+      <li><span class="n">5</span>住所は英語表記の下に日本語表記も小さく添え、タクシーや道案内で見せられるようにする。英語住所の表記は「ローマ字表記」の確認に含める（FR-C-13, FR-C-14、OI-09 決定）。</li>
     </ul>
   </div>
 </div>

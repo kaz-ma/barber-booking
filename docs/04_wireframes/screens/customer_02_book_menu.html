@@ -26,18 +26,19 @@
 .acc.anc{overflow:visible}
 .acc.anc .acc-head{border-radius:8px 8px 0 0}
 .input.focus{outline:3px solid var(--wf-line-strong);outline-offset:2px}
+.sticky-cta{display:flex;flex-direction:column;gap:8px}
 </style>
 </head>
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.1 / S-C-02 予約 ステップ 1 メニューを選ぶ（/ja/book）</h1>
-    <p class="muted">同一ページの段階開示フォーム。後続段階は初期状態で折りたたみ、メニュー以外の入力欄は表示しない（FR-C-01）。</p>
+    <h1>WF-C v0.2 / S-C-02 予約 ステップ 1 メニューを選ぶ（/ja/book）</h1>
+    <p class="muted">予約の順序は「1 メニュー → 2 日時 → 3 お客様情報 → 4 確認」（OI-19 決定）。メニューを選ぶと「空き時間を見て予約する」で /ja/book/time へ進む。この画面に入力欄は出さない（FR-C-01）。</p>
   </div>
 
   <!-- ===== initial ===== -->
   <div class="artboard">
-    <p class="frame-title">(a) 初期表示<small>/ja/book — 9 メニュー、後続段階は ▸ で折りたたみ</small></p>
+    <p class="frame-title">(a) 初期表示<small>/ja/book — 9 メニュー。未選択のあいだは固定 CTA を出さない</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>9:41</span><span>5G ▮▮▮</span></div>
       <header class="header">
@@ -46,8 +47,8 @@
       </header>
       <ol class="stepper anc">
         <li class="step current"><b>1</b><br>メニューを選ぶ</li>
-        <li class="step"><b>2</b><br>お客様情報</li>
-        <li class="step"><b>3</b><br>日時を選ぶ</li>
+        <li class="step"><b>2</b><br>日時を選ぶ</li>
+        <li class="step"><b>3</b><br>お客様情報</li>
         <li class="step"><b>4</b><br>確認</li>
         <div class="note" style="top:4px;right:16px"><span class="n">1</span>4 段・動詞形</div>
       </ol>
@@ -68,28 +69,24 @@
           <label class="card mcard"><span class="mdot"></span><div class="mbody"><div class="row between"><h3>編み込み・特殊ヘア</h3><span class="muted">60分</span></div><p class="caption">Braids &amp; Special Styling</p><p class="price">一般 ¥— ／ 学生 ¥—</p><p class="muted">コーンロウ・編み込み。長さにより要相談</p></div></label>
           <label class="card mcard"><span class="mdot"></span><div class="mbody"><div class="row between"><h3>アイロンパーマ（濡れパン）</h3><span class="muted">60分</span></div><p class="caption">Iron Perm (Nurepan)</p><p class="price">一般 ¥— ／ 学生 ¥—</p><p class="muted">濡れたような質感の短髪パーマ</p></div></label>
         </div>
-        <div class="stack anc">
-          <div class="acc collapsed"><div class="acc-head">▸ お名前・ふりがな</div></div>
-          <div class="acc collapsed"><div class="acc-head">▸ ご職業</div></div>
-          <div class="acc collapsed"><div class="acc-head">▸ 電話番号</div></div>
-          <div class="acc collapsed"><div class="acc-head">▸ 備考</div></div>
-          <div class="note" style="top:-12px;right:8px"><span class="n">4</span>未開示（hidden）</div>
+        <div class="acc collapsed anc"><div class="acc-head">▸ 次: 日時を選ぶ（空き時間）</div>
+          <div class="note" style="top:-14px;right:8px"><span class="n">4</span>次は日時</div>
         </div>
         <div class="acc collapsed anc"><div class="acc-head">▸ キャンセルポリシー（要点）</div><div class="note" style="top:12px;right:8px"><span class="n">5</span></div></div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>4 段ステッパーは動詞形ラベル。<code>&lt;ol&gt;</code>、現在段に <code>aria-current="step"</code>（FR-C-01）。順序は OI-19【要確認】。</li>
+      <li><span class="n">1</span>4 段ステッパーは動詞形ラベル「1 メニューを選ぶ → 2 日時を選ぶ → 3 お客様情報 → 4 確認」。<code>&lt;ol&gt;</code>、現在段に <code>aria-current="step"</code>（FR-C-01、OI-19 決定: 日時先行）。</li>
       <li><span class="n">2</span>9 枚のカードは <code>&lt;label&gt;</code>＋ネイティブラジオ。JS 前でも選べる。名称 JA/EN・一般/学生価格・60 分・一言説明を併記（FR-C-02）。</li>
       <li><span class="n">3</span>学生価格が未設定のメニューは「一般」だけを出す。料金は <code>menus</code> から取得（FR-C-02, FR-C-04、OI-01）。</li>
-      <li><span class="n">4</span>後続段階は見出しのみ・薄色で「この先に何があるか」だけ示す。中身は <code>hidden</code> で読み上げ対象外（FR-C-01）。</li>
+      <li><span class="n">4</span>次の段は見出しだけを薄色で示し、「メニューの次に空き時間が見られる」ことを伝える。トップの CTA「空き時間を見て予約する」との期待のずれを埋める（FR-C-01、CW-02）。</li>
       <li><span class="n">5</span>キャンセルポリシー要点はメニュー画面下部に折りたたみで掲示（FR-C-15、要件 12.2）。</li>
     </ul>
   </div>
 
   <!-- ===== menu selected ===== -->
   <div class="artboard">
-    <p class="frame-title">(b) メニュー選択直後<small>/ja/book?step=name — カードは要約に畳まれ、氏名段階が開く</small></p>
+    <p class="frame-title">(b) メニュー選択直後<small>/ja/book — 選んだカードはその場で選択表示、固定 CTA が現れる</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>9:41</span><span>5G ▮▮▮</span></div>
       <header class="header">
@@ -97,47 +94,35 @@
         <span class="lang">EN</span><a class="btn small secondary">電話</a>
       </header>
       <ol class="stepper">
-        <li class="step done"><b>1</b><br>メニューを選ぶ</li>
-        <li class="step current"><b>2</b><br>お客様情報</li>
-        <li class="step"><b>3</b><br>日時を選ぶ</li>
+        <li class="step current"><b>1</b><br>メニューを選ぶ</li>
+        <li class="step"><b>2</b><br>日時を選ぶ</li>
+        <li class="step"><b>3</b><br>お客様情報</li>
         <li class="step"><b>4</b><br>確認</li>
       </ol>
       <div class="content">
-        <div class="acc done anc">
-          <div class="acc-head"><span>✓ メニュー</span><a class="edit change">変更</a></div>
-          <div class="acc-body summary">カット ／ 60分 ／ 一般 ¥—</div>
-          <div class="note" style="top:56px;right:8px"><span class="n">1</span>要約に畳む</div>
-        </div>
-        <div class="acc anc">
-          <div class="acc-head"><span>お名前・ふりがな</span><span class="caption">ステップ 2/4</span></div>
-          <div class="acc-body">
-            <div class="field">
-              <span class="label">お名前<span class="req">必須</span></span>
-              <div class="input focus">例: 山田 太郎</div>
-            </div>
-            <div class="field">
-              <span class="label">ふりがな<span class="req">必須</span></span>
-              <div class="input">例: やまだ たろう</div>
-            </div>
-          </div>
-          <div class="note" style="top:-12px;right:8px"><span class="n">2</span>見出しへ focus</div>
-        </div>
         <div class="stack">
-          <div class="acc collapsed"><div class="acc-head">▸ ご職業</div></div>
-          <div class="acc collapsed"><div class="acc-head">▸ 電話番号</div></div>
-          <div class="acc collapsed"><div class="acc-head">▸ 備考</div></div>
+          <h2>メニューを選ぶ</h2>
+          <p class="help">料金は税込。すべて 60 分です。学生料金は「ご職業」で学生を選ぶと適用されます。</p>
         </div>
+        <div class="stack anc" role="radiogroup">
+          <label class="card mcard selected"><span class="mdot"></span><div class="mbody"><div class="row between"><h3>カット</h3><span class="muted">60分</span></div><p class="caption">Haircut</p><p class="price">一般 ¥— ／ 学生 ¥—</p><p class="muted">シャンプー・眉カット込み。フェードも可</p></div></label>
+          <label class="card mcard"><span class="mdot"></span><div class="mbody"><div class="row between"><h3>カットパーマ</h3><span class="muted">60分</span></div><p class="caption">Cut &amp; Perm</p><p class="price">一般 ¥— ／ 学生 ¥—</p><p class="muted">カットとパーマのセット。波巻きも可</p></div></label>
+          <label class="card mcard"><span class="mdot"></span><div class="mbody"><div class="row between"><h3>カットカラー</h3><span class="muted">60分</span></div><p class="caption">Cut &amp; Color</p><p class="price">一般 ¥— ／ 学生 ¥—</p><p class="muted">カット＋全体カラー。白髪ぼかしにも対応</p></div></label>
+          <p class="caption">… ほか 6 メニュー（(a) と同じ）</p>
+          <div class="note" style="top:-12px;right:8px"><span class="n">1</span>選択表示のみ</div>
+        </div>
+        <div class="acc collapsed"><div class="acc-head">▸ キャンセルポリシー（要点）</div></div>
         <div class="spacer"></div>
       </div>
       <div class="sticky-cta anc">
-        <a class="btn primary">次へ</a>
-        <div class="note" style="top:-14px;right:8px"><span class="n">3</span>段階ごとに検証</div>
+        <p class="summary">カット ／ 60分 ／ 一般 ¥—（学生 ¥—）</p>
+        <a class="btn primary">空き時間を見て予約する</a>
+        <div class="note" style="top:-14px;right:8px"><span class="n">2</span>CTA 文言（CW-02）</div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>カードをタップすると選択内容（名称・所要時間・適用料金）を 1 行要約に畳む。「変更」で再展開し、後続の入力値は保持（FR-C-01, FR-C-02）。</li>
-      <li><span class="n">2</span>次段「お名前・ふりがな」を開示し見出し（<code>tabIndex=-1</code>）へフォーカス、<code>aria-live</code> で「ステップ 2/4: お客様情報」。<code>pushState(?step=name)</code> でブラウザ「戻る」に対応（FR-C-01, FR-C-03）。</li>
-      <li><span class="n">3</span>固定 CTA は「次へ」。押下時にこの段階だけ <code>safeParse</code>。入力欄を隠さないよう <code>scroll-padding-bottom</code> を確保（FR-C-01、WCAG 2.4.11）。</li>
+      <li><span class="n">1</span>カードをタップするとラジオが選択状態になるだけで、画面は切り替わらない（選び直しが 1 タップで済む）。<code>?menu=</code> 付きで来た場合はこの状態で開く（FR-C-01, FR-C-02, CT-01）。</li>
+      <li><span class="n">2</span>選択後にだけ固定 CTA を出す。文言は「空き時間を見て予約する / See available times」で、トップの CTA と同じ言葉で次の画面（日時）を予告する。押すと <code>/ja/book/time?menu=cut</code> へ <code>push</code>。日時画面から「戻る」で選択を保ったままこの状態に戻る（FR-C-01、CW-02、OI-19）。</li>
     </ul>
   </div>
 </div>

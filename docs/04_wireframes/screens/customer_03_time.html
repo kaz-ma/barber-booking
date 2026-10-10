@@ -27,109 +27,146 @@
 .sk.line{height:16px;width:60%}
 .sticky-cta{display:flex;flex-direction:column;gap:8px}
 .slot.full{cursor:default}
+.day span:first-child{white-space:nowrap}
+.legend{flex-wrap:wrap;gap:4px 12px}
 </style>
 </head>
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.1 / S-C-03 予約 ステップ 3 日時を選ぶ（/ja/book/time）</h1>
-    <p class="muted">今日 = 2026-10-10(土)。週ストリップ（日 1 タップ）＋選択日の時間枠リスト（時間 1 タップ）。記号は ◎ と × の 2 つだけ。時刻はすべて JST。</p>
+    <h1>WF-C v0.2 / S-C-03 予約 ステップ 2 日時を選ぶ（/ja/book/time）</h1>
+    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。週ストリップ（日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 満席 / 締切）を添える。時刻はすべて JST。</p>
   </div>
 
-  <!-- (a) mixed -->
+  <!-- (a) mixed: tap a slot -> next step -->
   <div class="artboard">
-    <p class="frame-title">(a) 空き混在・1 枠を選択<small>/ja/book/time?menu=cut&amp;date=2026-10-10</small></p>
+    <p class="frame-title">(a) 空き混在 → 枠をタップすると次の段へ<small>/ja/book/time?menu=cut&amp;date=2026-10-10 — 17:02 時点。固定 CTA は出さない</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step current"><b>3</b><br>日時を選ぶ</li><li class="step"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
         <div class="row between anc"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a><div class="note" style="top:-12px;left:-4px"><span class="n">1</span>横スクロール 14 日</div></div>
         <div class="weekstrip anc">
-          <a class="day selected" aria-pressed="true"><span>土</span><b>10</b><span class="mark">◎</span><span class="mark">今日</span></a>
-          <a class="day"><span>日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off" aria-disabled="true"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
+          <a class="day selected" aria-pressed="true"><span>今日</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>明日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
           <a class="day"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off" aria-disabled="true"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
+          <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="note" style="top:-36px;right:56px"><span class="n">2</span>今日・明日</div>
         </div>
-        <div class="legend anc"><span>◎ 予約できます</span><span>× 満席</span><div class="note" style="top:0;right:0"><span class="n">2</span>凡例は直下</div></div>
-        <div class="muted anc">予約締切: 開始 60 分前まで<div class="note" style="top:0;right:0"><span class="n">3</span>締切を文で</div></div>
+        <div class="legend anc"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span><div class="note" style="top:0;right:0"><span class="n">3</span>凡例は直下</div></div>
+        <p class="muted">予約締切: 開始 60 分前まで</p>
         <h3>10月10日(土) の空き時間</h3>
         <div class="slots anc">
-          <div class="slot full" aria-disabled="true"><span>18:00–19:00</span><span class="sym">× 満席</span></div>
-          <div class="slot full" aria-disabled="true"><span>18:30–19:30</span><span class="sym">× 満席</span></div>
+          <div class="slot full" aria-label="18:00–19:00 予約できません（受付締切）"><span>18:00–19:00</span><span class="sym">× 締切</span></div>
+          <div class="slot full" aria-label="18:30–19:30 予約できません（満席）"><span>18:30–19:30</span><span class="sym">× 満席</span></div>
           <a class="slot"><span>19:00–20:00</span><span class="sym">◎</span></a>
-          <a class="slot selected" aria-pressed="true"><span>19:30–20:30</span><span>✓ 選択中</span></a>
-          <div class="slot full" aria-disabled="true"><span>20:00–21:00</span><span class="sym">× 満席</span></div>
+          <a class="slot selected" aria-current="true"><span>19:30–20:30</span><span>✓ 選択 → 次へ</span></a>
+          <div class="slot full" aria-label="20:00–21:00 予約できません（満席）"><span>20:00–21:00</span><span class="sym">× 満席</span></div>
           <a class="slot"><span>20:30–21:30</span><span class="sym">◎</span></a>
           <a class="slot"><span>21:00–22:00</span><span class="sym">◎</span></a>
-          <div class="slot full" aria-disabled="true"><span>21:30–22:30</span><span class="sym">× 満席</span></div>
+          <div class="slot full" aria-label="21:30–22:30 予約できません（満席）"><span>21:30–22:30</span><span class="sym">× 満席</span></div>
           <a class="slot"><span>22:00–23:00</span><span class="sym">◎</span></a>
           <a class="slot"><span>22:30–23:30</span><span class="sym">◎</span></a>
           <a class="slot"><span>23:00–24:00</span><span class="sym">◎</span></a>
-          <div class="note" style="top:12px;right:96px"><span class="n">4</span>非活性</div>
-          <div class="note" style="top:124px;right:56px"><span class="n">5</span>開始–終了</div>
+          <div class="note" style="top:12px;right:96px"><span class="n">4</span>× は文字の行</div>
+          <div class="note" style="top:124px;right:120px"><span class="n">5</span>タップで次へ</div>
         </div>
         <a class="btn secondary anc">本日の残り枠はお電話で 06-xxxx-xxxx<div class="note" style="top:-14px;right:-4px"><span class="n">6</span></div></a>
       </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>週ストリップは今日から 14 日分を横スクロール、日セル 44×64px 以上。× の日（定休・満席・締切）は × と理由ラベル（満席は取り消し線も）で示し、リンクにもボタンにもしない（フォーカス対象外）（FR-C-07, FR-C-08）。</li>
+      <li><span class="n">2</span>今日と翌日のセルは曜日の位置に「今日」「明日」（/en は Today / Tmrw）。曜日は <code>aria-label</code>（例「10月11日 日曜 明日」）と下の見出しで伝える（FR-C-07、CW-04）。</li>
+      <li><span class="n">3</span>凡例はストリップの直下に置き、FR-C-07 の文言どおり「◎ 予約できます ／ × 予約できません」。× の理由は日セル・行の右に小さく出す（定休 / 満席 / 締切）。○・△ は使わない（FR-C-07、CW-09）。</li>
+      <li><span class="n">4</span>× の時刻は行を残すが、ボタンにせずフォーカスも当てない（<code>&lt;div&gt;</code> の文字情報として読み上げる）。行が消えると「その時刻は営業していない」と誤解されるため（CW-10、FR-C-07 本文は要件で改める）。18:00 は 17:02 時点でリードタイム 60 分を過ぎたため「締切」、満席と区別する（CW-09）。</li>
+      <li><span class="n">5</span>◎ の枠をタップすると選択表示（✓）を 150ms 見せてそのまま次の段へ進む。確認ボタンは挟まない（日 1＋時間 1 タップ、US-01、CW-05）。遷移先は通常 <code>/ja/book/info</code>（お客様情報）。お客様情報が入力済み（確認画面から「変更」で来た・(d) の 23P01 から戻った）なら <code>/ja/book/confirm</code> へ直行する。</li>
+      <li><span class="n">6</span>リストの下に電話導線（HPB の TEL 枠と同じ位置）（FR-C-07, FR-C-16、OI-10）。</li>
+    </ul>
+  </div>
+
+  <!-- (a') returned with a selection -->
+  <div class="artboard">
+    <p class="frame-title">(a') 戻ってきたとき（選択を保持）<small>?menu=cut&amp;date=2026-10-13 — お客様情報・確認の「変更」やブラウザの「戻る」で戻った</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:05</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
+      <div class="content">
+        <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
+        <div class="row between"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a></div>
+        <div class="weekstrip">
+          <a class="day"><span>今日</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>明日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
+          <a class="day selected" aria-pressed="true"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
+          <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+        </div>
+        <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
+        <p class="muted">予約締切: 開始 60 分前まで</p>
+        <h3>10月13日(火) の空き時間</h3>
+        <div class="slots anc">
+          <a class="slot"><span>18:00–19:00</span><span class="sym">◎</span></a>
+          <a class="slot"><span>18:30–19:30</span><span class="sym">◎</span></a>
+          <a class="slot selected" aria-pressed="true"><span>19:00–20:00</span><span>✓ 選択中</span></a>
+          <a class="slot"><span>19:30–20:30</span><span class="sym">◎</span></a>
+          <div class="slot full" aria-label="20:00–21:00 予約できません（満席）"><span>20:00–21:00</span><span class="sym">× 満席</span></div>
+          <div class="note" style="top:68px;right:96px"><span class="n">1</span>選択を残す</div>
+        </div>
+        <p class="caption">20:30 以降も同様に続く</p>
+        <div class="spacer"></div>
+      </div>
       <div class="sticky-cta anc">
-        <p class="summary">10月10日(土) 19:30–20:30 ／ カット</p>
+        <p class="summary">10月13日(火) 19:00–20:00 ／ カット</p>
         <a class="btn primary">この日時で進む</a>
-        <div class="note" style="top:-14px;right:8px"><span class="n">7</span>固定 CTA</div>
+        <div class="note" style="top:-14px;right:8px"><span class="n">2</span>戻ったときだけ</div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>週ストリップは今日から 14 日分を横スクロール、日セル 44×64px 以上。定休・満席は × とラベル（「定休」「満席」）＋取り消し線で、色に頼らず非活性にする（FR-C-07, FR-C-08）。</li>
-      <li><span class="n">2</span>凡例はストリップの直下に置き、◎ と × の 2 記号だけ使う（○・△ は使わない）。文言を FR-C-07 の「×：予約できません」に揃えるかは【要確認】（FR-C-07）。</li>
-      <li><span class="n">3</span>締切は文で明記。分数は <code>settings.lead_time_min</code> から差し込む（FR-C-07、OI-06）。</li>
-      <li><span class="n">4</span>満席の時刻は × ＋取り消し線の非活性表示（ボタンにしない、フォーカス不可）。FR-C-07 / US-01 は「埋まった時刻は描画しない」ため、実装で行ごと隠すか【要確認】。</li>
-      <li><span class="n">5</span>18:00–23:00 開始の 30 分刻みで「開始–終了」を併記。閉店をまたぐ 23:30 開始は出さない（FR-C-07, FR-C-08）。</li>
-      <li><span class="n">6</span>凡例・リストの下に電話導線（HPB の TEL 枠と同じ位置）（FR-C-07, FR-C-16、OI-10）。</li>
-      <li><span class="n">7</span>枠を選ぶと固定バーに選択内容を要約し「この日時で進む」。誤タップ防止の 1 段だが、US-01「日 1＋時間 1 タップで確認へ」との整合は【要確認】（CT-03）。</li>
+      <li><span class="n">1</span>次の段から戻ったときは前の選択を残して表示する。別の ◎ をタップすれば (a) と同じく即座に次の段へ進む（FR-C-01, FR-C-07）。</li>
+      <li><span class="n">2</span>固定バー「この日時で進む」は、戻ってきて選択が残っているときだけ出す。選び直さずにそのまま進めるための近道で、初回の表示 (a) には出さない（CW-05、論点 2）。</li>
     </ul>
   </div>
 
   <!-- (b) empty day -->
   <div class="artboard">
-    <p class="frame-title">(b) 選択日に空きなし<small>?date=2026-10-10 — 本日の枠は締切済み、翌日も満席</small></p>
+    <p class="frame-title">(b) 選択日に空きなし<small>?date=2026-10-10 — 22:31。本日の枠は締切済み、明日も満席</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>22:31</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step current"><b>3</b><br>日時を選ぶ</li><li class="step"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
         <div class="row between"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a></div>
         <div class="weekstrip">
-          <a class="day selected off" aria-pressed="true"><span>土</span><b>10</b><span class="mark">×</span><span class="mark">今日</span></a>
-          <div class="day off"><span>日</span><b><s>11</s></b><span class="mark">×</span><span class="mark">満席</span></div>
+          <div class="day off selected" aria-current="date"><span>今日</span><b>10</b><span class="mark">×</span><span class="mark">締切</span></div>
+          <div class="day off"><span>明日</span><b><s>11</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
           <a class="day"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
         </div>
-        <div class="legend"><span>◎ 予約できます</span><span>× 満席</span></div>
+        <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
         <h3>10月10日(土) の空き時間</h3>
         <div class="card sunken anc">
           <p><b>この日は空きがありません。</b></p>
-          <p class="muted">次の空き: 10/13(火) 18:00–</p>
+          <p class="muted">本日の受付は締め切りました（開始 60 分前まで）。次の空き: 10/13(火) 18:00–</p>
           <a class="btn secondary">次に空いている日へ 10/13(火)</a>
           <div class="note" style="top:-14px;right:8px"><span class="n">1</span>次の空き日</div>
         </div>
         <a class="btn secondary anc">本日の残り枠はお電話で 06-xxxx-xxxx<div class="note" style="top:-14px;right:-4px"><span class="n">2</span></div></a>
         <div class="spacer"></div>
       </div>
-      <div class="sticky-cta anc">
-        <p class="help">時間を選ぶと進めます</p>
-        <a class="btn primary" aria-disabled="true">この日時で進む</a>
-      </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>空の日は理由を責めずに「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。14 日すべて空きなしなら「2 週間以内に空きがありません。お電話で…」＋「さらに先を見る」（FR-C-07）。</li>
+      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。14 日すべて空きなしなら「2 週間以内に空きがありません。お電話で…」＋「さらに先を見る」（FR-C-07）。選択がないので固定 CTA は出さない。</li>
       <li><span class="n">2</span>当日はリードタイム 60 分で締切済みでも、電話なら受けられる可能性があるため電話導線を残す（FR-C-08, FR-C-16）。</li>
     </ul>
   </div>
@@ -140,20 +177,19 @@
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step current"><b>3</b><br>日時を選ぶ</li><li class="step"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
         <div class="row between"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a></div>
         <div class="weekstrip anc"><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div>
           <div class="note" style="top:28px;right:8px"><span class="n">1</span>高さ固定 CLS 0</div></div>
-        <div class="legend"><span>◎ 予約できます</span><span>× 満席</span></div>
+        <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
         <div class="sk line"></div>
         <div class="slots anc"><div class="sk slot-sk"></div><div class="sk slot-sk"></div><div class="sk slot-sk"></div>
           <div class="note" style="top:12px;right:8px"><span class="n">2</span>aria-busy</div></div>
         <div class="spacer"></div>
       </div>
-      <div class="sticky-cta"><p class="help">時間を選ぶと進めます</p><a class="btn primary" aria-disabled="true">この日時で進む</a></div>
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span>ストリップ 7 セルと時間枠 3 行を実寸のスケルトンで確保し、読込完了時のずれ（CLS）を 0 にする。Neon 冷起動の数百 ms を吸収（FR-C-07、NFR-AV-02）。</li>
@@ -163,31 +199,31 @@
 
   <!-- (d) conflict -->
   <div class="artboard">
-    <p class="frame-title">(d) 確定時に枠が埋まった（23P01）<small>S-C-04 から戻った直後 — ?date=2026-10-13、枠を再取得済み</small></p>
+    <p class="frame-title">(d) 確定時に枠が埋まった（23P01）<small>S-C-04 確認から戻った直後 — ?date=2026-10-13、枠を再取得済み</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:09</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
-      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step current"><b>3</b><br>日時を選ぶ</li><li class="step"><b>4</b><br>確認</li></ol>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="banner anc" role="alert"><span>⚠</span><div><b>申し訳ありません。その枠はたった今埋まりました。</b><br>別の時間をお選びください。入力したお客様情報はそのまま残っています。</div>
           <div class="note" style="top:-14px;right:8px"><span class="n">1</span>aria-live</div></div>
         <div class="weekstrip">
-          <a class="day"><span>土</span><b>10</b><span class="mark">◎</span><span class="mark">今日</span></a>
-          <a class="day"><span>日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>今日</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>明日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
           <a class="day selected" aria-pressed="true"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
         </div>
-        <div class="legend"><span>◎ 予約できます</span><span>× 満席</span></div>
+        <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
         <h3>10月13日(火) の空き時間</h3>
         <div class="slots anc">
           <a class="slot"><span>18:00–19:00</span><span class="sym">◎</span></a>
           <a class="slot"><span>18:30–19:30</span><span class="sym">◎</span></a>
-          <div class="slot full" aria-disabled="true"><span>19:00–20:00</span><span class="sym">× 満席</span></div>
-          <div class="slot full" aria-disabled="true"><span>19:30–20:30</span><span class="sym">× 満席</span></div>
+          <div class="slot full" aria-label="19:00–20:00 予約できません（満席）"><span>19:00–20:00</span><span class="sym">× 満席</span></div>
+          <div class="slot full" aria-label="19:30–20:30 予約できません（満席）"><span>19:30–20:30</span><span class="sym">× 満席</span></div>
           <a class="slot"><span>20:00–21:00</span><span class="sym">◎</span></a>
           <a class="slot"><span>20:30–21:30</span><span class="sym">◎</span></a>
           <a class="slot"><span>21:00–22:00</span><span class="sym">◎</span></a>
@@ -195,11 +231,57 @@
         </div>
         <p class="caption">21:30 以降も同様に続く</p>
       </div>
-      <div class="sticky-cta"><p class="help">時間を選ぶと進めます</p><a class="btn primary" aria-disabled="true">この日時で進む</a></div>
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span><code>createBooking</code> が排他制約違反（23P01 → <code>conflict: slot_taken</code>）を返したら S-C-03 に戻し、<code>role="alert"</code> で理由と次の行動を伝える。入力値は保持（FR-C-10, CT-05, AT-03）。</li>
-      <li><span class="n">2</span>選んでいた 19:00–20:00 は <code>router.refresh()</code> 後に × になり、選択を解除。CTA は未選択のため非活性表示（FR-C-07, FR-C-10）。</li>
+      <li><span class="n">2</span>選んでいた 19:00–20:00 は <code>router.refresh()</code> 後に × になり、選択を解除。固定 CTA は出さない。別の ◎ をタップすると、お客様情報は入力済みのため確認（S-C-04）へ直行する（FR-C-07, FR-C-10）。</li>
+    </ul>
+  </div>
+
+  <!-- (e) EN -->
+  <div class="artboard">
+    <p class="frame-title">(e) /en 空き混在<small>/en/book/time?menu=cut&amp;date=2026-10-10 — 12 時間制＋JST（CW-03）</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">Booking</div><span class="lang">日本語</span><a class="btn small secondary">Call</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>Menu</li><li class="step current"><b>2</b><br>Date &amp; time</li><li class="step"><b>3</b><br>Your details</li><li class="step"><b>4</b><br>Review</li></ol>
+      <div class="content">
+        <div class="row between"><p><b>Haircut (60 min)</b></p><a class="btn small ghost">Change menu</a></div>
+        <div class="row between"><a class="btn small secondary" aria-label="Previous week">‹</a><b>October 2026</b><a class="btn small secondary" aria-label="Next week">›</a></div>
+        <div class="weekstrip anc">
+          <a class="day selected" aria-pressed="true"><span>Today</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>Tmrw</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>Mon</span><b>12</b><span class="mark">×</span><span class="mark">Closed</span></div>
+          <a class="day"><span>Tue</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>Wed</span><b><s>14</s></b><span class="mark">×</span><span class="mark">Full</span></div>
+          <a class="day"><span>Thu</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <a class="day"><span>Fri</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="note" style="top:-36px;right:56px"><span class="n">1</span>Today / Tmrw</div>
+        </div>
+        <div class="legend anc"><span>◎ Available</span><span>/</span><span>× Unavailable</span><div class="note" style="top:0;right:0"><span class="n">2</span>EN 凡例</div></div>
+        <p class="muted">Book at least 60 min before start. All times are JST.</p>
+        <h3>Sat, Oct 10 — available times</h3>
+        <div class="slots anc">
+          <div class="slot full" aria-label="6:00 PM–7:00 PM unavailable (Cutoff)"><span>6:00 PM–7:00 PM</span><span class="sym">× Cutoff</span></div>
+          <div class="slot full" aria-label="6:30 PM–7:30 PM unavailable (Full)"><span>6:30 PM–7:30 PM</span><span class="sym">× Full</span></div>
+          <a class="slot"><span>7:00 PM–8:00 PM</span><span class="sym">◎</span></a>
+          <a class="slot"><span>7:30 PM–8:30 PM</span><span class="sym">◎</span></a>
+          <div class="slot full" aria-label="8:00 PM–9:00 PM unavailable (Full)"><span>8:00 PM–9:00 PM</span><span class="sym">× Full</span></div>
+          <a class="slot"><span>8:30 PM–9:30 PM</span><span class="sym">◎</span></a>
+          <a class="slot"><span>9:00 PM–10:00 PM</span><span class="sym">◎</span></a>
+          <div class="slot full" aria-label="9:30 PM–10:30 PM unavailable (Full)"><span>9:30 PM–10:30 PM</span><span class="sym">× Full</span></div>
+          <a class="slot"><span>10:00 PM–11:00 PM</span><span class="sym">◎</span></a>
+          <a class="slot"><span>10:30 PM–11:30 PM</span><span class="sym">◎</span></a>
+          <a class="slot"><span>11:00 PM–12:00 AM</span><span class="sym">◎</span></a>
+          <div class="note" style="top:12px;right:110px"><span class="n">3</span>最長の行</div>
+        </div>
+        <a class="btn secondary">Call us for today: +81 6-xxxx-xxxx</a>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>/en の日セルは Today / Tmrw と英語の曜日略称（Mon…）、× の理由は Closed / Full / Cutoff（FR-C-07, FR-C-13）。</li>
+      <li><span class="n">2</span>凡例は「◎ Available / × Unavailable」。締切文と「All times are JST」を 1 文にまとめる（FR-C-07, FR-C-13）。</li>
+      <li><span class="n">3</span>12 時間制の最長の行「11:00 PM–12:00 AM」と「× Cutoff」が 1 行に収まり、横はみ出しがないことを検証対象にした（CW-03）。タップの振る舞いは (a) と同じ。</li>
     </ul>
   </div>
 </div>
