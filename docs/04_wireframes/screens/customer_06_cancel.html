@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-C 06 キャンセル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local layout only (no new colors) */
+.sheet-head{flex-basis:100%;display:flex;flex-direction:column;gap:4px}
+.sheet-head h1{font-size:20px}
+.notes-list{margin:0}
+.anc{position:relative}
+.header{gap:8px}
+.header .title{font-size:15px}
+.when{font-size:18px;font-weight:700;line-height:1.4}
+.kv{grid-template-columns:72px 1fr}
+.btn.danger{border-width:2px}
+.sheet-modal .row .btn{flex:1}
+.footer-tel{display:flex;flex-direction:column;gap:4px}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="sheet-head">
+    <h1>WF-C v0.1 / S-C-06 キャンセル（/ja/cancel/{token}）</h1>
+    <p class="muted">完了画面・ICS のリンクから開く。締切前のみセルフキャンセル、締切後は電話へ。予約日 = 2026-10-13(火) 19:00、締切 = 17:00（仮: 2 時間前）。</p>
+  </div>
+
+  <div class="artboard">
+    <p class="frame-title">(a) 予約内容の再表示（締切前）<small>/ja/cancel/{token} — GET は副作用なし</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>13:20</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <div class="content">
+        <h1>ご予約のキャンセル</h1>
+        <div class="card anc">
+          <p>予約番号 <b class="mono">K7Q2-M9XD</b></p>
+          <p class="when">10月13日(火) 19:00–20:00</p>
+          <div class="kv"><span class="k">メニュー</span><span>カット</span><span class="k">料金</span><span>¥—（学生料金）</span><span class="k">お名前</span><span>山田 太郎 様</span></div>
+          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>表示のみ</div>
+        </div>
+        <p class="anc"><b>キャンセルは 10月13日(火) 17:00 まで受け付けます</b></p>
+        <a class="btn danger anc">この予約をキャンセルする          <div class="note" style="top:-14px;right:-4px"><span class="n">2</span>破壊的操作</div></a>
+        <p class="muted">日時の変更は、キャンセル後にもう一度ご予約ください。</p>
+        <div class="spacer"></div>
+        <div class="footer-tel"><p class="caption">お困りの場合はお電話ください</p><a class="btn secondary">電話する 06-xxxx-xxxx</a></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>リンクを開いただけでは何も変わらない（GET は表示のみ）。リンクプレビューによる誤キャンセルを防ぐ（FR-C-12, FR-S-06）。</li>
+      <li><span class="n">2</span>締切時刻を具体的な日時で明記し、ボタンはブランド色ではなく枠線 2px の破壊的操作スタイル。変更は「キャンセル後に再予約」で案内（FR-C-12、OI-05）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(b) 確認ダイアログ（シート）<small>「この予約をキャンセルする」タップ後</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>13:21</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <div class="content">
+        <h1>ご予約のキャンセル</h1>
+        <div class="card anc">
+          <p>予約番号 <b class="mono">K7Q2-M9XD</b></p>
+          <p class="when">10月13日(火) 19:00–20:00</p>
+          <div class="kv"><span class="k">メニュー</span><span>カット</span><span class="k">料金</span><span>¥—（学生料金）</span><span class="k">お名前</span><span>山田 太郎 様</span></div>
+
+        </div>
+        <p class="anc"><b>キャンセルは 10月13日(火) 17:00 まで受け付けます</b></p>
+        <a class="btn danger anc">この予約をキャンセルする</a>
+        <p class="muted">日時の変更は、キャンセル後にもう一度ご予約ください。</p>
+        <div class="spacer"></div>
+        <div class="footer-tel"><p class="caption">お困りの場合はお電話ください</p><a class="btn secondary">電話する 06-xxxx-xxxx</a></div>
+      </div>
+    </div>
+      <div class="scrim"></div>
+      <div class="sheet-modal" role="dialog" aria-modal="true">
+        <div class="grip"></div>
+        <h2>本当にキャンセルしますか？</h2>
+        <p class="muted">10月13日(火) 19:00–20:00 カット のご予約を取り消します。この操作は元に戻せません。</p>
+        <div class="row"><a class="btn secondary">戻る</a><a class="btn danger">キャンセルする</a></div>
+          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>初期 focus: 戻る</div>
+          <div class="note" style="bottom:88px;right:8px"><span class="n">2</span></div>
+      </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span><code>&lt;dialog aria-modal&gt;</code>。初期フォーカスは安全側の「戻る」、Esc で閉じてトリガーへフォーカスを戻す（FR-C-12）。</li>
+      <li><span class="n">2</span>「キャンセルする」で <code>cancelBooking</code> がトークン再照合・締切再判定 → <code>cancelled_by_customer</code> → 管理者へ Push（FR-C-12, FR-A-10）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(c) キャンセル完了<small>cancelBooking → ok</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>13:21</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <div class="content">
+        <h1 class="anc">✓ キャンセルしました          <div class="note" style="top:2px;right:0"><span class="n">1</span>aria-live</div></h1>
+        <p>10月13日(火) 19:00–20:00 カット のご予約を取り消しました。</p>
+        <div class="card sunken"><div class="kv"><span class="k">予約番号</span><span class="mono">K7Q2-M9XD</span><span class="k">状態</span><span>キャンセル済み</span></div></div>
+        <a class="btn primary anc">もう一度予約する          <div class="note" style="top:-14px;right:-4px"><span class="n">2</span>再予約</div></a>
+        <a class="btn ghost">トップへ戻る</a>
+        <div class="spacer"></div>
+        <div class="footer-tel"><a class="btn secondary">電話する 06-xxxx-xxxx</a></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>完了を見出しで伝え <code>aria-live</code> で通知。同じリンクを再度開くと (e) になる（トークンハッシュを NULL 化）（FR-C-12）。</li>
+      <li><span class="n">2</span>「もう一度予約する」→ <code>/ja/book</code>。日時変更はこの導線で行う（FR-C-12, CT-08）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(d) 締切後<small>締切（開始 2 時間前）〜予約終了まで</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:45</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <div class="content">
+        <h1>ご予約のキャンセル</h1>
+        <div class="card sunken">
+          <p>予約番号 <b class="mono">K7Q2-M9XD</b></p>
+          <p class="when">10月13日(火) 19:00–20:00</p>
+          <div class="kv"><span class="k">メニュー</span><span>カット</span><span class="k">料金</span><span>¥—（学生料金）</span><span class="k">お名前</span><span>山田 太郎 様</span></div>
+
+        </div>
+        <div class="banner anc" role="status"><span>⚠</span><span><b>キャンセル締切（ご来店の 2 時間前）を過ぎています。</b>お電話でご連絡ください。</span>          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>電話に切替</div></div>
+        <a class="btn primary">電話する 06-xxxx-xxxx</a>
+        <p class="caption">営業時間 18:00–24:00（月曜定休）</p>
+        <div class="spacer"></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>締切後はキャンセルボタンを出さず、理由と次の行動（電話）だけを大きく示す。<code>tel:</code> の番号は OI-10、締切分数は OI-05（FR-C-12, FR-C-16）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(e) 無効なトークン<small>形式不正・不一致・キャンセル済み・来店済み・表示期限切れ</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>20:10</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <div class="content">
+        <h1>この予約は見つかりません</h1>
+        <p class="muted">リンクが正しくないか、すでにキャンセル・来店済み、または表示期限が過ぎている可能性があります。</p>
+        <a class="btn primary anc">予約する<div class="note" style="top:-14px;right:-4px"><span class="n">1</span>理由を区別しない</div></a>
+        <a class="btn secondary">電話する 06-xxxx-xxxx</a>
+        <div class="spacer"></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>存在の有無を推測されないよう理由は 1 文にまとめて区別しない（列挙対策）。無効トークンは IP あたり 10 回/分で 429（FR-C-12）。予約 CTA と電話で行き止まりにしない（FR-C-16）。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

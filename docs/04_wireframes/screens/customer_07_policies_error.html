@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-C 07 ポリシー・エラー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local layout only (no new colors) */
+.sheet-head{flex-basis:100%;display:flex;flex-direction:column;gap:4px}
+.sheet-head h1{font-size:20px}
+.notes-list{margin:0}
+.anc{position:relative}
+.header{gap:8px}
+.header .title{font-size:15px}
+.content h1{font-size:22px}
+.ph{height:10px;background:var(--wf-sunken);border-radius:4px}
+.ph.s{width:68%}
+.sec{display:flex;flex-direction:column;gap:8px}
+.toc{margin:0;padding-left:20px;font-size:14px;line-height:1.8}
+.toc a{text-decoration:underline}
+.kv{grid-template-columns:104px 1fr}
+.center{text-align:center;align-items:stretch}
+.bigcode{font-size:48px;font-weight:700;color:var(--wf-faint);text-align:center;line-height:1.2}
+.footer{border-top:1px solid var(--wf-line);background:var(--wf-surface);padding:16px;display:flex;flex-direction:column;gap:8px}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="sheet-head">
+    <h1>WF-C v0.1 / S-C-08・09 ポリシー（骨子）＋ S-C-10 404・エラー</h1>
+    <p class="muted">ポリシーは見出し構成のみ（グレーの線 = 本文）。本文は要件 12 章の草案と弁護士確認を経て確定する。</p>
+  </div>
+
+  <div class="artboard">
+    <p class="frame-title">(a) S-C-08 プライバシーポリシー（骨子）<small>/ja/privacy — 見出しのみ。本文は要件 12.1・弁護士確認後</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>21:14</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small primary">予約する</a></header>
+      <div class="content">
+        <div class="stack"><h1>プライバシーポリシー</h1><p class="caption anc">版 1.0 ／ 改定日 2026-xx-xx【要確認】</p></div>
+        <div class="card sunken anc"><h3>目次</h3><ol class="toc"><li><a>事業者の氏名・住所</a></li><li><a>取得する情報</a></li><li><a>利用目的</a></li><li><a>第三者提供</a></li><li><a>委託先</a></li><li><a>安全管理措置（外国のクラウド事業者の利用）</a></li><li><a>保存期間</a></li><li><a>開示・訂正・利用停止・削除の手続</a></li><li><a>苦情の申出先</a></li><li><a>Cookie 等</a></li><li><a>改定</a></li></ol><div class="note" style="top:8px;right:8px"><span class="n">1</span>アンカー目次</div></div>
+        <section class="sec"><h2>1. 事業者の氏名・住所</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>2. 取得する情報</h2><div class="ph"></div><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>3. 利用目的</h2><div class="ph"></div><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>4. 第三者提供</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>5. 委託先</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec anc"><h2>6. 安全管理措置（外国のクラウド事業者の利用）</h2><div class="ph"></div><div class="ph"></div><div class="ph s"></div><div class="note" style="top:40px;right:0"><span class="n">2</span>米国クラウド明記</div></section>
+        <section class="sec"><h2>7. 保存期間</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>8. 開示・訂正・利用停止・削除の手続</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>9. 苦情の申出先</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>10. Cookie 等</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec anc"><h2>11. 改定</h2><div class="ph"></div><div class="ph s"></div><div class="note" style="top:0;right:0"><span class="n">3</span>版 = policy_version</div></section>
+      </div>
+      <footer class="footer"><a class="btn secondary">電話する 06-xxxx-xxxx</a><p class="caption">プライバシーポリシー ／ キャンセルポリシー・特定商取引法に基づく表記</p></footer>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>冒頭に目次（ページ内アンカー）。長文を見出しで走査できるようにする（FR-C-15）。</li>
+      <li><span class="n">2</span>法 32 条の公表事項として、外国（米国）のクラウド事業者 Vercel・Neon の利用とサーバ所在地を明記（FR-C-15、要件 12.1）。</li>
+      <li><span class="n">3</span>版と改定日を掲載し、確認画面の同意記録 <code>consents.policy_version</code> と対応させる（FR-C-09, FR-C-15）。</li>
+      <li><span class="n">4</span>/en も同じ見出し構成で用意（FR-C-13, FR-C-15）。ヘッダーの予約 CTA・フッターの電話はポリシーページでも常設（FR-C-14, FR-C-16）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(b) S-C-09 キャンセルポリシー（骨子）<small>/ja/policy — キャンセルポリシー＋特商法表記を 1 ページで兼用</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>21:14</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small primary">予約する</a></header>
+      <div class="content">
+        <div class="stack"><h1>キャンセルポリシー・特定商取引法に基づく表記</h1><p class="caption">版 1.0 ／ 改定日 2026-xx-xx【要確認】</p></div>
+        <section class="sec anc"><h2>1. キャンセル・変更の方法と締切</h2><div class="ph"></div><div class="ph"></div><div class="ph s"></div><div class="note" style="top:34px;right:0"><span class="n">1</span>締切を差し込み</div></section>
+        <p class="muted">ご予約時刻の 2 時間前まで、予約完了画面のリンクまたはお電話で。【要確認: OI-05】</p>
+        <section class="sec"><h2>2. 当日・無断キャンセルが続いた場合</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>3. 遅刻について</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec"><h2>4. やむを得ない事情の場合</h2><div class="ph"></div><div class="ph s"></div></section>
+        <section class="sec anc"><h2>特定商取引法に基づく表記</h2><div class="kv"><span class="k">事業者</span><span>長田 健豊</span><span class="k">所在地</span><span>【要確認: OI-09】</span><span class="k">電話番号</span><span>06-xxxx-xxxx【要確認: OI-10】</span><span class="k">料金</span><span>メニュー一覧のとおり（税込）</span><span class="k">お支払い</span><span>ご来店時</span><span class="k">提供時期</span><span>ご予約の日時</span><span class="k">キャンセル</span><span>上記ポリシーのとおり</span></div><div class="note" style="top:0;right:0"><span class="n">2</span>兼用ページ</div></section>
+      </div>
+      <footer class="footer"><a class="btn secondary">電話する 06-xxxx-xxxx</a><p class="caption">プライバシーポリシー ／ キャンセルポリシー・特定商取引法に基づく表記</p></footer>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>締切は <code>settings.cancel_deadline_min</code> から差し込み、確認・完了・キャンセル画面の表記と常に一致させる（FR-C-12, FR-C-15、OI-05）。見出しは要件 12.2 の草案に対応。</li>
+      <li><span class="n">2</span>特商法の表示事項は同ページ下部の表で兼用（該当性は不明だが掲載、要件 12.4）。所在地・電話は OI-09/10 の結論に従う（FR-C-15）。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(c) S-C-10 404<small>not-found.tsx — 存在しない URL</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>21:14</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small primary">予約する</a></header>
+      <div class="content">
+        <div class="spacer"></div>
+        <p class="bigcode">404</p>
+        <div class="stack center"><h1>ページが見つかりません</h1><p class="muted">URL が間違っているか、ページが移動・削除された可能性があります。</p></div>
+        <a class="btn primary anc">空き時間を見て予約する<div class="note" style="top:-14px;right:-4px"><span class="n">1</span>行き止まりにしない</div></a>
+        <a class="btn secondary">電話する 06-xxxx-xxxx</a>
+        <a class="btn ghost">トップへ戻る</a>
+        <div class="spacer"></div>
+      </div>
+      <footer class="footer"><a class="btn secondary">電話する 06-xxxx-xxxx</a><p class="caption">プライバシーポリシー ／ キャンセルポリシー・特定商取引法に基づく表記</p></footer>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>404 でも予約 CTA・電話・トップへの 3 導線を出し、Instagram 等の古いリンクから来た人を逃さない（FR-C-16, CT 図 S-C-10）。ロケール接頭辞なしの URL は <code>global-not-found.tsx</code> で同じ表示。</li>
+    </ul>
+  </div>
+  <div class="artboard">
+    <p class="frame-title">(d) S-C-10 エラー<small>error.tsx — 予期しない例外</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>21:14</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small primary">予約する</a></header>
+      <div class="content">
+        <div class="spacer"></div>
+        <div class="stack center"><h1>問題が発生しました</h1><p class="muted">時間をおいてもう一度お試しいただくか、お電話でご予約ください。入力途中の内容はこの端末に残っています。</p></div>
+        <a class="btn primary anc">もう一度試す<div class="note" style="top:-14px;right:-4px"><span class="n">1</span>reset()</div></a>
+        <a class="btn secondary">電話する 06-xxxx-xxxx</a>
+        <p class="caption anc" style="text-align:center">エラー番号: 4f1c…（お問い合わせ時にお伝えください）</p>
+        <div class="spacer"></div>
+      </div>
+      <footer class="footer"><a class="btn secondary">電話する 06-xxxx-xxxx</a><p class="caption">プライバシーポリシー ／ キャンセルポリシー・特定商取引法に基づく表記</p></footer>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>「もう一度試す」は <code>reset()</code>。予約下書きは <code>sessionStorage</code> に残るため再入力不要（S-C-02 状態 error）。<code>digest</code> を表示し Sentry と突合（FR-S-11, FR-C-16）。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

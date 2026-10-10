@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-C 04 確認</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local layout only (no new colors) */
+.sheet-head{flex-basis:100%;display:flex;flex-direction:column;gap:4px}
+.sheet-head h1{font-size:20px}
+.notes-list{margin:0}
+.anc{position:relative}
+.header{gap:8px}
+.stepper{margin:0;padding:8px 16px 0;list-style:none;line-height:1.3}
+.stepper .step b{font-size:13px}
+.answers{margin:0}
+.answers .ans dd,.answers .ans dt{margin:0}
+.answers .ans .change{display:inline-flex;align-items:center;min-height:44px;margin-top:-10px}
+.answers .ans .change[aria-disabled="true"]{opacity:.45}
+.checkbox{min-height:56px;padding:12px;border:1px solid var(--wf-line-strong);border-radius:var(--wf-radius);align-items:center}
+.checkbox .box{margin-top:0;display:grid;place-items:center}
+.checkbox .box.on{background:var(--wf-ink)}
+.checkbox .box.on::after{content:"✓";color:var(--wf-on-accent);font-size:14px;font-weight:700;line-height:1}
+.checkbox .req{font-size:12px;color:var(--wf-muted);margin-left:6px}
+.turnstile{height:64px;border:1px dashed var(--wf-line-strong);border-radius:var(--wf-radius);display:grid;place-items:center;font-size:13px;color:var(--wf-muted);text-align:center}
+.sticky-cta{display:flex;flex-direction:column;gap:8px}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="sheet-head">
+    <h1>WF-C v0.1 / S-C-04 予約 ステップ 4 確認（/ja/book/confirm）</h1>
+    <p class="muted">全入力を再入力なしで確認し、ポリシーに同意して確定する。料金 ¥— は OI-01 確定まで。</p>
+  </div>
+
+  <div class="artboard">
+    <p class="frame-title">(a) 同意未チェック<small>/ja/book/confirm — 確定ボタンは非活性表示</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step done"><b>3</b><br>日時を選ぶ</li><li class="step current"><b>4</b><br>確認</li></ol>
+      <div class="content">
+        <div class="stack"><h2>ご予約内容の確認</h2><p class="help">内容を確認し、よろしければ確定してください。</p></div>
+        <dl class="answers anc">
+          <div class="ans"><dt class="k">メニュー</dt><dd>カット</dd><a class="change" aria-label="メニューを変更">変更</a></div>
+          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><a class="change" aria-label="料金を変更">変更</a></div>
+          <div class="ans"><dt class="k">所要時間</dt><dd>60分</dd><span></span></div>
+          <div class="ans"><dt class="k">日時</dt><dd>10月13日(火)<br>19:00–20:00（日本時間）</dd><a class="change" aria-label="日時を変更">変更</a></div>
+          <div class="ans"><dt class="k">お名前</dt><dd>山田 太郎（やまだ たろう）</dd><a class="change" aria-label="お名前を変更">変更</a></div>
+          <div class="ans"><dt class="k">ご職業</dt><dd>学生</dd><a class="change" aria-label="ご職業を変更">変更</a></div>
+          <div class="ans"><dt class="k">電話番号</dt><dd>090-1234-5678</dd><a class="change" aria-label="電話番号を変更">変更</a></div>
+          <div class="ans"><dt class="k">備考</dt><dd>サイドは短めに、上は長さを残したいです</dd><a class="change" aria-label="備考を変更">変更</a></div>
+          <div class="note" style="top:-14px;right:64px"><span class="n">1</span>Check answers</div>
+          <div class="note" style="top:104px;left:0"><span class="n">2</span>学生料金</div>
+          <div class="note" style="top:228px;left:0"><span class="n">3</span>曜日・JST</div>
+        </dl>
+        <div class="card sunken anc">
+          <h3>キャンセルについて</h3>
+          <p class="muted">ご来店の 2 時間前（10月13日(火) 17:00）までは、予約完了画面のリンクからキャンセルできます。それ以降はお電話でご連絡ください。</p>
+          <a class="btn ghost">キャンセルポリシー全文を読む</a>
+          <div class="note" style="top:-14px;right:8px"><span class="n">4</span>要点 1〜2 行</div>
+        </div>
+        <p class="muted">ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。</p>
+        <label class="checkbox anc"><span class="box"></span><span>プライバシーポリシーとキャンセルポリシーに同意します<span class="req">必須</span></span>
+          <div class="note" style="top:-14px;right:8px"><span class="n">5</span>必須</div></label>
+        <div class="turnstile anc">Cloudflare Turnstile<br>（非対話・通常は表示されない）
+          <div class="note" style="top:-14px;right:8px"><span class="n">6</span>不可視</div></div>
+      </div>
+      <div class="sticky-cta anc">
+        <a class="btn primary" aria-disabled="true">この内容で予約を確定する</a>
+        <p class="help">同意にチェックすると確定できます</p>
+          <div class="note" style="top:-14px;right:8px"><span class="n">7</span>aria-disabled</div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>Check-answers 形式（<code>&lt;dl&gt;</code>）で全入力を一覧し、各行に対象名入りの「変更」。戻って直しても他の値は保持し、再入力を求めない（FR-C-09、WCAG 3.3.7）。</li>
+      <li><span class="n">2</span>学生を選んだ場合は「学生料金」ラベル付きで適用料金を表示。確定値はサーバーで再計算しスナップショット（FR-C-04, FR-C-09）。</li>
+      <li><span class="n">3</span>日時は曜日つき・「日本時間」を明記。/en は “Tue, Oct 13, 7:00 PM–8:00 PM JST”（FR-C-09, FR-C-13）。</li>
+      <li><span class="n">4</span>確定ボタン直上にキャンセルポリシー要点（締切は <code>cancel_deadline_min</code> から算出、OI-05）と全文リンク。リンクは同じタブで開き、戻っても下書きが残る（FR-C-09, FR-C-15）。</li>
+      <li><span class="n">5</span>同意チェックは必須・ラベル全体がタップ領域（56px）。プライバシー文言とセットで <code>consents</code> に版と共に記録（FR-C-09、要件 12.3）。</li>
+      <li><span class="n">6</span>Turnstile は非対話型（画像 CAPTCHA なし、WCAG 3.3.8）。ハニーポット欄も視覚的に隠して送信（FR-C-10、FR-S-05）。</li>
+      <li><span class="n">7</span>未チェック時は見た目を非活性にするが <code>disabled</code> にはせず <code>aria-disabled</code>。押すと「プライバシーポリシーとキャンセルポリシーへの同意にチェックしてください」をチェック欄の直下に出す（FR-C-09）。</li>
+    </ul>
+  </div>
+
+  <div class="artboard">
+    <p class="frame-title">(b) 同意チェック済み<small>確定ボタンが活性化</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step done"><b>3</b><br>日時を選ぶ</li><li class="step current"><b>4</b><br>確認</li></ol>
+      <div class="content">
+        <div class="stack"><h2>ご予約内容の確認</h2><p class="help">内容を確認し、よろしければ確定してください。</p></div>
+        <dl class="answers anc">
+          <div class="ans"><dt class="k">メニュー</dt><dd>カット</dd><a class="change" aria-label="メニューを変更">変更</a></div>
+          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><a class="change" aria-label="料金を変更">変更</a></div>
+          <div class="ans"><dt class="k">所要時間</dt><dd>60分</dd><span></span></div>
+          <div class="ans"><dt class="k">日時</dt><dd>10月13日(火)<br>19:00–20:00（日本時間）</dd><a class="change" aria-label="日時を変更">変更</a></div>
+          <div class="ans"><dt class="k">お名前</dt><dd>山田 太郎（やまだ たろう）</dd><a class="change" aria-label="お名前を変更">変更</a></div>
+          <div class="ans"><dt class="k">ご職業</dt><dd>学生</dd><a class="change" aria-label="ご職業を変更">変更</a></div>
+          <div class="ans"><dt class="k">電話番号</dt><dd>090-1234-5678</dd><a class="change" aria-label="電話番号を変更">変更</a></div>
+          <div class="ans"><dt class="k">備考</dt><dd>サイドは短めに、上は長さを残したいです</dd><a class="change" aria-label="備考を変更">変更</a></div>
+
+        </dl>
+        <div class="card sunken anc">
+          <h3>キャンセルについて</h3>
+          <p class="muted">ご来店の 2 時間前（10月13日(火) 17:00）までは、予約完了画面のリンクからキャンセルできます。それ以降はお電話でご連絡ください。</p>
+          <a class="btn ghost">キャンセルポリシー全文を読む</a>
+
+        </div>
+        <p class="muted">ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。</p>
+        <label class="checkbox anc"><span class="box on"></span><span>プライバシーポリシーとキャンセルポリシーに同意します<span class="req">必須</span></span>
+          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>チェック</div></label>
+        <div class="turnstile anc">Cloudflare Turnstile<br>（非対話・通常は表示されない）
+</div>
+      </div>
+      <div class="sticky-cta anc">
+        <a class="btn primary">この内容で予約を確定する</a>
+        <p class="help">確定するとすぐに予約が成立します（承認待ちはありません）</p>
+          <div class="note" style="top:-14px;right:8px"><span class="n">2</span>即時確定</div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>チェック状態はボックスの塗り＋✓で示す（色だけに頼らない）（FR-C-09）。</li>
+      <li><span class="n">2</span>承認ステップなしで即時確定することをボタン直下に明記。Server Action で 検証 → ハニーポット → レート制限 → Turnstile → INSERT の順に処理（FR-C-10）。</li>
+    </ul>
+  </div>
+
+  <div class="artboard">
+    <p class="frame-title">(c) 送信中<small>useActionState pending — 二重送信を防ぐ</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:06</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step done"><b>2</b><br>お客様情報</li><li class="step done"><b>3</b><br>日時を選ぶ</li><li class="step current"><b>4</b><br>確認</li></ol>
+      <div class="content">
+        <div class="stack"><h2>ご予約内容の確認</h2><p class="help">内容を確認し、よろしければ確定してください。</p></div>
+        <dl class="answers anc">
+          <div class="ans"><dt class="k">メニュー</dt><dd>カット</dd><a class="change" aria-disabled="true" aria-label="メニューを変更">変更</a></div>
+          <div class="ans"><dt class="k">料金</dt><dd><b>¥—</b>（学生料金）<br><span class="caption">一般 ¥— から学生料金を適用</span></dd><a class="change" aria-disabled="true" aria-label="料金を変更">変更</a></div>
+          <div class="ans"><dt class="k">所要時間</dt><dd>60分</dd><span></span></div>
+          <div class="ans"><dt class="k">日時</dt><dd>10月13日(火)<br>19:00–20:00（日本時間）</dd><a class="change" aria-disabled="true" aria-label="日時を変更">変更</a></div>
+          <div class="ans"><dt class="k">お名前</dt><dd>山田 太郎（やまだ たろう）</dd><a class="change" aria-disabled="true" aria-label="お名前を変更">変更</a></div>
+          <div class="ans"><dt class="k">ご職業</dt><dd>学生</dd><a class="change" aria-disabled="true" aria-label="ご職業を変更">変更</a></div>
+          <div class="ans"><dt class="k">電話番号</dt><dd>090-1234-5678</dd><a class="change" aria-disabled="true" aria-label="電話番号を変更">変更</a></div>
+          <div class="ans"><dt class="k">備考</dt><dd>サイドは短めに、上は長さを残したいです</dd><a class="change" aria-disabled="true" aria-label="備考を変更">変更</a></div>
+          <div class="note" style="top:-14px;right:64px"><span class="n">2</span>変更も一時停止</div>
+        </dl>
+        <div class="card sunken anc">
+          <h3>キャンセルについて</h3>
+          <p class="muted">ご来店の 2 時間前（10月13日(火) 17:00）までは、予約完了画面のリンクからキャンセルできます。それ以降はお電話でご連絡ください。</p>
+          <a class="btn ghost">キャンセルポリシー全文を読む</a>
+
+        </div>
+        <p class="muted">ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。</p>
+        <label class="checkbox anc"><span class="box on"></span><span>プライバシーポリシーとキャンセルポリシーに同意します<span class="req">必須</span></span>
+</label>
+        <div class="turnstile anc">Cloudflare Turnstile<br>（非対話・通常は表示されない）
+</div>
+      </div>
+      <div class="sticky-cta anc">
+        <a class="btn primary" aria-disabled="true">⟳ 確定しています…</a>
+        <p class="help">そのままお待ちください。画面を閉じないでください</p>
+          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>二重送信防止</div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>送信中はボタンを <code>aria-disabled</code> にし文言を「確定しています…」へ。<code>submissionNonce</code> により同じ内容の二重送信でも予約は 1 件（23505 は既存予約を返す）（FR-C-10）。</li>
+      <li><span class="n">2</span>送信中は「変更」も操作不可。結果 <code>ok</code> → S-C-05 へ <code>replace</code>、<code>slot_taken</code> → S-C-03 (d)、<code>rate_limited</code> 等 → エラーサマリー＋電話（FR-C-10, CT-04〜06）。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

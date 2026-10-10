@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-C 01 トップ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local layout only (no new colors) */
+.sheet-head{flex-basis:100%;display:flex;flex-direction:column;gap:4px}
+.sheet-head h1{font-size:20px}
+.notes-list{margin:0}
+.anc{position:relative}
+.header .title{font-size:15px;line-height:1.3}
+.hero{height:200px}
+.map{height:120px}
+.section{display:flex;flex-direction:column;gap:8px}
+.menu-mini{flex-direction:row;align-items:center;justify-content:space-between;padding:12px 16px}
+.footer{border-top:1px solid var(--wf-line);background:var(--wf-surface);padding:16px;display:flex;flex-direction:column;gap:8px}
+.footer .btn.ghost{justify-content:flex-start;padding:0;background:none}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="sheet-head">
+    <h1>WF-C v0.1 / S-C-01 トップ（/ja・/en）</h1>
+    <p class="muted">グレースケール構造のみ。¥— は価格未確定（OI-01）。【要確認】は第 2 回打ち合わせで確定する項目。</p>
+  </div>
+
+  <!-- ===== JA ===== -->
+  <div class="artboard">
+    <p class="frame-title">(a) /ja トップ<small>/ja — 全体を縦スクロール。予約 CTA はヘッダーに常設</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+      <header class="header anc">
+        <div class="logo">LOGO</div>
+        <div class="title">Neuer Barber<br>長田</div>
+        <span class="lang">EN</span>
+        <a class="btn small primary">予約する</a>
+        <div class="note" style="top:46px;right:8px"><span class="n">1</span>CTA 常設</div>
+        <div class="note" style="top:46px;right:110px"><span class="n">2</span>EN</div>
+      </header>
+      <div class="content">
+        <div class="img hero">ヒーロー写真（施術風景・店内）</div>
+        <div class="stack">
+          <h1>仕事帰りに、夜 24 時まで。</h1>
+          <p class="muted">Neuer BARBERSHOP 内、長田 健豊のカット・パーマ・カラー。空いている時間を見て、その場で予約が確定します。</p>
+        </div>
+        <a class="btn primary">空き時間を見て予約する</a>
+        <div class="card sunken anc">
+          <div class="kv">
+            <span class="k">受付時間</span><span>18:00–24:00<br><span class="caption">最終受付 23:00 開始</span></span>
+            <span class="k">定休日</span><span>月曜日</span>
+            <span class="k">予約締切</span><span>開始 60 分前まで</span>
+          </div>
+          <div class="note" style="top:8px;right:8px"><span class="n">3</span>営業ルール</div>
+        </div>
+        <section class="section anc">
+          <h2>メニュー</h2>
+          <div class="card menu-mini"><div><h3>カット</h3><p class="caption">シャンプー・眉カット込み</p></div><div class="muted">¥— ／ 60分</div></div>
+          <div class="card menu-mini"><div><h3>カットカラー</h3><p class="caption">カット＋全体カラー</p></div><div class="muted">¥— ／ 60分</div></div>
+          <div class="card menu-mini"><div><h3>アイロンパーマ（濡れパン）</h3><p class="caption">濡れたような質感の短髪パーマ</p></div><div class="muted">¥— ／ 60分</div></div>
+          <a class="btn secondary">全 9 メニューと料金を見る</a>
+          <div class="note" style="top:0;right:0"><span class="n">4</span>DB から取得</div>
+        </section>
+        <section class="section anc">
+          <h2>アクセス</h2>
+          <div class="img map">地図（静的画像）</div>
+          <p>大阪市阿倍野区…【要確認: OI-09】</p>
+          <p class="muted">○○駅 ○番出口から徒歩 ○分</p>
+          <a class="btn secondary">地図アプリで開く</a>
+          <div class="note" style="top:0;right:0"><span class="n">5</span>住所【要確認】</div>
+        </section>
+        <section class="section anc">
+          <h2>対応言語・お支払い</h2>
+          <div class="kv">
+            <span class="k">対応言語</span><span>日本語 / English</span>
+            <span class="k">お支払い</span><span>来店時に現金・【要確認】</span>
+          </div>
+          <div class="note" style="top:0;right:0"><span class="n">6</span>placeholder</div>
+        </section>
+        <a class="btn secondary anc">Instagram で施術写真を見る<div class="note" style="top:-14px;right:-4px"><span class="n">7</span></div></a>
+      </div>
+      <footer class="footer anc">
+        <a class="btn secondary">電話する 06-xxxx-xxxx</a>
+        <a class="btn ghost">プライバシーポリシー</a>
+        <a class="btn ghost">キャンセルポリシー・特定商取引法に基づく表記</a>
+        <p class="caption">© Neuer Barber 長田</p>
+        <div class="note" style="top:8px;right:8px"><span class="n">8</span>tel 常設</div>
+      </footer>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>予約 CTA は全ページのヘッダー右上に常設し、どこからでも 1 タップで S-C-02 へ（FR-C-14, CT-01）。<code>?menu=</code> 付きならそのメニューを選択済みで開始。</li>
+      <li><span class="n">2</span>言語切替は相手言語名をネイティブ表記（EN / 日本語）、国旗なし。Cookie に保存し、自動リダイレクトはしない（FR-C-13）。</li>
+      <li><span class="n">3</span>受付時間・定休・予約締切は <code>business_hours</code> と <code>settings.lead_time_min</code> から差し込む。仮値 18:00–24:00・月曜定休・60 分（FR-C-08、OI-02/06）。</li>
+      <li><span class="n">4</span>メニュー概要は 3 件のみ。価格・所要時間は <code>menus</code> から取得しハードコードしない（FR-C-02, FR-C-14）。¥— は OI-01 確定まで。</li>
+      <li><span class="n">5</span>アクセスは最寄駅出口＋地図リンク。店名・住所の掲載可否は未決（FR-C-14、OI-09）。非掲載なら「予約確定後にご案内」に置換。</li>
+      <li><span class="n">6</span>対応言語・決済手段は placeholder。決済はサイト上で扱わない（FR-C-14【要確認】）。</li>
+      <li><span class="n">7</span>Instagram プロフィールへの外部リンク。逆方向（Instagram → 予約 URL）の定型文は納品物（FR-C-17）。</li>
+      <li><span class="n">8</span>フッターに <code>tel:</code> とポリシー 2 ページを常設（FR-C-16, FR-C-15）。掲載番号は OI-10。</li>
+    </ul>
+  </div>
+
+  <!-- ===== EN ===== -->
+  <div class="artboard">
+    <p class="frame-title">(b) /en トップ<small>/en — 同じ構造。差分は時刻表記（JST 明記）と言語切替ラベル</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+      <header class="header anc">
+        <div class="logo">LOGO</div>
+        <div class="title">Neuer Barber<br>長田</div>
+        <span class="lang">日本語</span>
+        <a class="btn small primary">Book</a>
+        <div class="note" style="top:46px;right:60px"><span class="n">1</span>日本語</div>
+      </header>
+      <div class="content">
+        <div class="img hero">Hero photo (haircut / interior)</div>
+        <div class="stack">
+          <h1>Open late, until midnight.</h1>
+          <p class="muted">Cuts, perms and colour by 長田 健豊 at Neuer BARBERSHOP, Osaka. Pick an open time and your booking is confirmed instantly.</p>
+        </div>
+        <a class="btn primary">See available times</a>
+        <div class="card sunken anc">
+          <div class="kv">
+            <span class="k">Hours</span><span>6:00 PM–12:00 AM JST<br><span class="caption">Last start 11:00 PM</span></span>
+            <span class="k">Closed</span><span>Mondays</span>
+            <span class="k">Booking cutoff</span><span>60 min before start</span>
+          </div>
+          <p class="caption">All times are Japan Standard Time (JST).</p>
+          <div class="note" style="top:8px;right:8px"><span class="n">2</span>JST</div>
+        </div>
+        <section class="section anc">
+          <h2>Menu</h2>
+          <div class="card menu-mini"><div><h3>Haircut</h3><p class="caption">Includes shampoo and brow trim</p></div><div class="muted">¥— / 60 min</div></div>
+          <div class="card menu-mini"><div><h3>Cut &amp; Color</h3><p class="caption">Cut plus all-over colour</p></div><div class="muted">¥— / 60 min</div></div>
+          <div class="card menu-mini"><div><h3>Iron Perm (Nurepan)</h3><p class="caption">Short perm with a wet-look finish</p></div><div class="muted">¥— / 60 min</div></div>
+          <a class="btn secondary">See all 9 menus and prices</a>
+          <div class="note" style="top:0;right:0"><span class="n">3</span>name_en</div>
+        </section>
+        <section class="section">
+          <h2>Access</h2>
+          <div class="img map">Map (static image)</div>
+          <p>Abeno-ku, Osaka … [TBC: OI-09]</p>
+          <p class="muted">○ min walk from ○○ Station, Exit ○</p>
+          <a class="btn secondary">Open in Maps</a>
+        </section>
+        <section class="section">
+          <h2>Languages &amp; payment</h2>
+          <div class="kv">
+            <span class="k">Languages</span><span>Japanese / English</span>
+            <span class="k">Payment</span><span>Pay at the shop · [TBC]</span>
+          </div>
+        </section>
+        <a class="btn secondary">See our work on Instagram</a>
+      </div>
+      <footer class="footer anc">
+        <a class="btn secondary">Call +81 6-xxxx-xxxx</a>
+        <a class="btn ghost">Privacy Policy</a>
+        <a class="btn ghost">Cancellation Policy &amp; Legal Notice</a>
+        <p class="caption">© Neuer Barber 長田</p>
+        <div class="note" style="top:8px;right:8px"><span class="n">4</span>+81</div>
+      </footer>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>/en ではトグルが「日本語」。<code>&lt;html lang&gt;</code> と hreflang を切替（FR-C-13）。</li>
+      <li><span class="n">2</span>時刻は 12 時間制＋「JST」、端末 TZ に変換しない。「All times are Japan Standard Time (JST)」を明記（FR-C-08, FR-C-13）。</li>
+      <li><span class="n">3</span>メニュー名は <code>menus.name_en</code>（仮訳）。日本語の混在なし（固有名詞を除く）（FR-C-02, FR-C-13）。</li>
+      <li><span class="n">4</span>店名・氏名は固有名詞として日本語のまま（ローマ字表記は【要確認】）。訪日客向けに国番号付きで表示（<code>tel:+816…</code>）（FR-C-16、P-02）。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

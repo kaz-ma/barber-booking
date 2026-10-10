@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-C 05 予約完了</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local layout only (no new colors) */
+.sheet-head{flex-basis:100%;display:flex;flex-direction:column;gap:4px}
+.sheet-head h1{font-size:20px}
+.notes-list{margin:0}
+.anc{position:relative}
+.header{height:48px}
+.header .title{font-size:15px}
+.content{gap:12px}
+.content h1{font-size:22px}
+.banner{font-weight:700}
+.card{gap:8px}
+.when{font-size:20px;font-weight:700;line-height:1.4}
+.kv{grid-template-columns:72px 1fr;gap:2px 12px}
+.row.tight{gap:8px}
+.row .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn.small{padding:0 12px}
+.row .btn.half{flex:1;width:auto}
+.addr{font-size:14px;line-height:1.5}
+.gap4{gap:0}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="sheet-head">
+    <h1>WF-C v0.1 / S-C-05 予約完了（/ja/book/done/{token}）</h1>
+    <p class="muted">唯一の証憑。390×844 に縦スクロールなしで収め、折りたたみ・カルーセルは使わない（FR-C-11）。フレーム下端 = 844px。</p>
+  </div>
+
+  <!-- JA -->
+  <div class="artboard">
+    <p class="frame-title">(a) /ja 完了<small>/ja/book/done/{token} — 実測 783px ≤ 844（スクロールなし）</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:07</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span></header>
+      <div class="content">
+        <h1 class="anc">✓ ご予約が確定しました<div class="note" style="top:2px;right:0"><span class="n">1</span>初期 focus</div></h1>
+        <div class="banner"><span>▣</span><span>この画面をスクリーンショットで保存してください（確認メールは送信されません）</span></div>
+        <div class="card anc">
+          <div class="row between"><span>予約番号 <b class="mono">K7Q2-M9XD</b></span><a class="btn small secondary">コピー</a></div>
+          <div class="divider"></div>
+          <p class="when">10月13日(火) 19:00–20:00</p>
+          <div class="kv">
+            <span class="k">メニュー</span><span>カット</span>
+            <span class="k">料金</span><span>¥—（学生料金）</span>
+            <span class="k">担当</span><span>長田 健豊</span>
+            <span class="k">店舗</span><span>Neuer BARBERSHOP</span>
+          </div>
+          <div class="row between tight"><span class="addr">大阪市阿倍野区…<br>【要確認: OI-09】</span><a class="btn small secondary">地図を開く</a></div>
+          <div class="note" style="top:-14px;right:96px"><span class="n">2</span>コピー</div>
+          <div class="note" style="top:64px;right:8px"><span class="n">3</span>曜日つき</div>
+          <div class="note" style="bottom:-14px;left:16px"><span class="n">4</span>掲載【要確認】</div>
+        </div>
+        <div class="stack anc gap4"><a class="btn primary">カレンダーに追加（.ics）</a><a class="btn ghost">Google カレンダーに追加</a>
+          <div class="note" style="top:-14px;right:4px"><span class="n">5</span>ICS 必須</div></div>
+        <div class="stack anc">
+          <p class="caption">キャンセル用リンク（ご来店の 2 時間前まで）</p>
+          <div class="row tight"><a class="grow mono" style="font-size:13px;text-decoration:underline">https://…/ja/cancel/AbC3xK9…</a><a class="btn small secondary">コピー</a></div>
+          <div class="note" style="top:30px;right:96px"><span class="n">6</span>キャンセル</div>
+        </div>
+        <div class="row tight anc"><a class="btn small secondary">電話 06-xxxx-xxxx</a><a class="btn small ghost">キャンセルポリシー</a>
+          <div class="note" style="top:10px;right:4px"><span class="n">7</span></div></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>見出しに初期フォーカス、<code>document.title</code> は「予約完了」。保存を促す文言を最上部に置き、確認メールが来ないことを明示（FR-C-11）。</li>
+      <li><span class="n">2</span>予約番号（8 文字、紛らわしい文字なし）に「コピー」。<code>aria-live</code> で「コピーしました」、失敗時はテキスト選択（FR-C-11）。</li>
+      <li><span class="n">3</span>日付・曜日・開始–終了を最大の文字で。料金は確定時のスナップショット（学生料金ラベル付き）（FR-C-11, FR-C-04）。</li>
+      <li><span class="n">4</span>店名・住所・地図リンクの掲載可否は未決。非掲載なら行ごと削除し電話で案内（FR-C-11【要確認: OI-09】）。</li>
+      <li><span class="n">5</span>ICS は必須（VALARM 前日・1 時間前、DESCRIPTION にキャンセル URL 全文）。Google カレンダーは Should（FR-C-11, S-C-07）。</li>
+      <li><span class="n">6</span>キャンセルリンク（256 bit トークン）を表示＋コピー。締切を併記（FR-C-12、OI-05）。</li>
+      <li><span class="n">7</span>電話とポリシーへの導線（FR-C-16, FR-C-15）。フレーム下端 = 844px。</li>
+    </ul>
+  </div>
+
+  <!-- EN -->
+  <div class="artboard">
+    <p class="frame-title">(b) /en 完了<small>/en/book/done/{token} — 実測 811px ≤ 844（スクロールなし）</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:07</span><span>5G ▮▮▮</span></div>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">日本語</span></header>
+      <div class="content">
+        <h1>✓ Your booking is confirmed</h1>
+        <div class="banner anc"><span>▣</span><span>Please take a screenshot of this screen. No confirmation email will be sent.</span>
+          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>EN 明示</div></div>
+        <div class="card anc">
+          <div class="row between"><span>Booking no. <b class="mono">K7Q2-M9XD</b></span><a class="btn small secondary">Copy</a></div>
+          <div class="divider"></div>
+          <p class="when">Tue, Oct 13<br>7:00 PM–8:00 PM JST</p>
+          <div class="kv">
+            <span class="k">Menu</span><span>Haircut</span>
+            <span class="k">Price</span><span>¥— (student rate)</span>
+            <span class="k">Stylist</span><span>長田 健豊</span>
+            <span class="k">Shop</span><span>Neuer BARBERSHOP</span>
+          </div>
+          <div class="row between tight"><span class="addr">Abeno-ku, Osaka …<br>[TBC: OI-09]</span><a class="btn small secondary">Open in Maps</a></div>
+          <div class="note" style="top:64px;right:8px"><span class="n">2</span>JST</div>
+        </div>
+        <div class="stack gap4"><a class="btn primary">Add to calendar (.ics)</a><a class="btn ghost">Add to Google Calendar</a></div>
+        <div class="stack">
+          <p class="caption">Cancellation link (until 2 hours before your visit)</p>
+          <div class="row tight"><a class="grow mono" style="font-size:13px;text-decoration:underline">https://…/en/cancel/AbC3xK9…</a><a class="btn small secondary">Copy</a></div>
+        </div>
+        <div class="row tight anc"><a class="btn small secondary">Call +81 6-xxxx-xxxx</a><a class="btn small ghost">Policy</a>
+          <div class="note" style="top:10px;right:4px"><span class="n">3</span></div></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>スクリーンショット保存の案内を英語でも同じ位置・同じ強さで表示（FR-C-11, US-02）。</li>
+      <li><span class="n">2</span>/en は曜日付き英語日付＋12 時間制＋「JST」。行数が増えても 844px に収まることを確認（FR-C-11, FR-C-13）。</li>
+      <li><span class="n">3</span>国番号付きの電話。店名・氏名は固有名詞として日本語のまま（FR-C-13, FR-C-16）。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
