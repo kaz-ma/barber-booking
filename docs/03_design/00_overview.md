@@ -117,7 +117,7 @@ flowchart LR
 ### 3.1 ランタイム
 
 - 全ルート Node.js ランタイム（Next.js 16 で `proxy.ts` は Node 固定、`runtime: 'edge'` は使わない）。Node 24 LTS。
-- 関数リージョン `hnd1`（東京）。Neon のリージョンも `aws-ap-northeast-1` に揃える。【要確認: Hobby でのリージョン設定を初回デプロイ時にダッシュボードで確認】
+- 関数リージョン `hnd1`（東京）。Neon のリージョンも `aws-ap-northeast-1` に揃える。（Hobby でのリージョン指定は初回デプロイ時にダッシュボードで確認する）
 - `next.config.ts`: `cacheComponents: true`、`partialPrefetching: true`（明示しないと警告）、`typedRoutes: true`、`serverActions.bodySizeLimit` は既定 1 MB のまま。
 
 ### 3.2 データ種別ごとのキャッシュ方針
@@ -355,4 +355,5 @@ barber-booking/
 | G-05 | 予約番号 | FR-C-11 で表示必須、10 章に列なし | `bookings.public_code`（推測困難な 8 文字、UNIQUE）を追加 | 04_data_model.md |
 | G-06 | 予約行の顧客スナップショット | 10.1【要確認: ADR で決定】 | スナップショット列を持たない（`customers` が唯一の保持先） | ADR-0008 |
 | G-07 | ブロックと予約の相互排他 | FR-A-06（同一トランザクションで確認） | 予約・ブロック作成の両トランザクションで `pg_advisory_xact_lock` を取り、write skew を防ぐ | 05_state_and_flows.md 4 章 |
-| G-08 | 画面 ID の対応 | 依頼文の「S-A-09 通知設定」 | 要件定義書 8.2 に従い通知設定は **S-A-10**、インストール案内は **S-A-12**（S-A-09 はメニュー設定） | 02_screens.md |
+| G-08 | 通知設定・オンボーディング画面の ID | 8.2: S-A-10（通知・端末）、S-A-12（インストール案内）、S-A-09 はメニュー設定 | ID は要件どおり。S-A-10 と S-A-12 を 03_screen_specs.md 9 章で一体の仕様として記述 | 02_screens.md, 03_screen_specs.md |
+| G-09 | Push の `topic` | FR-S-03 / FR-A-10: `topic: booking-<id>` | Push サービスの制約（URL-safe base64 文字・32 文字以内）を満たすため `b` + base64url(UUID 16 バイト)（23 文字）に読み替える | 05_state_and_flows.md 7.1 |

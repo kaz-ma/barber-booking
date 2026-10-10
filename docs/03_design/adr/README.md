@@ -1,0 +1,40 @@
+# ADR 一覧（Architecture Decision Records）
+
+## 文書情報
+
+| 項目 | 内容 |
+|---|---|
+| ID | DES-ADR |
+| 版 | v0.1 |
+| 日付 | 2026-10-10 |
+| 関連要件 | PRE-07（統合レポートの判断表を既定とし、変更は ADR に記録する）、CON-08 |
+
+## 書式
+
+MADR を簡略化した次の見出しで、1 決定 1 ファイル（`NNNN-kebab-case-title.md`）とする: 文書情報（ID・版・日付・ステータス・決定者・関連要件）／コンテキスト／決定ドライバー／検討した選択肢／決定／結果（良い点・悪い点）／代替案の評価／関連。
+
+ステータス: `Proposed`（提案中）→ `Accepted`（採用）→ `Superseded by ADR-NNNN`（置換）／`Deprecated`（廃止）。決定を変える場合は既存 ADR を書き換えず、新しい ADR を追加して旧 ADR のステータスを更新する。
+
+## 一覧
+
+| ID | タイトル | ステータス | 主な関連要件 |
+|---|---|---|---|
+| [ADR-0001](0001-hosting-vercel-hobby-with-migration-path.md) | Phase 1 は Vercel Hobby、Pro／Cloudflare へ環境変数と DNS だけで移れる設計 | Accepted | PRE-08, CON-02, FR-S-10, OI-18 |
+| [ADR-0002](0002-database-neon-over-supabase.md) | DB は Neon Free、Supabase は代替 | Accepted | FR-S-01, NFR-MG-02 |
+| [ADR-0003](0003-exclusion-constraint-via-raw-sql-migration.md) | 排他制約は Drizzle の手書き SQL マイグレーションで定義 | Accepted | FR-S-01, CON-06 |
+| [ADR-0004](0004-server-actions-for-booking.md) | 書き込みは Server Actions、公開 REST API は作らない | Accepted | FR-C-10, NFR-SC-02 |
+| [ADR-0005](0005-i18n-always-prefixed-asia-tokyo.md) | next-intl 常時接頭辞（/ja・/en）、Asia/Tokyo 固定 | Accepted | FR-C-13, NFR-EN-07 |
+| [ADR-0006](0006-auth-better-auth-passkey-single-admin.md) | Better Auth＋パスキー、永続 Cookie 30 日ローリング | Accepted（フォールバックは OI-12） | FR-A-01, NFR-SC-01 |
+| [ADR-0007](0007-web-push-best-effort-declarative-payload.md) | Web Push は best-effort＋ポーリング＋日次サマリー、Declarative 形式 | Accepted | FR-A-09〜12, FR-S-03 |
+| [ADR-0008](0008-no-customer-snapshot-in-bookings.md) | 予約行に顧客スナップショットを持たない | Proposed | 10.1, 10.3 |
+
+## 今後 ADR 化する候補
+
+| 候補 | 契機 |
+|---|---|
+| 予約ステップ順序の変更（日時先行） | OI-19 の決定 |
+| 手動予約の意図的重複の許容（`overlap_allowed`） | OI-11 の決定 |
+| 管理者ログインのフォールバック方式 | OI-12 の決定 |
+| ホスティング移行（Pro または Cloudflare） | Hobby の警告・停止、同梱量 80% 到達、有償化（ADR-0001 を Superseded に） |
+| オフライン表示のための Serwist 導入 | FR-A-17（Should）の実装判断 |
+| Phase 2 の通知チャネル（LINE／メール） | Phase 2 合意 |
