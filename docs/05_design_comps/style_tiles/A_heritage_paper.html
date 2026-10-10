@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style Tile A Heritage Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ---- 1. Primitive tokens ---- */
+:root {
+  --paper-99: #fbf7ef; --paper-98: #f4ecdd; --paper-90: #e9dcc3;
+  --ink-10: #191919; --ink-35: #5c5046; --ink-45: #6b6158;
+  --burgundy-40: #7c0000; --burgundy-30: #600000; --blue-40: #0f5f8f;
+  --paper-texture:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .27  0 0 0 0 .15  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.012 .18' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .33  0 0 0 0 .18  0 0 0 .05 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
+  --font-display: "Lato", "Noto Sans JP", system-ui, sans-serif;
+  --font-sans: "Lato", "Noto Sans JP", system-ui, sans-serif;
+  --radius: 4px;
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);
+}
+/* ---- 2. Semantic tokens ---- */
+:root {
+  --bg: var(--paper-98); --bg-card: var(--paper-99); --bg-sunken: var(--paper-90);
+  --fg: var(--ink-10); --fg-muted: var(--ink-35); --fg-disabled: var(--ink-45);
+  --accent: var(--burgundy-40); --accent-pressed: var(--burgundy-30); --on-accent: var(--paper-98);
+  --border: var(--ink-10); --ring: var(--blue-40);
+  --status-open: var(--blue-40); --status-full: var(--ink-45);
+}
+/* ---- 3. Usage ---- */
+* { box-sizing: border-box; }
+html { background: #d8ccb6; }
+body { margin: 0; font-family: var(--font-sans); color: var(--fg); font-size: 16px; line-height: 1.7; letter-spacing: .02em; -webkit-font-smoothing: antialiased; }
+.tile { width: 390px; margin: 0 auto; background-color: var(--bg); background-image: var(--paper-texture); background-blend-mode: multiply; }
+h1, h2, h3, p, dl, dd, ul { margin: 0; }
+.num { font-family: "Lato", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.sc { font-family: var(--font-display); font-weight: 700; font-size: 12px; line-height: 16px; letter-spacing: .16em; text-transform: uppercase; }
+.tile-head { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+.tile-head b { font-family: var(--font-display); font-size: 12px; letter-spacing: .16em; }
+.tile-head span { font-size: 12px; color: var(--fg-muted); }
+section { padding: 40px 24px; }
+section + section { border-top: 1px solid var(--border); position: relative; }
+section + section::before { content: ""; position: absolute; left: 24px; right: 24px; top: 3px; border-top: 1px solid var(--border); opacity: .35; }
+.label { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; color: var(--fg-muted); }
+.label::after { content: ""; flex: 1; border-top: 1px solid var(--fg-muted); opacity: .5; }
+.label i { font-style: normal; color: var(--accent); }
+/* logo */
+.logo-stage { text-align: center; padding: 8px 0 24px; }
+.logo-stage img { width: 248px; height: auto; filter: brightness(.32); }
+.logo-meta { display: flex; justify-content: center; gap: 16px; color: var(--fg-muted); white-space: nowrap; }
+.logo-meta span + span::before { content: "◆"; font-size: 6px; vertical-align: 3px; margin-right: 16px; color: var(--accent); }
+.appbar { margin-top: 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 8px 0 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.appbar img { height: 48px; filter: brightness(.32); }
+.appbar div { display: flex; gap: 8px; }
+.lang { min-width: 44px; height: 44px; display: grid; place-items: center; font: 700 14px/1 var(--font-display); letter-spacing: .08em; color: var(--fg); }
+/* swatches */
+.swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.sw { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-card); }
+.sw .chip { height: 64px; }
+.sw .meta { padding: 8px 12px; font-size: 12px; line-height: 16px; }
+.sw .meta b { display: block; font-size: 14px; line-height: 20px; }
+.sw .meta code { font: 400 12px/16px ui-monospace, "SFMono-Regular", Menlo, monospace; color: var(--fg-muted); }
+.sw .ratio { float: right; font: 700 12px/16px "Lato", sans-serif; }
+.map { margin-top: 24px; padding: 16px; border-left: 2px solid var(--accent); background: var(--bg-card); font: 400 12px/20px ui-monospace, Menlo, monospace; color: var(--fg-muted); }
+/* type */
+.spec { padding: 16px 0; border-bottom: 1px dashed rgba(25,25,25,.25); }
+.spec:last-child { border-bottom: 0; }
+.spec small { display: block; margin-bottom: 8px; color: var(--fg-muted); font-size: 12px; line-height: 16px; letter-spacing: .04em; }
+.h1-en { font: 700 36px/44px var(--font-display); letter-spacing: .12em; text-transform: uppercase; }
+.h1-ja { font-weight: 700; font-size: 28px; line-height: 40px; letter-spacing: .02em; font-feature-settings: "palt"; }
+.h2 { font-weight: 700; font-size: 24px; line-height: 32px; font-feature-settings: "palt"; }
+.h2 span { font-family: var(--font-display); font-weight: 400; font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--fg-muted); margin-left: 8px; }
+.digits { font-size: 32px; line-height: 40px; font-weight: 700; }
+/* buttons */
+.btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 56px; border-radius: var(--radius); font: 700 16px/1 var(--font-sans); letter-spacing: .08em; border: 0; cursor: pointer; transition: background-color 100ms var(--ease-standard); }
+.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 0 3px var(--accent), inset 0 0 0 4px rgba(244,236,221,.5); }
+.btn-primary .sc { font-weight: 400; letter-spacing: .16em; }
+.btn-secondary { min-height: 48px; background: transparent; color: var(--fg); border: 1px solid var(--border); }
+.btn-row { display: grid; gap: 16px; }
+.btn-state { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.focus { outline: 2px solid var(--ring); outline-offset: 2px; }
+.cap { margin-top: 8px; font-size: 12px; line-height: 16px; color: var(--fg-muted); text-align: center; }
+/* menu card */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.mc-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.mc-head h3 { font-size: 20px; line-height: 28px; font-weight: 700; }
+.mc-head h3 span { font: 400 12px/16px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--fg-muted); margin-left: 8px; }
+.dur { font-size: 14px; color: var(--fg-muted); }
+.mc-desc { margin: 12px 0 16px; font-size: 14px; line-height: 24px; color: var(--fg-muted); }
+.price { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); }
+.price div { padding: 12px 16px; }
+.price div + div { border-left: 1px solid var(--border); }
+.price dt { font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.price dd { font: 700 24px/32px "Lato", sans-serif; }
+.tax { margin-top: 8px; font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.card .btn { margin-top: 16px; min-height: 48px; }
+/* availability */
+.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cal-head b { font-size: 16px; }
+.arrow { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); color: var(--fg); font: 700 16px/1 "Lato"; }
+.week { display: grid; grid-template-columns: repeat(7, 44px); justify-content: space-between; }
+.day { height: 64px; display: grid; align-content: center; justify-items: center; gap: 2px; border-radius: var(--radius); border: 1px solid rgba(25,25,25,.35); background: var(--bg-card); font-size: 12px; line-height: 16px; }
+.day b { font: 700 18px/20px "Lato", sans-serif; }
+.day.sel { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.day.off { background: transparent; border-style: dashed; color: var(--fg-disabled); }
+.day.today { box-shadow: inset 0 -3px 0 var(--fg); }
+.slots { display: grid; gap: 8px; margin-top: 24px; }
+.slot { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--status-open); background: var(--bg-card); color: var(--fg); font-size: 16px; }
+.slot .mk { font-weight: 700; color: var(--status-open); font-size: 14px; }
+.slot.sel { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.slot.sel .mk { color: var(--on-accent); }
+.slot.full { background: var(--bg-sunken); border: 1px dashed var(--status-full); color: var(--fg-disabled); }
+.slot.full .t { text-decoration: line-through; }
+.slot.full .mk { color: var(--fg-disabled); }
+.legend { margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(25,25,25,.35); font-size: 12px; line-height: 20px; color: var(--fg-muted); }
+.legend b { color: var(--status-open); }
+.legend b.x { color: var(--fg-disabled); }
+.tel { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-weight: 700; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+/* done */
+.done { position: relative; }
+.done .stamp { display: inline-block; padding: 4px 12px; border: 1px solid var(--accent); border-radius: var(--radius); color: var(--accent); }
+.done h3 { margin: 12px 0 16px; font-size: 20px; line-height: 28px; }
+.done dl { display: grid; grid-template-columns: 72px 1fr; row-gap: 8px; align-items: center; font-size: 14px; line-height: 24px; }
+.done dd { display: flex; align-items: center; justify-content: space-between; }
+.done dt { color: var(--fg-muted); }
+.done dd { font-weight: 500; }
+.when { margin-bottom: 16px; padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.when small { display: block; font-size: 14px; line-height: 20px; color: var(--fg-muted); }
+.when b { font: 700 32px/40px "Lato", sans-serif; }
+.done .note { margin-top: 16px; padding: 12px; background: var(--bg-sunken); font-size: 12px; line-height: 20px; color: var(--fg); border-radius: var(--radius); }
+.copy { min-height: 44px; padding: 0 12px; margin-left: 8px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius); font: 700 12px/1 var(--font-sans); color: var(--fg); }
+/* mood */
+.mood { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--border); }
+.mood li { list-style: none; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.mood li:nth-child(odd) { padding-right: 16px; border-right: 1px solid var(--border); }
+.mood li:nth-child(even) { padding-left: 16px; }
+.mood b { display: block; font-size: 20px; line-height: 28px; }
+.mood span { font-family: var(--font-display); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--fg-muted); }
+ul.mood { padding: 0; }
+.foot { padding: 24px; text-align: center; border-top: 1px solid var(--border); color: var(--fg-muted); font-size: 12px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 100ms !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main class="tile">
+  <header class="tile-head"><b>STYLE TILE · A</b><span>ヘリテージ・ペーパー / Heritage Paper</span></header>
+
+  <section aria-labelledby="s1">
+    <h2 class="label sc" id="s1"><i>01</i> ロゴ配置 · Logo</h2>
+    <div class="logo-stage"><img src="../../research/reference/neuer_logo.png" alt="Neuer Barber ロゴ"></div>
+    <p class="logo-meta sc"><span>Since 2021</span><span>Abeno, Osaka</span></p>
+    <div class="appbar">
+      <img src="../../research/reference/neuer_logo.png" alt="Neuer Barber">
+      <div><span class="lang" lang="en">EN</span><a class="btn btn-primary" style="width:auto;min-height:44px;padding:0 16px;font-size:14px">予約する</a></div>
+    </div>
+    <p class="cap">ヘッダー：ロゴ 48px 高（小サイズ用は線を太くした簡略版を別途）・言語切替と予約 CTA は 44px</p>
+  </section>
+
+  <section aria-labelledby="s2">
+    <h2 class="label sc" id="s2"><i>02</i> カラー · Color</h2>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#f4ecdd"></div><div class="meta"><span class="ratio">base</span><b>paper-98</b><code>#f4ecdd</code> 背景</div></div>
+      <div class="sw"><div class="chip" style="background:#191919"></div><div class="meta"><span class="ratio" data-fg="#191919" data-bg="#f4ecdd">14.98:1</span><b>ink-10</b><code>#191919</code> 本文</div></div>
+      <div class="sw"><div class="chip" style="background:#7c0000"></div><div class="meta"><span class="ratio" data-fg="#7c0000" data-bg="#f4ecdd">9.63:1</span><b>burgundy-40</b><code>#7c0000</code> CTA・選択</div></div>
+      <div class="sw"><div class="chip" style="background:#5c5046"></div><div class="meta"><span class="ratio" data-fg="#5c5046" data-bg="#f4ecdd">6.65:1</span><b>ink-35</b><code>#5c5046</code> 補助文字</div></div>
+      <div class="sw"><div class="chip" style="background:#0f5f8f"></div><div class="meta"><span class="ratio" data-fg="#0f5f8f" data-bg="#f4ecdd">5.86:1</span><b>blue-40</b><code>#0f5f8f</code> ◎ 空き</div></div>
+      <div class="sw"><div class="chip" style="background:#6b6158"></div><div class="meta"><span class="ratio" data-fg="#6b6158" data-bg="#f4ecdd">5.15:1</span><b>ink-45</b><code>#6b6158</code> × 満席</div></div>
+      <div class="sw"><div class="chip" style="background:#fbf7ef"></div><div class="meta"><span class="ratio" data-fg="#fbf7ef" data-bg="#f4ecdd">1.10:1</span><b>paper-99</b><code>#fbf7ef</code> カード面</div></div>
+      <div class="sw"><div class="chip" style="background:#e9dcc3"></div><div class="meta"><span class="ratio" data-fg="#e9dcc3" data-bg="#f4ecdd">1.15:1</span><b>paper-90</b><code>#e9dcc3</code> 沈み面</div></div>
+    </div>
+    <div class="map">--bg ← paper-98 · --fg ← ink-10<br>--accent ← burgundy-40 · --on-accent ← paper-98<br>--status-open ← blue-40 · --status-full ← ink-45</div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <h2 class="label sc" id="s3"><i>03</i> 書体 · Type</h2>
+    <div class="spec"><small>H1 EN · Lato 700 · 36/44 · tracking .12em</small><p class="h1-en" lang="en">Neuer Barber</p></div>
+    <div class="spec"><small>H1 JA · Noto Sans JP 700 · 28/40 · palt</small><p class="h1-ja">新しくて、懐かしい一席。</p></div>
+    <div class="spec"><small>H2 · 24/32 + small caps</small><p class="h2">メニューと料金<span lang="en">Menu</span></p></div>
+    <div class="spec"><small>Body JA · 16 / 1.7 / .02em</small><p>古き良きクラシカルから現代のネオバーバーまで。18時から24時、完全予約制で一人ずつ担当します。</p></div>
+    <div class="spec" lang="en"><small>Body EN · 16 / 1.7 / .02em</small><p>Classic cuts to neo-barber styles. Open 6 PM – midnight, by appointment, one chair.</p></div>
+    <div class="spec"><small>Numerals · Lato 700 tabular</small><p class="digits num">¥5,000 · 18:00–19:00</p></div>
+  </section>
+
+  <section aria-labelledby="s4">
+    <h2 class="label sc" id="s4"><i>04</i> ボタン · Buttons</h2>
+    <div class="btn-row">
+      <button class="btn btn-primary">予約する <span class="sc" lang="en">Book now</span></button>
+      <div class="btn-state">
+        <button class="btn btn-secondary">メニューを見る</button>
+        <button class="btn btn-secondary focus">フォーカス時</button>
+      </div>
+    </div>
+    <p class="cap">Primary 56px · Secondary 48px · focus ring 2px + offset 2px</p>
+  </section>
+
+  <section aria-labelledby="s5">
+    <h2 class="label sc" id="s5"><i>05</i> メニューカード · Menu</h2>
+    <article class="card">
+      <div class="mc-head"><h3>カット<span lang="en">Cut</span></h3><span class="dur num">60分</span></div>
+      <p class="mc-desc">シャンプー・スタイリング込み。</p>
+      <dl class="price"><div><dt>一般</dt><dd class="num">¥5,000</dd></div><div><dt>学生</dt><dd class="num">¥4,500</dd></div></dl>
+      <p class="tax">税込。学生料金は「職業」選択で自動適用。</p>
+      <button class="btn btn-secondary">このメニューを選ぶ</button>
+    </article>
+  </section>
+
+  <section aria-labelledby="s6">
+    <h2 class="label sc" id="s6"><i>06</i> 空き状況 · Availability</h2>
+    <div class="cal-head"><span class="arrow" aria-label="前の週">‹</span><b class="num">2026年10月</b><span class="arrow" aria-label="次の週">›</span></div>
+    <div class="week">
+      <div class="day today">土<b>10</b></div><div class="day">日<b>11</b></div><div class="day off">月<b>12</b></div>
+      <div class="day sel">火<b>13</b></div><div class="day">水<b>14</b></div><div class="day">木<b>15</b></div><div class="day">金<b>16</b></div>
+    </div>
+    <div class="slots">
+      <button class="slot"><span class="t num">18:00–19:00</span><span class="mk">◎ 空き</span></button>
+      <div class="slot full" aria-disabled="true"><span class="t num">19:00–20:00</span><span class="mk">× 満席</span></div>
+      <button class="slot sel" aria-pressed="true"><span class="t num">20:00–21:00</span><span class="mk">◎ 選択中</span></button>
+      <button class="slot"><span class="t num">21:00–22:00</span><span class="mk">◎ 空き</span></button>
+    </div>
+    <p class="legend"><b>◎</b>：予約できます（この時刻から施術開始）<br><b class="x">×</b>：予約できません　<span class="num">月</span>：定休日</p>
+    <a class="tel">本日の残り枠はお電話で</a>
+  </section>
+
+  <section aria-labelledby="s7">
+    <h2 class="label sc" id="s7"><i>07</i> 完了カード · Confirmation</h2>
+    <article class="card done">
+      <span class="stamp sc">Confirmed</span>
+      <h3>ご予約が確定しました</h3>
+      <p class="when"><small>2026年10月13日（火）</small><b class="num">20:00–21:00</b></p>
+      <dl>
+        <dt>予約番号</dt><dd><span class="num">NB-1013-2000</span><button class="copy">コピー</button></dd>
+        <dt>メニュー</dt><dd>カット <span class="num">¥5,000</span></dd>
+        <dt>担当</dt><dd>長田 健豊</dd>
+      </dl>
+      <p class="note">この画面をスクリーンショットで保存してください（確認メールは送信されません）。</p>
+    </article>
+  </section>
+
+  <section aria-labelledby="s8">
+    <h2 class="label sc" id="s8"><i>08</i> ムード · Mood</h2>
+    <ul class="mood">
+      <li><b>クラシック</b><span lang="en">Classic</span></li>
+      <li><b>手仕事</b><span lang="en">Crafted</span></li>
+      <li><b>あたたかい</b><span lang="en">Warm</span></li>
+      <li><b>誠実</b><span lang="en">Honest</span></li>
+    </ul>
+  </section>
+  <footer class="foot">390px · 8px grid · radius 4px<br>紙テクスチャは CSS 生成（輝度差 ±5% 以内）、カードは無地</footer>
+</main>
+</body>
+</html>
