@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 07 受信箱</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.tab{position:relative}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 4px)}
+.list .item{align-items:flex-start;padding:12px 0;line-height:1.4}
+.list .item .kind{flex:none;width:72px;text-align:center;border:1px solid var(--wf-ink);border-radius:4px;font-size:12px;font-weight:700;padding:2px 0}
+.list .item .kind.cx{border-style:dashed}
+.list .item .when{font-size:12px;color:var(--wf-muted);text-align:right;flex:none}
+.list .item.read{color:var(--wf-muted)}
+.list .item.read .kind{border-color:var(--wf-line-strong);font-weight:400}
+.secttl{font-size:13px;font-weight:700;color:var(--wf-muted);margin-top:8px}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:0 24px}
+.empty .ill{width:96px;height:96px;border-radius:50%;border:2px dashed var(--wf-line-strong);display:grid;place-items:center;font-size:32px;color:var(--wf-faint)}
+.toast{z-index:6}
+.toast .undo{min-height:44px;padding:0 12px;border:1px solid #fff;border-radius:6px;display:flex;align-items:center;font-weight:700}
+.dayhead{height:56px;display:flex;align-items:center;gap:4px;padding:0 8px;border-bottom:1px solid var(--wf-line);font-weight:700}
+.dayhead .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;font-size:22px;font-weight:400}
+.dayhead .date{flex:1}
+.inapp{position:absolute;left:12px;right:12px;top:52px;z-index:6;background:#fff;border:2px solid var(--wf-ink);border-radius:12px;padding:12px;box-shadow:0 6px 16px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}
+.inapp .grow{flex:1;font-size:14px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-07 受信箱（未確認）</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-10, 11 ／ AT-15 ・ 対象 = 新規 web 予約・顧客キャンセルで <code>acknowledged_at IS NULL</code> のもの</p>
+</header>
+
+<!-- (a) list -->
+<section class="artboard">
+  <p class="frame-title">(a) 未確認 3 件<small>タブ「受信箱」・10/10(土) 19:35</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:35</span><span>standalone</span></div>
+    <div class="header"><span class="title">受信箱</span><button class="btn small secondary">すべて確認済みにする</button></div>
+    <div class="content" style="gap:0">
+      <p class="secttl">未確認 3</p>
+      <div class="list">
+        <div class="item"><span class="kind">新規</span><div class="grow"><b>10/11(日) 20:00</b><br>鈴木 一郎様（すずき いちろう）<br><span class="caption">カット（学生）・web</span></div><span class="when">● 3 分前<br>19:32</span></div>
+        <div class="item"><span class="kind cx">キャンセル</span><div class="grow"><b><s>10/10(土) 22:45</s></b><br>小林 拓也様（こばやし たくや）<br><span class="caption">カット・お客様がキャンセル</span></div><span class="when">● 45 分前<br>18:50</span></div>
+        <div class="item"><span class="kind">新規</span><div class="grow"><b>10/17(土) 18:00</b><br>伊藤 蓮様（いとう れん）<br><span class="caption">カットパーマ・web</span></div><span class="when">● 昨日<br>23:10</span></div>
+      </div>
+      <p class="secttl">確認済み（直近 7 日）</p>
+      <div class="list">
+        <div class="item read"><span class="kind">新規</span><div class="grow">10/10(土) 21:45 鈴木 一郎様<br><span class="caption">カット（学生）</span></div><span class="when">10/9</span></div>
+        <div class="item read"><span class="kind cx">キャンセル</span><div class="grow">10/8(木) 19:00 渡辺 悠真様<br><span class="caption">カット</span></div><span class="when">10/7</span></div>
+      </div>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab on"><span class="ico"></span>受信箱<b class="badge">3</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:52px;left:80px"><span class="n">1</span>一括で確認済み</div>
+    <div class="note" style="top:104px;right:8px"><span class="n">2</span>種別は文字＋枠線</div>
+    <div class="note" style="top:104px;left:96px"><span class="n">3</span>受信時刻＋相対時刻</div>
+    <div class="note" style="top:426px;right:8px"><span class="n">4</span>タップ → 詳細＋確認</div>
+    <div class="note" style="bottom:90px;left:110px"><span class="n">5</span>20 秒ポーリング</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span><code>acknowledgeAll</code>。押した後は (b) の空状態＋5 秒 Undo（FR-A-11）。</li>
+    <li><span class="n">2</span>「新規」は実線、「キャンセル」は破線枠＋日時に取消線。色に頼らない（FR-A-10, 11）。</li>
+    <li><span class="n">3</span>予約日時を主、受信時刻を副に。新しい順。通知に電話番号を含めない方針と同じく一覧にも電話を出さない（FR-A-10）。</li>
+    <li><span class="n">4</span>行タップで S-A-04 を開き、その時点で <code>acknowledgeBooking</code>。バッジ −1（FR-A-11）。</li>
+    <li><span class="n">5</span>起動時・<code>visibilitychange</code>・可視中 20 秒で <code>/api/admin/inbox-count</code>。プッシュが届かなくても 20 秒以内に一覧と件数が更新される（FR-A-11, AT-15）。</li>
+  </ul>
+</section>
+
+<!-- (b) empty -->
+<section class="artboard">
+  <p class="frame-title">(b) 空状態（すべて確認済み直後）<small>「すべて確認済みにする」をタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:36</span><span>standalone</span></div>
+    <div class="header"><span class="title">受信箱</span><button class="btn small secondary" aria-disabled="true">すべて確認済みにする</button></div>
+    <div class="empty">
+      <div class="ill">✓</div>
+      <h2>未確認はありません</h2>
+      <p class="muted">新しい予約やキャンセルが入るとここに表示されます。通知が届かなかった場合も、アプリを開けば 20 秒以内に反映されます。</p>
+      <button class="btn small secondary">確認済みの履歴を見る</button>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab on"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="toast"><span>3 件を確認済みにしました</span><span class="undo">取り消す</span></div>
+    <div class="note" style="top:250px;right:8px"><span class="n">6</span>バッジも消える</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">6</span>タブバーとヘッダの未確認バッジ、<code>app_badge</code>（ホーム画面アイコンのバッジ）も 0 にする。誤タップは 5 秒以内に取り消せる（FR-A-10, 11）。</li>
+  </ul>
+</section>
+
+<!-- (c) foreground / fallback -->
+<section class="artboard">
+  <p class="frame-title">(c) 前面表示中に新規予約が入った<small>OS の通知バナーが出ない場合のアプリ内代替</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:52</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/10(土) 今日</span><span class="iconbtn">›</span><button class="btn small">未確認 <b class="badge" style="background:#fff;color:#1a1a1a">1</b></button></div>
+    <div class="content"><div class="img" style="flex:1">S-A-02 タイムライン</div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">1</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="inapp"><div class="grow"><b>新しい予約</b><br>10/13(火) 18:00 山本 悠斗様・カット</div><button class="btn small primary">開く</button></div>
+    <div class="note" style="top:150px;right:8px"><span class="n">7</span>アプリ内トースト</div>
+    <div class="note" style="top:420px;left:24px"><span class="n">8</span>通知タップで今日に戻されても未確認で吸収</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">7</span>前面表示中に OS バナーが出ない端末では、ポーリングで検知した新着を上部トーストで表示し「開く」で S-A-04（FR-A-10）。</li>
+    <li><span class="n">8</span>iOS で通知タップ後に <code>/admin</code> へ戻される現象（WebKit 268797）が出ても、未確認バッジと受信箱から該当予約に 1 タップで到達できる（FR-A-10, MT-02）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

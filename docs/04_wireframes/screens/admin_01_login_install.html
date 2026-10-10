@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 01 ログイン・インストール案内</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.urlbar{height:48px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--wf-line);background:var(--wf-surface);font-size:13px;color:var(--wf-muted)}
+.urlbar .addr{flex:1;height:32px;border-radius:8px;background:#fff;border:1px solid var(--wf-line);display:flex;align-items:center;justify-content:center}
+.safari-bar{height:64px;border-top:1px solid var(--wf-line);display:flex;justify-content:space-around;align-items:center;background:var(--wf-surface);padding-bottom:12px}
+.safari-bar span{width:44px;height:44px;display:grid;place-items:center;color:var(--wf-muted);font-size:18px}
+.safari-bar .share{border:2px solid var(--wf-ink);border-radius:8px;color:var(--wf-ink);font-weight:700}
+.applogo{width:88px;height:88px;border-radius:20px;background:var(--wf-fill);display:grid;place-items:center;color:var(--wf-muted);font-size:12px;margin:24px auto 0}
+.center{text-align:center}
+.step{display:grid;grid-template-columns:32px 1fr 96px;gap:12px;align-items:center;border:1px solid var(--wf-line);border-radius:8px;padding:12px}
+.step .no{width:32px;height:32px;border-radius:50%;background:var(--wf-ink);color:#fff;display:grid;place-items:center;font-weight:700}
+.step .img{height:72px;font-size:11px;text-align:center}
+.code{display:flex;gap:8px}
+.code .input{flex:1;justify-content:center;font-size:20px;padding:0}
+.prompt-dlg{position:absolute;left:24px;right:24px;top:300px;background:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:16px;z-index:4}
+.prompt-dlg .row .btn{flex:1}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-01 ログイン ／ S-A-12 インストール案内</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・管理 PWA（日本語固定）・関連: FR-A-01, 09, 15 ／ AT-11, 12, 13, 17, 20</p>
+</header>
+
+<!-- (a) login -->
+<section class="artboard">
+  <p class="frame-title">(a) S-A-01 ログイン（standalone 起動・未ログイン）<small>ホーム画面アイコンから起動したとき</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:02</span><span>standalone</span></div>
+    <div class="content">
+      <div class="applogo">アイコン</div>
+      <div class="center stack">
+        <h1>予約管理</h1>
+        <p class="muted">店主専用の管理画面です</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn primary">Face ID でログイン</button>
+      <p class="help center">パスキー（Face ID / Touch ID）で本人確認します。パスワードはありません。</p>
+      <button class="btn ghost">Face ID が使えない場合</button>
+      <p class="caption center">ログインは 30 日間保持されます</p>
+    </div>
+  </div>
+    <div class="note" style="top:400px;right:8px"><span class="n">1</span>主ボタンは 1 つだけ。タップで OS の Face ID シート</div>
+    <div class="note" style="top:690px;left:8px"><span class="n">2</span>フォールバック導線（OI-12）</div>
+    <div class="note" style="top:96px;right:8px"><span class="n">3</span>新規登録リンクは置かない</div>
+    <div class="note" style="top:620px;right:8px"><span class="n">4</span>永続 Cookie 30 日</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span><code>signIn.passkey()</code>。成功で <code>/admin</code>（S-A-02 今日）へ。PWA 内で Face ID ログインできること（FR-A-01, AT-13）。</li>
+    <li><span class="n">2</span>Face ID 不可時の代替。マジックリンクは Safari で開いてしまい PWA にセッションが入らないため、アプリ内で 6 桁コードを入力する方式を推奨【要確認: OI-12】（FR-A-01）。</li>
+    <li><span class="n">3</span>管理者 1 名・サインアップ無効（seed で作成）。未認証で <code>/admin/*</code> を開くとこの画面へ（FR-A-01）。</li>
+    <li><span class="n">4</span><code>__Host-</code> Cookie・<code>Max-Age</code> 30 日。アプリを閉じて開き直してもログイン維持（FR-A-09, AT-17）。</li>
+  </ul>
+</section>
+
+<!-- (b) fallback code -->
+<section class="artboard">
+  <p class="frame-title">(b) S-A-01 フォールバック（メールのコード）<small>「Face ID が使えない場合」をタップ後</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:03</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">メールでログイン</span></div>
+    <div class="content">
+      <div class="field">
+        <span class="label">登録メールアドレス</span>
+        <div class="input filled">owner@example.jp</div>
+      </div>
+      <div class="banner">登録アドレスに 6 桁のコードを送りました（10 分間有効）。このアプリに戻って入力してください。</div>
+      <div class="field">
+        <span class="label">確認コード</span>
+        <div class="code">
+          <div class="input filled">4</div><div class="input filled">8</div><div class="input filled">1</div>
+          <div class="input"></div><div class="input"></div><div class="input"></div>
+        </div>
+        <span class="help">6 桁入力で自動的にログインします</span>
+      </div>
+      <button class="btn secondary small" style="align-self:flex-start">コードを再送する（60 秒後）</button>
+      <div class="spacer"></div>
+      <p class="caption">ログイン後、設定 &gt; 通知・端末 でパスキーを登録し直せます</p>
+    </div>
+  </div>
+    <div class="note" style="top:428px;right:8px"><span class="n">5</span>Safari に飛ばさない</div>
+    <div class="note" style="top:484px;right:8px"><span class="n">6</span>試行回数制限</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">5</span>iOS のホーム画面アプリは Safari と Cookie が分離。リンク方式ではなくアプリ内コード入力で同じストレージにセッションを作る（研究ノート 05 Q7）。</li>
+    <li><span class="n">6</span>アカウント単位のログイン試行制限（FR-S-04）。5 回失敗で 15 分ロック【要確認】。</li>
+  </ul>
+</section>
+
+<!-- (c) iOS Safari tab -->
+<section class="artboard">
+  <p class="frame-title">(c) S-A-12 インストール案内（iOS Safari タブ）<small>display-mode が standalone でないとき</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:00</span><span>Safari</span></div>
+    <div class="content">
+      <h2>ホーム画面に追加してください</h2>
+      <p class="muted">予約の通知を受け取るには、ホーム画面のアイコンから開く必要があります（iPhone の仕様）。</p>
+      <div class="step"><span class="no">1</span><div><b>共有ボタン</b>をタップ<p class="caption">画面下の □↑</p></div><div class="img">共有アイコン図</div></div>
+      <div class="step"><span class="no">2</span><div><b>「ホーム画面に追加」</b>を選ぶ<p class="caption">見つからなければ下にスクロール</p></div><div class="img">メニュー図</div></div>
+      <div class="step"><span class="no">3</span><div><b>アイコンから起動</b><p class="caption">追加した「予約管理」を開いてログイン</p></div><div class="img">ホーム画面図</div></div>
+      <div class="spacer"></div>
+      <button class="btn ghost">このまま閲覧だけする（通知は届きません）</button>
+    </div>
+    <div class="urlbar"><span>AA</span><span class="addr">barber.example/admin</span><span>↻</span></div>
+    <div class="safari-bar"><span>‹</span><span>›</span><span class="share">□↑</span><span>□</span><span>⧉</span></div>
+  </div>
+    <div class="note" style="top:8px;right:72px"><span class="n">7</span>通知ボタンは出さない</div>
+    <div class="note" style="bottom:14px;left:8px"><span class="n">8</span>共有を強調</div>
+    <div class="note" style="top:540px;right:8px"><span class="n">9</span>ログインは妨げない</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">7</span><code>matchMedia('(display-mode: standalone)')</code> と <code>navigator.standalone</code> で判定。Safari タブでは購読 UI を一切出さず追加手順を表示（FR-A-09, AT-11）。</li>
+    <li><span class="n">8</span>3 枚図解: 共有 → ホーム画面に追加 → アイコンから起動。追加後は URL バーなしで起動（FR-A-15, AT-12）。</li>
+    <li><span class="n">9</span>閲覧のみの利用は可能（MT-01）。ただし Safari でのログインは PWA に引き継がれない旨を案内。</li>
+  </ul>
+</section>
+
+<!-- (d) Android -->
+<section class="artboard">
+  <p class="frame-title">(d) S-A-12 インストール案内（Android Chrome）<small>beforeinstallprompt 保持中 →「アプリをインストール」タップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:00</span><span>Chrome</span></div>
+    <div class="urlbar"><span>⌂</span><span class="addr">barber.example/admin</span><span>⋮</span></div>
+    <div class="content">
+      <h2>アプリをインストール</h2>
+      <p class="muted">ホーム画面から 1 タップで開け、予約の通知を受け取れます。</p>
+      <button class="btn primary">アプリをインストール</button>
+      <div class="card sunken">
+        <b>ボタンが反応しない場合</b>
+        <p class="muted">右上の ⋮ メニュー →「アプリをインストール」または「ホーム画面に追加」</p>
+      </div>
+      <div class="spacer"></div>
+    </div>
+    <div class="scrim"></div>
+    <div class="prompt-dlg">
+      <div class="row"><div class="applogo" style="width:48px;height:48px;margin:0;border-radius:12px">icon</div><div><b>予約管理</b><p class="caption">barber.example</p></div></div>
+      <p class="muted">アプリをインストールしますか？</p>
+      <div class="row"><button class="btn secondary">キャンセル</button><button class="btn primary">インストール</button></div>
+    </div>
+  </div>
+    <div class="note" style="top:250px;right:8px"><span class="n">10</span><code>prompt()</code> は 1 回のみ</div>
+    <div class="note" style="top:540px;left:8px"><span class="n">11</span>OS 標準ダイアログ（模式）</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">10</span><code>beforeinstallprompt</code> を保持し、ボタン押下で <code>prompt()</code>。拒否後は ⋮ メニューの手順に切替（FR-A-09, 15, AT-20）。</li>
+    <li><span class="n">11</span>manifest の <code>screenshots</code>・<code>description</code> によりリッチなインストール UI になる（FR-A-15）。インストール後の起動は (a) へ。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

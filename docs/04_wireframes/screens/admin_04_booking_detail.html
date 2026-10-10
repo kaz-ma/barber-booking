@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 04 予約詳細</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec h3{font-size:14px;color:var(--wf-muted)}
+.prog{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.prog .btn{padding:0 4px}
+.cx .btn{justify-content:space-between;font-weight:400;padding:0 12px;text-align:left}
+.cx .btn b{font-weight:700}
+.cx .btn .caption{flex:1;margin-left:8px}
+.urlbox{display:flex;gap:8px}
+.urlbox .input{flex:1;font-size:13px;overflow:hidden;white-space:nowrap}
+.telbtn{width:48px;height:48px;border-radius:50%;border:1px solid var(--wf-ink);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.audit{font-size:12px;color:var(--wf-muted);display:flex;flex-direction:column;gap:2px}
+.toast{bottom:24px;z-index:6}
+.toast .undo{min-height:44px;padding:0 12px;border:1px solid #fff;border-radius:6px;display:flex;align-items:center;gap:8px;font-weight:700}
+.toast .count{width:22px;height:22px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;font-size:11px}
+.dim{opacity:.45}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-04 予約詳細（全画面）</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-04, 05, 10, 11 ／ FR-S-07 ・ 通知タップ・カードタップ・受信箱・顧客履歴から開く</p>
+</header>
+
+<!-- (a) confirmed -->
+<section class="artboard">
+  <p class="frame-title">(a) 確定済み（来店前）<small>/admin/bookings/{id} ・ 開いた時点で確認済みにする</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>21:30</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">予約詳細</span><span class="pill">確定</span></div>
+    <div class="content">
+      <div class="row">
+        <div style="flex:1"><p class="caption">10/10(土) 21:45–22:45</p><h2>鈴木 一郎</h2><p class="muted">すずき いちろう</p></div>
+        <span class="telbtn">電話</span>
+      </div>
+      <div class="kv">
+        <span class="k">メニュー</span><span>カット（60 分＋バッファ 10 分）</span>
+        <span class="k">料金</span><span>¥3,300（学生価格）</span>
+        <span class="k">職業区分</span><span>学生</span>
+        <span class="k">電話</span><span>090-2345-6789</span>
+        <span class="k">備考</span><span>ツーブロック希望。前回の写真あり</span>
+        <span class="k">経路</span><span>web（顧客サイト）</span>
+        <span class="k">作成日時</span><span>10/10(土) 19:32</span>
+        <span class="k">同意版</span><span>キャンセルポリシー v1.0／プライバシー v1.0</span>
+        <span class="k">顧客</span><span>来店 2 回・無断 0・遅刻キャンセル 0 ›</span>
+      </div>
+      <div class="sec">
+        <h3>状態を変更</h3>
+        <div class="prog"><button class="btn primary">来店</button><button class="btn secondary">施術開始</button><button class="btn secondary">完了</button></div>
+        <div class="stack cx">
+          <button class="btn danger"><b>無断キャンセル</b><span class="caption">連絡なしで来店せず</span>›</button>
+          <button class="btn danger"><b>管理者キャンセル</b><span class="caption">店都合・電話/DM で依頼</span>›</button>
+          <button class="btn danger"><b>遅刻キャンセル</b><span class="caption">締切後・遅刻による取消</span>›</button>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>お客様用 確認 URL</h3>
+        <div class="urlbox"><div class="input filled mono">https://barber.example/ja/book/done/Xk3…</div><button class="btn small primary">コピー</button></div>
+        <button class="btn ghost" style="align-self:flex-start">URL を再発行（旧 URL は無効）</button>
+      </div>
+      <div class="field"><span class="label">店主メモ<span class="req">お客様には表示されません</span></span><div class="input textarea">（例）カラー検討中</div></div>
+      <div class="audit"><b>履歴</b><span>10/10 19:32 web 予約作成</span><span>10/10 21:30 管理者が確認（受信箱）</span></div>
+    </div>
+  </div>
+    <div class="note" style="top:52px;left:60px"><span class="n">1</span>明示的な ←</div>
+    <div class="note" style="top:108px;right:68px"><span class="n">2</span>電話 48px</div>
+    <div class="note" style="top:356px;right:8px"><span class="n">3</span>source・作成日時・同意版</div>
+    <div class="note" style="top:502px;left:100px"><span class="n">4</span>次の状態を強調</div>
+    <div class="note" style="top:502px;right:8px"><span class="n">5</span>キャンセル系は説明付き</div>
+    <div class="note" style="top:770px;right:8px"><span class="n">6</span>DM に貼る URL</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span>standalone ではブラウザの戻るがないため常に「←」。履歴がなければ S-A-02 へ（FR-A-04）。</li>
+    <li><span class="n">2</span><code>tel:</code> 発信。電話番号がない手動予約では非表示（FR-A-02）。</li>
+    <li><span class="n">3</span>全項目＋<code>source</code>・作成日時・同意したポリシー版（<code>consents</code>）。顧客行から S-A-11 へ（FR-A-04, 13）。</li>
+    <li><span class="n">4</span>来店 → 施術開始 → 完了 の順。現在の次の状態だけ塗りボタンにし、片手で誤りにくくする（FR-A-04, MT-04）。</li>
+    <li><span class="n">5</span>無断キャンセルは顧客の <code>no_show_count</code> +1、遅刻キャンセルは <code>late_cancel_count</code> +1。確認ダイアログは出さず即時実行＋5 秒 Undo（FR-A-04）。遅刻キャンセルの定義【要確認】。</li>
+    <li><span class="n">6</span><code>/{locale}/book/done/{token}</code>。再発行はトークンを作り直し旧 URL を失効（<code>reissueConfirmationUrl</code>）（FR-A-05）。</li>
+  </ul>
+</section>
+
+<!-- (b) after cancel -->
+<section class="artboard">
+  <p class="frame-title">(b) 管理者キャンセル直後（5 秒 Undo）<small>「管理者キャンセル」をタップした 2 秒後</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>21:31</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">予約詳細</span><span class="pill">管理者キャンセル</span></div>
+    <div class="content">
+      <div class="row">
+        <div style="flex:1"><p class="caption"><s>10/10(土) 21:45–22:45</s></p><h2>鈴木 一郎</h2><p class="muted">すずき いちろう</p></div>
+        <span class="telbtn">電話</span>
+      </div>
+      <div class="banner">この枠は顧客サイトで再び予約できる状態になりました。</div>
+      <div class="kv">
+        <span class="k">メニュー</span><span>カット（60 分＋バッファ 10 分）</span>
+        <span class="k">経路</span><span>web（顧客サイト）</span>
+        <span class="k">キャンセル</span><span>10/10(土) 21:31 管理者</span>
+      </div>
+      <div class="sec dim">
+        <h3>状態を変更</h3>
+        <div class="prog"><button class="btn secondary" aria-disabled="true">来店</button><button class="btn secondary" aria-disabled="true">施術開始</button><button class="btn secondary" aria-disabled="true">完了</button></div>
+      </div>
+      <div class="sec">
+        <h3>お客様用 確認 URL</h3>
+        <div class="urlbox"><div class="input filled mono">https://barber.example/ja/book/done/Xk3…</div><button class="btn small primary">コピー</button></div>
+        <p class="help">お客様が開くと「この予約はキャンセルされました」と表示されます</p>
+      </div>
+      <div class="audit"><b>履歴</b><span>10/10 19:32 web 予約作成</span><span>10/10 21:30 管理者が確認</span><span>10/10 21:31 管理者キャンセル（confirmed → cancelled_by_owner）</span></div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+    <div class="toast"><span>キャンセルにしました</span><span class="undo">取り消す <span class="count">3</span></span></div>
+    <div class="note" style="bottom:88px;right:8px"><span class="n">7</span>5 秒カウントダウン</div>
+    <div class="note" style="top:52px;left:60px"><span class="n">8</span>状態は文字で</div>
+    <div class="note" style="top:304px;right:8px"><span class="n">9</span>枠は即開放</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">7</span>ソフトデリート（<code>status</code>・<code>cancelled_at</code>）＋ 5 秒「取り消す」で <code>confirmed</code> に戻す（<code>undoBookingChange</code>）。お客様への通知を送る場合はトースト消滅後に送信（FR-A-04, AT-21）。</li>
+    <li><span class="n">8</span>状態チップは色ではなく文言。変更は <code>audit_log</code> に actor・差分付きで残る（FR-S-07）。</li>
+    <li><span class="n">9</span>キャンセル後は FR-S-01 の排他制約の対象外になり、空き枠に即復帰（非キャッシュ）。進行系ボタンは無効化（FR-A-04）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

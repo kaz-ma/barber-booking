@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 05 手動予約</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.content{gap:12px}
+.sel{justify-content:space-between}
+.sel::after{content:"▾";color:var(--wf-muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg .radio{flex:1 0 auto;justify-content:center;padding:0 10px;font-size:14px}
+.suggest{position:absolute;left:16px;right:16px;top:208px;z-index:4;background:#fff;border:1px solid var(--wf-line-strong);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:0 12px}
+.suggest .item{font-size:14px;line-height:1.4}
+.suggest .item:last-child{border-bottom:none}
+.alert{border:2px solid var(--wf-ink);border-radius:8px;padding:12px;background:var(--wf-surface);display:flex;flex-direction:column;gap:8px}
+.alert .ttl{font-weight:700}
+.alert .ttl::before{content:"!";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--wf-ink);color:#fff;font-size:13px;margin-right:6px}
+.alert .row .btn{flex:1}
+.sticky-cta{display:flex;gap:8px}
+.sticky-cta .btn.small{flex:none}
+.sheet-modal{z-index:6}
+.dm{font-size:13px;line-height:1.6;background:var(--wf-surface);border-radius:8px;padding:12px}
+.urlbox{display:flex;gap:8px}
+.urlbox .input{flex:1;font-size:13px;overflow:hidden;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-05 手動予約</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-05, 10 ／ FR-S-01 ／ AT-17, 21 ・ 入口: FAB「+」→「手動予約」、今日ビューの空き区間タップ</p>
+</header>
+
+<!-- (a) empty -->
+<section class="artboard">
+  <p class="frame-title">(a) 未入力<small>FAB → 手動予約。日付・開始は表示中の日／タップ時刻で初期化</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:45</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">手動予約</span></div>
+    <div class="content">
+      <div class="field"><span class="label">お名前<span class="req">必須</span></span><div class="input">名前 または ふりがな</div></div>
+      <div class="field"><span class="label">電話番号<span class="req">任意</span></span><div class="input">090-1234-5678</div><span class="help">入力すると既存のお客様を探します（未確認として保存）</span></div>
+      <div class="field"><span class="label">メニュー<span class="req">必須</span></span><div class="input sel filled">カット（60 分）¥4,400</div></div>
+      <div class="two">
+        <div class="field"><span class="label">日付</span><div class="input sel filled">10/11(日)</div></div>
+        <div class="field"><span class="label">開始</span><div class="input sel">--:--</div></div>
+      </div>
+      <div class="field"><span class="label">経路<span class="req">必須</span></span>
+        <div class="seg"><div class="radio on">電話</div><div class="radio">店頭</div><div class="radio">Instagram</div><div class="radio">LINE</div><div class="radio">その他</div></div>
+      </div>
+      <div class="field"><span class="label">メモ<span class="req">任意・お客様には非表示</span></span><div class="input textarea">DM の内容など</div></div>
+    </div>
+    <div class="sticky-cta"><button class="btn primary" aria-disabled="true">保存</button></div>
+  </div>
+    <div class="note" style="top:108px;right:8px"><span class="n">1</span>必須は 4 項目だけ</div>
+    <div class="note" style="top:414px;right:8px"><span class="n">2</span>15 分刻み</div>
+    <div class="note" style="top:494px;right:8px"><span class="n">3</span>経路 = source</div>
+    <div class="note" style="bottom:84px;right:8px"><span class="n">4</span>下書きを自動保存</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span>お名前・メニュー・日時・経路のみ必須。電話は任意で <code>phone_unverified = true</code>（FR-A-05）。</li>
+    <li><span class="n">2</span>ネイティブの日付・時刻ピッカー（<code>step=900</code>）。終了はメニューの所要＋バッファで自動算出。営業時間外は注意表示のみで保存可（S-A-05 項目定義）。</li>
+    <li><span class="n">3</span>電話=<code>phone</code>／店頭=<code>walk_in</code>／Instagram=<code>instagram</code>／LINE=<code>line</code>／その他=<code>manual</code>。前回の選択を既定に（FR-A-05）。</li>
+    <li><span class="n">4</span>入力ごとに <code>sessionStorage</code> へ下書き保存。iOS のバックグラウンド復帰リロードでも消えない（FR-A-10, AT-17）。</li>
+  </ul>
+</section>
+
+<!-- (a2) suggest -->
+<section class="artboard">
+  <p class="frame-title">(a') 既存顧客サジェスト<small>お名前に「やまだ」と入力（2 文字以上）</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:45</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">手動予約</span></div>
+    <div class="content">
+      <div class="field"><span class="label">お名前<span class="req">必須</span></span><div class="input filled" style="border:2px solid var(--wf-ink)">やまだ|</div></div>
+      <div class="field"><span class="label">電話番号<span class="req">任意</span></span><div class="input">090-1234-5678</div></div>
+      <div class="field"><span class="label">メニュー<span class="req">必須</span></span><div class="input sel filled">カット（60 分）¥4,400</div></div>
+      <div class="two">
+        <div class="field"><span class="label">日付</span><div class="input sel filled">10/11(日)</div></div>
+        <div class="field"><span class="label">開始</span><div class="input sel">--:--</div></div>
+      </div>
+    </div>
+    <div class="sticky-cta"><button class="btn primary" aria-disabled="true">保存</button></div>
+  </div>
+    <div class="suggest list">
+      <div class="item"><div class="grow"><b>山田 太郎</b>（やまだ たろう）<br><span class="caption">090-…-5678・来店 5 回・最終 9/26</span></div><span>›</span></div>
+      <div class="item"><div class="grow"><b>山田 健二</b>（やまだ けんじ）<br><span class="caption">電話なし・来店 1 回・<span class="pill">電話のみ</span></span></div><span>›</span></div>
+      <div class="item"><div class="grow">「やまだ」で<b>新しいお客様</b>として入力</div></div>
+    </div>
+    <div class="note" style="top:108px;right:8px"><span class="n">5</span>かな部分一致・電話完全一致</div>
+    <div class="note" style="top:440px;right:8px"><span class="n">6</span>制限も見える</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">5</span><code>/api/admin/customers/suggest?q=</code>。候補選択で <code>customerId</code> 確定、電話も自動入力。WAI-ARIA combobox（FR-A-05, 13）。</li>
+    <li><span class="n">6</span>来店回数・最終来店・<code>booking_restriction</code> を候補行に出し、同姓の取り違えを防ぐ。新規作成も最後の行で選べる（FR-A-13）。</li>
+  </ul>
+</section>
+
+<!-- (b) overlap -->
+<section class="artboard">
+  <p class="frame-title">(b) 重なり警告<small>10/11(日) 19:00 を選んだ時点（300ms デバウンスで判定）</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:46</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">手動予約</span></div>
+    <div class="content">
+      <div class="field"><span class="label">お名前<span class="req">必須</span></span><div class="input filled">中村 大輔（なかむら だいすけ）</div></div>
+      <div class="field"><span class="label">メニュー<span class="req">必須</span></span><div class="input sel filled">カット（60 分）¥4,400</div></div>
+      <div class="two">
+        <div class="field"><span class="label">日付</span><div class="input sel filled">10/11(日)</div></div>
+        <div class="field"><span class="label">開始</span><div class="input sel filled error">19:00</div></div>
+      </div>
+      <p class="help">終了 20:10（カット 60 分＋バッファ 10 分）</p>
+      <div class="alert" role="alert">
+        <span class="ttl">重なりがあります</span>
+        <p>19:00–20:00 の<b>佐藤 健様</b>と重なります</p>
+        <span class="caption">近い空き時間</span>
+        <div class="row"><button class="btn small secondary">18:00</button><button class="btn small secondary">20:15</button><button class="btn small secondary">20:30</button></div>
+      </div>
+      <div class="field"><span class="label">経路<span class="req">必須</span></span>
+        <div class="seg"><div class="radio">電話</div><div class="radio">店頭</div><div class="radio on">Instagram</div><div class="radio">LINE</div><div class="radio">その他</div></div>
+      </div>
+    </div>
+    <div class="sticky-cta"><button class="btn primary">時間を変更</button><button class="btn small secondary">それでも保存</button></div>
+  </div>
+    <div class="note" style="top:300px;right:8px"><span class="n">7</span>開始欄を強調</div>
+    <div class="note" style="top:400px;right:8px"><span class="n">8</span>role=alert</div>
+    <div class="note" style="top:508px;right:24px"><span class="n">9</span>空き時間を 1 タップ</div>
+    <div class="note" style="bottom:84px;right:8px"><span class="n">10</span>OI-11 で可否</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">7</span>重なった開始欄を太枠に。「時間を変更」で開始欄にフォーカス（MT-05）。</li>
+    <li><span class="n">8</span><code>GET /api/admin/overlaps</code> の結果。実装では赤＋アイコン、WF では太枠＋「!」。保存時もサーバーが advisory lock 下で再判定し <code>23P01</code> → <code>conflict: overlap</code>（FR-A-05, FR-S-01）。</li>
+    <li><span class="n">9</span>同じ日の近い空き開始時刻を 3 つ提案。タップで開始を差し替え、警告が消える（US-04）。</li>
+    <li><span class="n">10</span>既定ボタンは「時間を変更」。「それでも保存」は意図的重複を許す場合のみ表示【要確認: OI-11】。重なる手動予約は警告なしに保存されない（AT-21）。</li>
+  </ul>
+</section>
+
+<!-- (c) saved -->
+<section class="artboard">
+  <p class="frame-title">(c) 保存完了 → 確認 URL コピー<small>20:15 に変更して「保存」</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:47</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">手動予約</span></div>
+    <div class="content">
+      <div class="field"><span class="label">お名前</span><div class="input filled">中村 大輔（なかむら だいすけ）</div></div>
+      <div class="field"><span class="label">メニュー</span><div class="input sel filled">カット（60 分）¥4,400</div></div>
+    </div>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="sheet-modal">
+      <div class="grip"></div>
+      <h2>保存しました</h2>
+      <p class="muted">10/11(日) 20:15–21:15 ・ 中村 大輔様 ・ カット</p>
+      <div class="field"><span class="label">お客様に送る確認 URL</span>
+        <div class="seg"><div class="radio on">日本語</div><div class="radio">English</div></div>
+        <div class="urlbox"><div class="input filled mono">https://barber.example/ja/book/done/p9Q…</div></div>
+      </div>
+      <button class="btn primary">確認 URL をコピー</button>
+      <button class="btn secondary">DM 用の文面をコピー</button>
+      <div class="dm">中村様　ご予約ありがとうございます。<br>10/11(日) 20:15〜 カット<br>ご予約内容の確認・キャンセルはこちら：https://barber.example/ja/book/done/p9Q…</div>
+      <button class="btn ghost">閉じて今日に戻る</button>
+    </div>
+    <div class="note" style="top:386px;right:8px;z-index:7"><span class="n">11</span>言語を選んで URL 生成</div>
+    <div class="note" style="top:648px;right:8px;z-index:7"><span class="n">12</span>DM にそのまま貼れる</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">11</span>保存成功で確認 URL（予約詳細＋キャンセルリンク）を生成。ロケールは ja / en を選択（FR-A-05）。</li>
+    <li><span class="n">12</span>「DM 手動予約 → 確認 URL」経路の終点。定型文＋URL をコピーし Instagram DM に貼る。閉じると S-A-02 に戻り、新しいカードが表示される（FR-A-05, AT-21）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 06 時間ブロック</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.tab{position:relative}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 4px)}
+.dayhead{height:56px;display:flex;align-items:center;gap:4px;padding:0 8px;border-bottom:1px solid var(--wf-line);font-weight:700}
+.dayhead .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;font-size:22px;font-weight:400}
+.dayhead .date{flex:1}
+.mini{padding:8px 16px 8px 8px;flex:1}
+.booking{z-index:2}
+.nowline{z-index:3}
+.sheet-modal{z-index:6}
+.sheet-modal .list .item{font-size:15px}
+.sheet-modal .list .item .caption{margin-left:auto}
+.sheet-modal .row .btn{flex:1}
+.toast{z-index:6}
+.toast .undo{min-height:44px;padding:0 12px;border:1px solid #fff;border-radius:6px;display:flex;align-items:center;font-weight:700}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg .radio{flex:1 0 auto;justify-content:center;padding:0 10px;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sel{justify-content:space-between}
+.sel::after{content:"▾";color:var(--wf-muted)}
+.alert{border:2px solid var(--wf-ink);border-radius:8px;padding:12px;background:var(--wf-surface);display:flex;flex-direction:column;gap:6px;font-size:14px}
+.alert .ttl{font-weight:700}
+.alert .ttl::before{content:"!";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--wf-ink);color:#fff;font-size:13px;margin-right:6px}
+.sticky-cta{display:flex;gap:8px}
+.sticky-cta .btn.small{flex:none}
+.content{gap:12px}
+.radio-group .radio{padding:0 10px;font-size:15px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-06 時間ブロック（＋S-A-02 FAB プリセット）</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-06 ／ AT-21 ・ 例: 10/11(日) 18:02、19:00–20:00 に佐藤様の予約あり</p>
+</header>
+
+<!-- (a) FAB sheet -->
+<section class="artboard">
+  <p class="frame-title">(a) タップ 1: FAB「+」→ クイック操作<small>S-A-02 今日の上に開くシート</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:02</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/11(日) 今日</span><span class="iconbtn">›</span></div>
+    <div class="content"><div class="img" style="flex:1">S-A-02 タイムライン</div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="sheet-modal">
+      <div class="grip"></div>
+      <div class="list">
+        <div class="item"><b>手動予約</b><span class="caption">S-A-05 へ</span></div>
+        <div class="item">今から 30 分ブロック<span class="caption">18:00–18:30</span></div>
+        <div class="item" style="border:2px solid var(--wf-ink);border-radius:8px;padding:8px"><b>今から 1 時間ブロック</b><span class="caption">18:00–19:00</span></div>
+        <div class="item">終日ブロック<span class="caption">10/11 臨時休業</span></div>
+        <div class="item">期間を指定してブロック…<span class="caption">S-A-06 へ</span></div>
+      </div>
+    </div>
+    <div class="note" style="top:700px;left:140px;z-index:7"><span class="n">1</span>タップ 2 で即保存</div>
+    <div class="note" style="top:120px;right:8px;z-index:7"><span class="n">2</span>5 分単位で切り捨て</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span>「今から 30 分 / 1 時間 / 終日」は確認画面なしで <code>createTimeBlock({ preset })</code>。FAB → プリセットの 2 タップで完了（FR-A-06, AT-21, MT-03）。</li>
+    <li><span class="n">2</span>開始 = 現在時刻を 5 分単位で切り捨て（18:02 → 18:00）。各行に実際の区間を出し、押す前に結果が分かる。重なりがある場合だけ即保存せず (d) の警告へ（FR-A-06）。</li>
+  </ul>
+</section>
+
+<!-- (b) toast after preset -->
+<section class="artboard">
+  <p class="frame-title">(b) 保存直後（5 秒 Undo）<small>「今から 1 時間ブロック」をタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:02</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/11(日) 今日</span><span class="iconbtn">›</span></div>
+    <div class="mini"><div class="timeline">
+      <div class="t">18:00</div><div class="lane"><div class="booking block" style="top:1px;height:110px"><b>休憩</b><span>18:00–19:00</span></div><div class="nowline" style="top:4px"></div></div>
+      <div class="t">18:30</div><div class="lane"></div>
+      <div class="t">19:00</div><div class="lane"><div class="booking" style="top:1px;height:110px"><span class="caption">19:00–20:00</span><b>佐藤 健（さとう けん）</b><span>カット</span></div></div>
+      <div class="t">19:30</div><div class="lane"></div>
+      <div class="t">20:00</div><div class="lane"></div>
+      <div class="t">20:30</div><div class="lane"></div>
+    </div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="toast"><span>18:00–19:00 をブロックしました</span><span class="undo">取り消す</span></div>
+    <div class="note" style="top:120px;right:8px"><span class="n">3</span>境界は衝突しない</div>
+    <div class="note" style="bottom:156px;right:8px"><span class="n">4</span>取り消し = 作成の取消</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">3</span>区間は半開 <code>[18:00, 19:00)</code>。19:00 開始の予約とは重ならない（FR-S-01）。顧客サイトの 18:00・18:15… の枠は次回取得から消える（非キャッシュ、AT-21）。</li>
+    <li><span class="n">4</span>5 秒以内の「取り消す」で <code>deleteTimeBlock</code>。トーストはタブバーの上（親指圏）に出す（FR-A-06）。</li>
+  </ul>
+</section>
+
+<!-- (c) range form -->
+<section class="artboard">
+  <p class="frame-title">(c) 期間指定（S-A-06 画面）<small>FAB →「期間を指定してブロック」</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:05</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">時間をブロック</span></div>
+    <div class="content">
+      <div class="field"><span class="label">かんたん設定</span>
+        <div class="seg"><div class="radio">今から 30 分</div><div class="radio">今から 1 時間</div><div class="radio">終日</div><div class="radio on">期間指定</div></div>
+      </div>
+      <div class="field"><span class="label">種別</span>
+        <div class="radio-group"><div class="radio"><span class="dot"></span>休憩</div><div class="radio on"><span class="dot"></span>私用</div><div class="radio"><span class="dot"></span>臨時休業</div></div>
+      </div>
+      <div class="field"><span class="label">開始</span><div class="two"><div class="input sel filled">10/16(金)</div><div class="input sel filled">20:00</div></div></div>
+      <div class="field"><span class="label">終了</span><div class="two"><div class="input sel filled">10/16(金)</div><div class="input sel filled">21:30</div></div></div>
+      <div class="field"><span class="label">ラベル<span class="req">任意・自分用</span></span><div class="input filled">歯医者</div></div>
+      <p class="help">重なる予約はありません。顧客サイトでは 20:00–21:30 の枠が表示されなくなります。</p>
+    </div>
+    <div class="sticky-cta"><button class="btn primary">ブロックする</button></div>
+  </div>
+    <div class="note" style="top:108px;right:8px"><span class="n">5</span>プリセットもここで選べる</div>
+    <div class="note" style="top:268px;right:8px"><span class="n">6</span>種別はラジオ</div>
+    <div class="note" style="top:546px;right:8px"><span class="n">7</span>保存前に影響を表示</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">5</span>期間指定は開始 &lt; 終了、最大 60 日。時刻は <code>&lt;input type="time" step="300"&gt;</code>（FR-A-06）。</li>
+    <li><span class="n">6</span>休憩（<code>break</code>）/ 私用（<code>personal</code>）/ 臨時休業（<code>closed</code>）。複数日の休業は臨時休業（FR-A-06）。</li>
+    <li><span class="n">7</span>入力ごとに <code>GET /api/admin/overlaps</code>。重なりなしならその旨と顧客サイトへの影響を 1 行で示す。下書きは <code>sessionStorage</code> に保存（FR-A-06, 10）。</li>
+  </ul>
+</section>
+
+<!-- (d) overlap -->
+<section class="artboard">
+  <p class="frame-title">(d) 予約との重なり警告<small>10/17(土) を臨時休業（終日）にしようとした</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:06</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">時間をブロック</span></div>
+    <div class="content">
+      <div class="field"><span class="label">種別</span>
+        <div class="radio-group"><div class="radio"><span class="dot"></span>休憩</div><div class="radio"><span class="dot"></span>私用</div><div class="radio on"><span class="dot"></span>臨時休業</div></div>
+      </div>
+      <div class="field"><span class="label">期間</span><div class="input filled">10/17(土) 終日</div></div>
+      <div class="field"><span class="label">ラベル</span><div class="input filled">法事</div></div>
+      <div class="alert" role="alert">
+        <span class="ttl">予約と重なっています（2 件）</span>
+        <span>18:00–20:00 伊藤 蓮様（カットパーマ）</span>
+        <span>21:00–22:00 小林 拓也様（カット）</span>
+        <span class="caption">ブロックしても予約は残ります。お客様に連絡し、必要なら各予約を管理者キャンセルしてください。</span>
+      </div>
+    </div>
+    <div class="sticky-cta"><button class="btn primary">期間を変更</button><button class="btn small secondary">それでもブロック</button></div>
+  </div>
+    <div class="note" style="top:370px;right:8px"><span class="n">8</span>予約は消さない</div>
+    <div class="note" style="bottom:84px;right:8px"><span class="n">9</span>明示的に選んだときだけ保存</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">8</span>同一トランザクション（advisory lock 下）で有効予約との重なりを確認し警告。行タップで S-A-04 を開き、連絡・キャンセルできる（FR-A-06）。</li>
+    <li><span class="n">9</span>既定は「期間を変更」。「それでもブロック」で保存しても予約は残り、新規受付だけが止まる（FR-A-06, AT-21）。</li>
+  </ul>
+</section>
+
+<!-- (e) block detail → delete -->
+<section class="artboard">
+  <p class="frame-title">(e) ブロックをタップ → 削除<small>今日ビューの斜線カードをタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:20</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/11(日) 今日</span><span class="iconbtn">›</span></div>
+    <div class="content"><div class="img" style="flex:1">S-A-02 タイムライン</div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="sheet-modal">
+      <div class="grip"></div>
+      <p class="caption">ブロック ・ 休憩</p>
+      <h2>18:00–19:00</h2>
+      <p class="muted">「今から 1 時間」で 18:02 に作成</p>
+      <div class="row"><button class="btn secondary">時間を編集</button><button class="btn danger">削除</button></div>
+    </div>
+    <div class="note" style="bottom:120px;right:8px;z-index:7"><span class="n">10</span>確認なしで削除</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">10</span>削除は <code>deleteTimeBlock</code>（<code>deleted_at</code> のソフトデリート）。確認ダイアログの代わりに (f) の Undo で誤操作を救う（FR-A-06）。</li>
+  </ul>
+</section>
+
+<!-- (f) after delete -->
+<section class="artboard">
+  <p class="frame-title">(f) 削除直後（5 秒 Undo）<small>「削除」をタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:20</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/11(日) 今日</span><span class="iconbtn">›</span></div>
+    <div class="mini"><div class="timeline">
+      <div class="t">18:00</div><div class="lane"></div>
+      <div class="t">18:30</div><div class="lane"><div class="nowline" style="top:-18px"></div></div>
+      <div class="t">19:00</div><div class="lane"><div class="booking" style="top:1px;height:110px"><span class="caption">19:00–20:00</span><b>佐藤 健（さとう けん）</b><span>カット</span></div></div>
+      <div class="t">19:30</div><div class="lane"></div>
+      <div class="t">20:00</div><div class="lane"></div>
+      <div class="t">20:30</div><div class="lane"></div>
+    </div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="toast"><span>休憩 18:00–19:00 を削除しました</span><span class="undo">取り消す</span></div>
+    <div class="note" style="bottom:156px;right:8px"><span class="n">11</span>復元 = restoreTimeBlock</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">11</span>5 秒以内の「取り消す」で <code>restoreTimeBlock</code>。猶予中も枠は空きに戻っているため、復元時に予約が入っていれば (d) と同じ警告を出す（FR-A-06, AT-21）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

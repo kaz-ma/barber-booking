@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 02 今日</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.dayhead{height:56px;display:flex;align-items:center;gap:4px;padding:0 8px;border-bottom:1px solid var(--wf-line)}
+.dayhead .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;font-size:22px}
+.dayhead .date{flex:1;font-weight:700;font-size:17px}
+.dayhead .date small{font-weight:400;color:var(--wf-muted);font-size:12px;margin-left:4px}
+.daysum{display:flex;gap:16px;padding:4px 16px;font-size:12px;color:var(--wf-muted);border-bottom:1px solid var(--wf-line)}
+.tlwrap{padding:8px 16px 72px 8px;flex:1}
+.timeline .t,.timeline .lane{height:28px}
+.timeline .t.q{color:transparent}
+.timeline .t.h30{color:var(--wf-faint)}
+.timeline .lane.q,.timeline .t.q{border-top:1px dotted #e3e3e3}
+.timeline .end{height:16px}
+.booking{z-index:2;padding-right:56px;justify-content:flex-start}
+.booking .top{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--wf-muted)}
+.booking .nm{font-size:14px}
+.booking .nm b{font-size:15px}
+.booking .meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.booking .pill.o{background:#fff;border:1px solid var(--wf-line-strong)}
+.booking.done{opacity:.55}
+.booking .unread{position:absolute;top:6px;right:58px;font-size:12px}
+.telbtn{position:absolute;right:6px;top:6px;width:44px;height:44px;border-radius:50%;border:1px solid var(--wf-ink);display:grid;place-items:center;font-size:11px;font-weight:700;background:#fff}
+.booking.block{padding-right:10px;color:var(--wf-muted)}
+.nowline{z-index:3}
+.nowline span{position:absolute;left:-60px;top:-9px;background:var(--wf-ink);color:#fff;font-size:11px;padding:0 4px;border-radius:4px}
+.emptymsg{position:absolute;left:72px;right:16px;top:240px;z-index:2;text-align:center;background:#fff;border:1px dashed var(--wf-line-strong);border-radius:8px;padding:16px}
+.tab{position:relative}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 4px)}
+.fab.off{opacity:.35}
+.offline-bar{margin:8px 16px 0}
+.sheet-modal{z-index:6}
+.sheet-modal .btn.small{flex:1}
+.sheet-modal .status-row{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-02 今日（管理 PWA の start_url）</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-02, 04, 06, 10, 11, 17 ／ AT-15, 18, 21 ・ 18:00–24:00、1 行 = 15 分（28px）、現在 19:40</p>
+</header>
+
+<!-- (a) normal day -->
+<section class="artboard">
+  <p class="frame-title">(a) 通常日（予約 4 件＋ブロック 1）<small>10/10(土) 19:40 時点・未確認 2 件</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:40</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/10(土)<small>今日</small></span><span class="iconbtn">›</span><button class="btn small">未確認 <b class="badge" style="background:#fff;color:#1a1a1a">2</b></button></div>
+    <div class="daysum"><span>予約 4 件</span><span>ブロック 1</span><span>空き 2 枠</span></div>
+    <div class="tlwrap"><div class="tl" id="tl-a" data-now="19:40">
+      <div class="booking done" data-s="18:00" data-e="19:00"><div class="top">18:00–19:00 <span class="pill">完了</span></div><div class="nm"><b>佐藤 健</b>（さとう けん）</div><div class="meta">カット <span class="pill">web</span></div><span class="telbtn">電話</span></div>
+      <div class="booking" data-s="19:00" data-e="21:00"><div class="top">19:00–21:00 <span class="pill">施術中</span></div><div class="nm"><b>山田 太郎</b>（やまだ たろう）</div><div class="meta">カットパーマ <span class="pill">Instagram</span> <span class="pill o">備考</span></div><span class="telbtn">電話</span></div>
+      <div class="booking block" data-s="21:00" data-e="21:30"><div class="top"><b>休憩</b> 21:00–21:30</div><div>夕食</div></div>
+      <div class="booking" data-s="21:45" data-e="22:45"><span class="unread">●未確認</span><div class="top">21:45–22:45 <span class="pill">確定</span></div><div class="nm"><b>鈴木 一郎</b>（すずき いちろう）</div><div class="meta">カット（学生）<span class="pill">web</span> <span class="pill o">備考</span></div><span class="telbtn">電話</span></div>
+      <div class="booking" data-s="23:00" data-e="24:00"><span class="unread">●未確認</span><div class="top">23:00–24:00 <span class="pill">確定</span></div><div class="nm"><b>高橋 翔</b>（たかはし しょう）</div><div class="meta">カット＋眉 <span class="pill">電話</span></div><span class="telbtn">電話</span></div>
+    </div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">2</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="fab">+</div>
+    <div class="note" style="top:52px;left:150px"><span class="n">1</span>日付送り ‹ ›</div>
+    <div class="note" style="top:52px;right:8px"><span class="n">2</span>未確認 n 件</div>
+    <div class="note" style="top:326px;right:60px"><span class="n">3</span>現在線</div>
+    <div class="note" style="top:404px;right:60px"><span class="n">4</span>カード ≥56px</div>
+    <div class="note" style="top:200px;right:8px"><span class="n">5</span>電話は分離 44px</div>
+    <div class="note" style="top:480px;right:8px"><span class="n">6</span>ブロックは斜線</div>
+    <div class="note" style="bottom:100px;right:80px"><span class="n">7</span>FAB → クイック操作</div>
+    <div class="note" style="top:660px;left:150px"><span class="n">8</span>空き区間タップ</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span><code>?date=</code> で前後日へ。今日以外では日付横に「今日に戻る」を出す（FR-A-02）。</li>
+    <li><span class="n">2</span><code>acknowledged_at IS NULL</code> の件数。起動時・<code>visibilitychange</code>・可視中 20 秒ポーリングで更新、タップで受信箱（FR-A-11, AT-15）。</li>
+    <li><span class="n">3</span>JST 現在時刻。1 分ごとに位置更新。起動時は現在線が見える位置へ自動スクロール（FR-A-02）。</li>
+    <li><span class="n">4</span>開始–終了・氏名（ふりがな）・メニュー・<code>source</code>・状態チップ（文字で表示、色に頼らない）・備考有無・未確認ドット。タップで詳細（(d)・S-A-04）（FR-A-02, 04）。</li>
+    <li><span class="n">5</span><code>tel:</code> ボタンはカードのタップ領域と分離した 44px 円。<code>phone_e164</code> がない手動予約では非表示（FR-A-02）。</li>
+    <li><span class="n">6</span><code>time_blocks</code> を斜線＋破線枠で予約と区別。タップで種別・区間・削除（S-A-06）（FR-A-06）。</li>
+    <li><span class="n">7</span>「手動予約 / 今から 30 分 / 今から 1 時間 / 終日 / 期間指定」。プリセットは即保存＋5 秒 Undo で 2 タップ完了（FR-A-05, 06, AT-21）。</li>
+    <li><span class="n">8</span>空き区間（例 22:45–23:00）をタップするとその時刻で「手動予約」「ここからブロック」（FR-A-05, 06）。</li>
+  </ul>
+</section>
+
+<!-- (b) empty day -->
+<section class="artboard">
+  <p class="frame-title">(b) 予約のない日<small>10/14(水) に移動した状態</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:41</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/14(水)</span><span class="iconbtn">›</span><button class="btn small secondary">今日</button></div>
+    <div class="daysum"><span>予約 0 件</span><span>ブロック 0</span><span>空き 6 枠</span></div>
+    <div class="tlwrap" style="position:relative"><div class="tl"></div>
+      <div class="emptymsg"><b>この日の予約はまだありません</b><p class="muted">空いている時間をタップすると、手動予約やブロックを追加できます</p></div>
+    </div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">2</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="fab">+</div>
+    <div class="note" style="top:52px;right:84px"><span class="n">9</span>今日に戻る</div>
+    <div class="note" style="top:560px;left:96px"><span class="n">10</span>空き区間はタップ可能のまま</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">9</span>今日以外の日付では「今日」ボタンで即復帰。タブ「今日」の再タップでも同じ（FR-A-02）。</li>
+    <li><span class="n">10</span>空状態でもタイムラインは描画し、どこでもタップで追加できる。定休日は「定休日です」帯＋手動予約は可能（S-A-02 状態表）。</li>
+  </ul>
+</section>
+
+<!-- (c) offline -->
+<section class="artboard">
+  <p class="frame-title">(c) オフライン（読み取り専用）<small>機内モードで起動・キャッシュ表示（Should）</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:40</span><span>機内モード</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/10(土)<small>今日</small></span><span class="iconbtn">›</span><button class="btn small" aria-disabled="true">未確認 –</button></div>
+    <div class="banner offline-bar"><b>オフライン</b><span>最後に取得した内容を表示しています（10/10 19:05）。読み取り専用です。</span></div>
+    <div class="tlwrap"><div class="tl" data-clone="tl-a" data-now="19:40"></div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="fab off">+</div>
+    <div class="note" style="top:8px;right:110px"><span class="n">11</span>取得時刻を明示</div>
+    <div class="note" style="bottom:100px;right:80px"><span class="n">12</span>書き込み系は無効</div>
+    <div class="note" style="top:380px;right:60px"><span class="n">13</span>電話は使える</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">11</span>直近に取得した今日の一覧をクエリキャッシュから表示し「オフライン」バナー（FR-A-17, AT-18）。</li>
+    <li><span class="n">12</span>FAB・状態変更・未確認バッジを無効化。オンライン復帰で自動再取得し、バナーを閉じる（FR-A-17）。</li>
+    <li><span class="n">13</span><code>tel:</code> は通信不要なので有効のまま。遅刻連絡などに使える（FR-A-02）。</li>
+  </ul>
+</section>
+
+<!-- (d) detail sheet -->
+<section class="artboard">
+  <p class="frame-title">(d) カードタップ → 詳細シート（S-A-04 プレビュー）<small>山田様のカードをタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:40</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/10(土)<small>今日</small></span><span class="iconbtn">›</span><button class="btn small">未確認 <b class="badge" style="background:#fff;color:#1a1a1a">2</b></button></div>
+    <div class="daysum"><span>予約 4 件</span><span>ブロック 1</span><span>空き 2 枠</span></div>
+    <div class="tlwrap"><div class="tl" data-clone="tl-a" data-now="19:40"></div></div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">2</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="sheet-modal">
+      <div class="grip"></div>
+      <div class="row between"><div><p class="caption">19:00–21:00 ・ 施術中</p><h2>山田 太郎<small class="muted">（やまだ たろう）</small></h2></div><span class="pill">Instagram</span></div>
+      <div class="kv">
+        <span class="k">メニュー</span><span>カットパーマ（120 分）¥8,800</span>
+        <span class="k">電話</span><span>090-1234-5678</span>
+        <span class="k">備考</span><span>前回より短めに。襟足すっきり</span>
+        <span class="k">来店</span><span>5 回目・無断キャンセル 0</span>
+      </div>
+      <div class="status-row"><button class="btn small secondary">電話する</button><button class="btn small primary">完了にする</button></div>
+      <button class="btn secondary">詳細を開く（状態変更・確認 URL）</button>
+    </div>
+    <div class="note" style="bottom:300px;right:8px;z-index:7"><span class="n">14</span>次の状態を 1 つ提案</div>
+    <div class="note" style="bottom:330px;left:8px;z-index:7"><span class="n">15</span>開いた時点で確認済み</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">14</span>シートは要点＋「次に押す状態」1 つ（施術中 → 完了）。キャンセル系・無断は全画面の S-A-04 に置き誤タップを防ぐ（FR-A-04）。</li>
+    <li><span class="n">15</span>表示時に <code>acknowledgeBooking</code>、未確認バッジ −1。プッシュ通知タップ時は S-A-04 を直接開く（FR-A-10, 11）。下スワイプ／スクリム タップで閉じる。</li>
+  </ul>
+</section>
+</div>
+<script>
+// Builds the 15-minute timeline (kit .timeline/.t/.lane) and places cards by data-s / data-e.
+const ROW = 28, START = 18 * 60, ROWS = 24;
+const min = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const src = {};
+document.querySelectorAll('.tl[id]').forEach(t => { src[t.id] = t.innerHTML; });
+document.querySelectorAll('.tl').forEach(tl => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = tl.dataset.clone ? src[tl.dataset.clone] : tl.innerHTML;
+  const g = document.createElement('div'); g.className = 'timeline';
+  const lanes = [];
+  for (let i = 0; i < ROWS; i++) {
+    const t = START + i * 15, mm = t % 60;
+    const lab = document.createElement('div');
+    lab.className = 't' + (mm === 0 ? '' : mm === 30 ? ' h30' : ' q');
+    lab.textContent = `${Math.floor(t / 60)}:${String(mm).padStart(2, '0')}`;
+    const lane = document.createElement('div'); lane.className = 'lane' + (mm ? ' q' : '');
+    g.append(lab, lane); lanes.push(lane);
+  }
+  const endT = document.createElement('div'); endT.className = 't end'; endT.textContent = '24:00';
+  const endL = document.createElement('div'); endL.className = 'lane end';
+  g.append(endT, endL);
+  tmp.querySelectorAll('[data-s]').forEach(b => {
+    const s = min(b.dataset.s), e = min(b.dataset.e);
+    b.style.top = '1px'; b.style.height = ((e - s) / 15 * ROW - 2) + 'px';
+    lanes[(s - START) / 15].append(b);
+  });
+  if (tl.dataset.now) {
+    const n = min(tl.dataset.now) - START, line = document.createElement('div');
+    line.className = 'nowline'; line.style.top = ((n % 15) / 15 * ROW) + 'px';
+    line.innerHTML = `<span>${tl.dataset.now}</span>`;
+    lanes[Math.floor(n / 15)].append(line);
+  }
+  tl.replaceChildren(g);
+});
+</script>
+</body>
+</html>

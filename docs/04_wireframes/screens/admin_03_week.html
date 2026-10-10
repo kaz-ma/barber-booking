@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 03 週</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.tab{position:relative}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 4px)}
+.weekhead{display:flex;align-items:center;gap:8px}
+.weekhead .range{flex:1;text-align:center;font-weight:700}
+.weekgrid .cell{min-height:112px;align-items:center;text-align:center;line-height:1.3;padding:6px 2px}
+.weekgrid .cell b{font-size:18px}
+.weekgrid .cell .wd{font-size:11px;color:var(--wf-muted)}
+.weekgrid .cell.today{border:2px solid var(--wf-ink)}
+.weekgrid .cell.full .free{font-weight:700}
+.weekgrid .cell .blk{width:28px;height:8px;border:1px solid var(--wf-line-strong);background:repeating-linear-gradient(45deg,var(--wf-sunken) 0 3px,#fff 3px 6px);margin-top:auto}
+.weekgrid .cell.skel{background:var(--wf-surface)}
+.weekgrid .cell.skel i{display:block;width:70%;height:10px;background:var(--wf-sunken);border-radius:3px;margin-top:8px}
+.legend{flex-wrap:wrap;gap:8px 16px;font-size:12px}
+.legend .blk{display:inline-block;width:20px;height:8px;border:1px solid var(--wf-line-strong);background:repeating-linear-gradient(45deg,var(--wf-sunken) 0 3px,#fff 3px 6px);margin-right:4px}
+.list .item{font-size:14px}
+.list .item .d{width:72px;font-weight:700}
+.kpi{border-style:dashed}
+.kpi .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi .tile{background:var(--wf-surface);border-radius:6px;padding:8px 12px;line-height:1.3}
+.kpi .tile b{font-size:20px;display:block}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-03 週</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-03, 07, 19（Could） ・ 定休日 = 月曜（仮）、受付 18:00–24:00</p>
+</header>
+
+<!-- (a) this week -->
+<section class="artboard">
+  <p class="frame-title">(a) 今週（10/5–10/11）＋今週 KPI<small>タブ「週」を開いた直後。今日 = 10/10(土)</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:42</span><span>standalone</span></div>
+    <div class="header"><span class="title">週</span><span class="caption">10 月</span></div>
+    <div class="content">
+      <div class="weekhead"><button class="btn small secondary">‹ 前週</button><span class="range">10/5 – 10/11</span><button class="btn small secondary">次週 ›</button></div>
+      <div class="weekgrid">
+        <div class="cell off"><span class="wd">月</span><b>5</b><span>休</span></div>
+        <div class="cell"><span class="wd">火</span><b>6</b><span>3件</span><span class="free">空2</span></div>
+        <div class="cell"><span class="wd">水</span><b>7</b><span>2件</span><span class="free">空3</span><i class="blk"></i></div>
+        <div class="cell"><span class="wd">木</span><b>8</b><span>4件</span><span class="free">空1</span></div>
+        <div class="cell full"><span class="wd">金</span><b>9</b><span>5件</span><span class="free">満</span></div>
+        <div class="cell today"><span class="wd">土</span><b>10</b><span>4件</span><span class="free">空2</span><i class="blk"></i></div>
+        <div class="cell"><span class="wd">日</span><b>11</b><span>2件</span><span class="free">空3</span></div>
+      </div>
+      <div class="legend"><span>n件 = 予約数</span><span>空n = 空き枠数</span><span><i class="blk"></i>ブロックあり</span><span>太枠 = 今日</span></div>
+      <div class="card kpi">
+        <div class="row between"><h3>今週 KPI</h3><span class="pill">Could</span></div>
+        <div class="grid">
+          <div class="tile"><span class="caption">予約数</span><b>20 件</b></div>
+          <div class="tile"><span class="caption">売上見込み</span><b>¥118,800</b></div>
+          <div class="tile"><span class="caption">空き枠率</span><b>35%</b></div>
+          <div class="tile"><span class="caption">無断キャンセル（30 日）</span><b>1 件</b></div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="item"><span class="d">10/10(土)</span><span class="grow">予約 4・空き 2・ブロック 1</span><span>›</span></div>
+        <div class="item"><span class="d">10/11(日)</span><span class="grow">予約 2・空き 3</span><span>›</span></div>
+      </div>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab on"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">2</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:60px;left:60px"><span class="n">1</span>週送り</div>
+    <div class="note" style="top:60px;right:64px"><span class="n">2</span>セルタップ → 日ビュー</div>
+    <div class="note" style="top:362px;left:120px"><span class="n">3</span>月曜は「休」</div>
+    <div class="note" style="top:440px;right:8px"><span class="n">4</span>KPI は枠だけ確保</div>
+    <div class="note" style="top:660px;right:40px"><span class="n">5</span>読み上げ用リスト</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span>「‹ 前週 / 次週 ›」で 7 日単位に移動。今週以外では中央の期間をタップで今週に戻る（FR-A-03）。</li>
+    <li><span class="n">2</span>セル（幅約 48px・高さ 112px）タップで S-A-02 を <code>?date=</code> 付きで開く（MT: WK → TODAY）（FR-A-03）。</li>
+    <li><span class="n">3</span>定休日は「休」＋グレー面、ブロックは斜線バー、満枠は「満」を太字。色に頼らず文字と形で示す（FR-A-03, 07）。</li>
+    <li><span class="n">4</span>今週の予約数・売上見込み・空き枠率・直近の無断キャンセル。Phase 1 では枠のみで後回し可（FR-A-19, Could）。</li>
+    <li><span class="n">5</span>7 列グリッドは小さいので、同じ内容を日別リスト（56px 行）でも提供し、スクリーンリーダーの読み順を保証。空き枠数は availability と同じ SQL を週範囲で実行（<code>getWeekSummary</code>）。</li>
+  </ul>
+</section>
+
+<!-- (b) next week -->
+<section class="artboard">
+  <p class="frame-title">(b) 次週（祝日・臨時休業・ブロック）<small>「次週 ›」をタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:43</span><span>standalone</span></div>
+    <div class="header"><span class="title">週</span><span class="caption">10 月</span></div>
+    <div class="content">
+      <div class="weekhead"><button class="btn small secondary">‹ 前週</button><span class="range">10/12 – 10/18<br><span class="caption">タップで今週</span></span><button class="btn small secondary">次週 ›</button></div>
+      <div class="weekgrid">
+        <div class="cell off"><span class="wd">月</span><b>12</b><span>休</span><span class="caption">祝</span></div>
+        <div class="cell"><span class="wd">火</span><b>13</b><span>1件</span><span class="free">空5</span></div>
+        <div class="cell"><span class="wd">水</span><b>14</b><span>0件</span><span class="free">空6</span></div>
+        <div class="cell off"><span class="wd">木</span><b>15</b><span>臨休</span></div>
+        <div class="cell"><span class="wd">金</span><b>16</b><span>2件</span><span class="free">空4</span></div>
+        <div class="cell"><span class="wd">土</span><b>17</b><span>3件</span><span class="free">空2</span><i class="blk"></i></div>
+        <div class="cell"><span class="wd">日</span><b>18</b><span>1件</span><span class="free">空5</span></div>
+      </div>
+      <div class="list">
+        <div class="item"><span class="d">10/12(月)</span><span class="grow">定休日（スポーツの日）</span><span>›</span></div>
+        <div class="item"><span class="d">10/13(火)</span><span class="grow">予約 1・空き 5</span><span>›</span></div>
+        <div class="item"><span class="d">10/14(水)</span><span class="grow">予約 0・空き 6</span><span>›</span></div>
+        <div class="item"><span class="d">10/15(木)</span><span class="grow">臨時休業「研修」</span><span>›</span></div>
+        <div class="item"><span class="d">10/16(金)</span><span class="grow">予約 2・空き 4</span><span>›</span></div>
+        <div class="item"><span class="d">10/17(土)</span><span class="grow">予約 3・空き 2・ブロック 1</span><span>›</span></div>
+        <div class="item"><span class="d">10/18(日)</span><span class="grow">予約 1・空き 5</span><span>›</span></div>
+      </div>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab on"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">2</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:300px;left:8px"><span class="n">6</span>祝日は表示のみ</div>
+    <div class="note" style="top:300px;left:150px"><span class="n">7</span>臨時休業</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">6</span>祝日は「祝」と名称を表示するだけで自動休業にしない。祝日に営業するかは都度 S-A-08 の臨時休業で決める（FR-A-07 Should）。</li>
+    <li><span class="n">7</span><code>business_hour_overrides</code> の臨時休業は「臨休」＋ラベル。ブロック（<code>time_blocks</code> の <code>closed</code>）による終日休業も同じ見た目に揃える（FR-A-06, 07）。</li>
+  </ul>
+</section>
+
+<!-- (c) loading -->
+<section class="artboard">
+  <p class="frame-title">(c) 読み込み中<small>週送り直後。枠組みは即描画しセルだけスケルトン</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:43</span><span>standalone</span></div>
+    <div class="header"><span class="title">週</span><span class="caption">10 月</span></div>
+    <div class="content">
+      <div class="weekhead"><button class="btn small secondary">‹ 前週</button><span class="range">10/19 – 10/25</span><button class="btn small secondary">次週 ›</button></div>
+      <div class="weekgrid">
+        <div class="cell skel"><span class="wd">月</span><b>19</b><i></i></div>
+        <div class="cell skel"><span class="wd">火</span><b>20</b><i></i></div>
+        <div class="cell skel"><span class="wd">水</span><b>21</b><i></i></div>
+        <div class="cell skel"><span class="wd">木</span><b>22</b><i></i></div>
+        <div class="cell skel"><span class="wd">金</span><b>23</b><i></i></div>
+        <div class="cell skel"><span class="wd">土</span><b>24</b><i></i></div>
+        <div class="cell skel"><span class="wd">日</span><b>25</b><i></i></div>
+      </div>
+      <p class="muted">日付と曜日はクライアントで即描画し、件数・空き枠数だけを待つ。</p>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab on"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱<b class="badge">2</b></div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:330px;right:8px"><span class="n">8</span>レイアウトを動かさない</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">8</span>セル寸法を固定してスケルトンを置き、読み込み完了時にガタつかせない。エラー時は「読み込めませんでした［再試行］」（FR-A-03）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

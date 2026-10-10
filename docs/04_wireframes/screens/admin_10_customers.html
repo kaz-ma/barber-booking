@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 10 顧客</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.segbar{display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--wf-line)}
+.segbar .radio{flex:1;justify-content:center;padding:0 4px;font-size:13px}
+.content{gap:12px}
+.sect{font-size:13px;font-weight:700;color:var(--wf-muted)}
+.list .item{font-size:14px;line-height:1.4}
+.list .item .pill.strong{background:#fff;border:1.5px solid var(--wf-ink);font-weight:700}
+.radio-group .radio{padding:0 10px;font-size:15px;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats div{background:var(--wf-surface);border-radius:6px;padding:8px 4px;line-height:1.3;font-size:11px;color:var(--wf-muted)}
+.stats b{display:block;font-size:18px;color:var(--wf-ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dialog{position:absolute;left:20px;right:20px;top:200px;z-index:6;background:#fff;border-radius:16px;padding:24px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:12px}
+.dialog ul{margin:0;padding-left:20px;font-size:14px}
+.dialog .row .btn{flex:1}
+.tab{position:relative}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-11 顧客一覧・詳細（Should）</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-13, 14 ／ FR-S-07, 09 ／ AT-30 ・ 入口: 設定 → セグメント「顧客」、予約詳細の顧客行</p>
+</header>
+
+<!-- (a) list -->
+<section class="artboard">
+  <p class="frame-title">(a) 顧客一覧・検索<small>「やま」で検索（かな正規化・電話番号でも可）</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:50</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span><button class="btn small secondary">CSV エクスポート</button></div>
+    <div class="segbar"><div class="radio">営業時間</div><div class="radio">メニュー</div><div class="radio">通知</div><div class="radio on">顧客</div></div>
+    <div class="content">
+      <div class="input filled">やま<span style="margin-left:auto;color:var(--wf-muted)">×</span></div>
+      <p class="sect">3 件</p>
+      <div class="list">
+        <div class="item"><div class="grow"><b>山田 太郎</b>（やまだ たろう）<br><span class="caption">来店 5 回 ・ 最終 9/26 ・ 無断 0</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>山田 健二</b>（やまだ けんじ） <span class="pill strong">電話のみ</span><br><span class="caption">来店 1 回 ・ 最終 6/14 ・ 無断 2</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>山本 悠斗</b>（やまもと ゆうと）<br><span class="caption">来店 0 回 ・ 次回 10/13 ・ 無断 0</span></div><span>›</span></div>
+      </div>
+      <p class="sect">並び替え: 最終来店が新しい順</p>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:164px;right:8px"><span class="n">1</span>名前・ふりがな・電話</div>
+    <div class="note" style="top:270px;right:40px"><span class="n">2</span>制限は文字の pill</div>
+    <div class="note" style="top:52px;left:60px"><span class="n">3</span>一括 CSV</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span><code>searchCustomers(q)</code>。ひらがな/カタカナ/全角半角を正規化して部分一致、電話は数字だけ取り出して一致（FR-A-13）。</li>
+    <li><span class="n">2</span>各行に来店回数・最終来店・<code>no_show_count</code>。<code>booking_restriction</code> が none 以外なら「電話のみ」「受付停止」を太枠で表示（FR-A-13）。</li>
+    <li><span class="n">3</span>CSV 一括エクスポート（<code>audit_log</code> に記録）。端末に個人情報ファイルが残る旨を確認してから実行（FR-A-14, FR-S-07）。</li>
+  </ul>
+</section>
+
+<!-- (b) detail -->
+<section class="artboard">
+  <p class="frame-title">(b) 顧客詳細<small>「山田 健二」をタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:51</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">顧客詳細</span></div>
+    <div class="content">
+      <div><h2>山田 健二</h2><p class="muted">やまだ けんじ ・ 電話なし（手動予約のみ）</p></div>
+      <div class="stats"><div><b>1</b>来店</div><div><b>2</b>無断</div><div><b>0</b>遅刻取消</div><div><b>6/14</b>最終来店</div></div>
+      <div class="field"><span class="label">web 予約の制限</span>
+        <div class="radio-group"><div class="radio"><span class="dot"></span>なし</div><div class="radio on"><span class="dot"></span>電話のみ</div><div class="radio"><span class="dot"></span>受付停止</div></div>
+        <span class="help">電話のみ: web 予約時に「お電話ください」と案内されます</span>
+      </div>
+      <p class="sect">予約履歴</p>
+      <div class="list">
+        <div class="item"><div class="grow"><b>9/5(土) 20:00</b> カット<br><span class="caption">無断キャンセル ・ Instagram</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>7/18(土) 19:00</b> カット<br><span class="caption">無断キャンセル ・ 電話</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>6/14(日) 21:00</b> カット＋眉<br><span class="caption">完了 ・ 電話</span></div><span>›</span></div>
+      </div>
+      <div class="two"><button class="btn secondary">JSON エクスポート</button><button class="btn secondary">重複をマージ</button></div>
+      <button class="btn danger">匿名化する…</button>
+    </div>
+  </div>
+    <div class="note" style="top:58px;right:8px"><span class="n">4</span>回数を先に</div>
+    <div class="note" style="top:246px;right:8px"><span class="n">5</span>OI: 制限の運用</div>
+    <div class="note" style="top:460px;right:40px"><span class="n">6</span>行 → S-A-04</div>
+    <div class="note" style="bottom:56px;left:8px"><span class="n">7</span>不可逆は確認あり</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">4</span>来店・無断（<code>no_show_count</code>）・遅刻キャンセル（<code>late_cancel_count</code>）・最終来店を上部に集約（FR-A-13）。</li>
+    <li><span class="n">5</span><code>updateCustomerRestriction</code>。none / phone_only / blocked。運用基準（例: 無断 2 回で電話のみ）は【要確認】（FR-A-13）。</li>
+    <li><span class="n">6</span>履歴行タップで S-A-04（MT: CU → DT）。同一電話番号の予約は 1 顧客に紐づく（FR-A-13）。</li>
+    <li><span class="n">7</span>JSON エクスポート（予約・同意履歴）、重複マージ、匿名化。匿名化だけは Undo できないため (c) の確認ダイアログを出す（FR-A-14）。</li>
+  </ul>
+</section>
+
+<!-- (c) anonymize dialog -->
+<section class="artboard">
+  <p class="frame-title">(c) 匿名化の確認ダイアログ<small>「匿名化する…」をタップ（削除依頼への対応）</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:52</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">顧客詳細</span></div>
+    <div class="content"><div class="img" style="flex:1">顧客詳細</div></div>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="dialog" role="alertdialog">
+      <h2>山田 健二 様を匿名化しますか？</h2>
+      <div><b>消える情報</b><ul><li>氏名・ふりがな・電話番号</li><li>メモ・備考</li></ul></div>
+      <div><b>残る情報</b><ul><li>予約の日時・メニュー・状態（売上・統計用）</li></ul></div>
+      <p class="muted">この操作は取り消せません。必要なら先に JSON エクスポートしてください。</p>
+      <div class="checkbox"><span class="box"></span><span>本人から削除の依頼を受けたことを確認しました</span></div>
+      <div class="row"><button class="btn secondary">やめる</button><button class="btn primary" aria-disabled="true">匿名化する</button></div>
+    </div>
+    <div class="note" style="top:150px;right:8px;z-index:7"><span class="n">8</span>Undo の代わりに確認</div>
+    <div class="note" style="bottom:120px;right:8px;z-index:7"><span class="n">9</span>チェックで有効化</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">8</span>キャンセル・ブロックは「即時実行＋Undo」だが、匿名化は復元できないため例外的に確認ダイアログ（FR-A-14）。</li>
+    <li><span class="n">9</span>チェックを入れるまで実行ボタンは無効。既定フォーカスは「やめる」。実行は <code>anonymizeCustomer</code> → <code>audit_log</code>（FR-A-14, FR-S-07）。</li>
+  </ul>
+</section>
+
+<!-- (d) anonymized -->
+<section class="artboard">
+  <p class="frame-title">(d) 匿名化後<small>実行直後の顧客詳細</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:52</span><span>standalone</span></div>
+    <div class="header"><span class="back">←</span><span class="title">顧客詳細</span></div>
+    <div class="content">
+      <div class="banner">10/10 23:52 に匿名化しました。氏名・ふりがな・電話番号は削除されています。</div>
+      <div><h2>匿名化済みの顧客</h2><p class="muted">— ・ —</p></div>
+      <div class="stats"><div><b>1</b>来店</div><div><b>2</b>無断</div><div><b>0</b>遅刻取消</div><div><b>6/14</b>最終来店</div></div>
+      <p class="sect">予約履歴（個人情報なし）</p>
+      <div class="list">
+        <div class="item"><div class="grow"><b>9/5(土) 20:00</b> カット<br><span class="caption">無断キャンセル</span></div></div>
+        <div class="item"><div class="grow"><b>7/18(土) 19:00</b> カット<br><span class="caption">無断キャンセル</span></div></div>
+        <div class="item"><div class="grow"><b>6/14(日) 21:00</b> カット＋眉<br><span class="caption">完了</span></div></div>
+      </div>
+    </div>
+  </div>
+    <div class="note" style="top:206px;right:8px"><span class="n">10</span>統計は残る</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">10</span>匿名化後は氏名・ふりがな・電話が消え、予約の日時・メニュー・状態のみ残る（<code>anonymized_at</code> 記録）。3 年経過の自動匿名化（FR-S-09）も同じ表示（FR-A-14, AT-30）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

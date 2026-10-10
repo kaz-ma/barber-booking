@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 09 通知・端末</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.tab{position:relative}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 4px)}
+.segbar{display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--wf-line)}
+.segbar .radio{flex:1;justify-content:center;padding:0 4px;font-size:13px}
+.content{gap:12px}
+.sect{font-size:13px;font-weight:700;color:var(--wf-muted)}
+.stepper .step{font-size:11px;line-height:1.3;padding:6px 2px}
+.list .item{font-size:14px;line-height:1.4}
+.list .item .btn.small{flex:none}
+.ok::before{content:"✓ ";font-weight:700}
+.result{border:1px dashed var(--wf-line-strong);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.result .row .btn{flex:1}
+.dayhead{height:56px;display:flex;align-items:center;gap:4px;padding:0 8px;border-bottom:1px solid var(--wf-line);font-weight:700}
+.dayhead .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;font-size:22px;font-weight:400}
+.dayhead .date{flex:1}
+.banner .grow{flex:1;display:flex;flex-direction:column;gap:8px}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-10 通知・端末（＋S-A-12 からのオンボーディング）</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-09, 10, 12, 16 ／ AT-13, 14, 14b, 16, 17, 19 ・ アプリ名「予約管理」は仮【要確認: OI-08】</p>
+</header>
+
+<!-- (a) unsubscribed -->
+<section class="artboard">
+  <p class="frame-title">(a) 未購読: オンボーディング最終ステップ<small>初回ログイン直後に自動でこの画面へ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:05</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio">営業時間</div><div class="radio">メニュー</div><div class="radio on">通知</div><div class="radio">顧客</div></div>
+    <div class="content">
+      <div class="stepper"><span class="step done">✓ ホーム画面に追加</span><span class="step done">✓ 起動</span><span class="step done">✓ ログイン</span><span class="step current">4 通知をオン</span></div>
+      <div class="card">
+        <h2>通知をオンにしましょう</h2>
+        <p class="muted">新しい予約とキャンセルを、この iPhone にすぐお知らせします。通知に電話番号は表示されません。</p>
+        <button class="btn primary">通知をオンにする</button>
+        <p class="caption">次に出る iPhone の確認で「許可」を選んでください</p>
+      </div>
+      <p class="sect">そのほかのお知らせ</p>
+      <div class="card sunken"><b>日次サマリー</b><p class="muted">毎日 21 時台に「明日の予約 n 件（18:00〜…）」をお知らせします</p></div>
+      <div class="card sunken"><b>通知が届かなくても</b><p class="muted">アプリを開けば 20 秒以内に新しい予約が受信箱に表示されます</p></div>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:58px;right:8px"><span class="n">1</span>一本道の 4 ステップ</div>
+    <div class="note" style="top:258px;right:8px"><span class="n">2</span>許可要求はタップ内</div>
+    <div class="note" style="top:452px;right:8px"><span class="n">3</span>21 時台（Hobby）</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span>「ホーム画面に追加 → 起動 → ログイン → 通知をオンにする」を進捗で示す。Safari タブでは S-A-12 が先に出るため、ここに来るのは standalone のみ（FR-A-09, AT-11〜13）。</li>
+    <li><span class="n">2</span>タップ内で <code>Notification.requestPermission()</code> → <code>pushManager.subscribe()</code> → <code>subscribePush</code>。成功で <code>push_subscriptions</code> に 1 行（FR-A-09, AT-13）。</li>
+    <li><span class="n">3</span>Vercel Hobby の cron は ±59 分のため「21 時台」と表記。Pro 移行後は「21:00」（FR-A-12, AT-23）。</li>
+  </ul>
+</section>
+
+<!-- (b) subscribed + test + devices -->
+<section class="artboard">
+  <p class="frame-title">(b) 購読済み: テスト通知・端末一覧<small>「テスト通知を送る」をタップした後</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>19:50</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio">営業時間</div><div class="radio">メニュー</div><div class="radio on">通知</div><div class="radio">顧客</div></div>
+    <div class="content">
+      <div class="card"><b class="ok">この iPhone で通知を受け取ります</b><p class="caption">登録 10/1 ・ 最終送信成功 10/10 19:32</p>
+        <button class="btn secondary">テスト通知を送る</button>
+        <div class="result">
+          <span>iPhone 15（この端末）: <b>201 送信済み</b> 19:50:12</span>
+          <b>通知は届きましたか？</b>
+          <div class="row"><button class="btn small primary">届いた</button><button class="btn small secondary">届かない</button></div>
+        </div>
+      </div>
+      <p class="sect">通知を受け取る端末</p>
+      <div class="list">
+        <div class="item"><div class="grow"><b>iPhone 15</b>（この端末）<br><span class="caption">最終確認 10/10 19:50</span></div></div>
+        <div class="item"><div class="grow"><b>iPad Air</b><br><span class="caption">最終確認 9/28 ・ 送信失敗 2 回</span></div><button class="btn small secondary">削除</button></div>
+      </div>
+      <p class="sect">ログイン中の端末</p>
+      <div class="list">
+        <div class="item"><div class="grow"><b>iPhone 15</b>（この端末）<br><span class="caption">ホーム画面アプリ ・ 今</span></div></div>
+        <div class="item"><div class="grow"><b>Mac ・ Chrome</b><br><span class="caption">最終利用 10/9 22:10</span></div></div>
+      </div>
+      <button class="btn danger">この端末以外をログアウト</button>
+      <button class="btn ghost">この端末からログアウト</button>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:484px;right:8px"><span class="n">4</span>サーバー応答と受信を突き合わせ</div>
+    <div class="note" style="top:366px;right:8px"><span class="n">5</span>「届かない」→ 作り直し</div>
+    <div class="note" style="top:528px;right:8px"><span class="n">6</span>last_seen_at</div>
+    <div class="note" style="top:744px;right:8px"><span class="n">7</span>紛失時の手当て</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">4</span><code>sendTestPush</code> の結果を端末ごとに HTTP ステータスで表示。アプリ閉・開・ロック画面の 3 パターンで確認（FR-A-09, AT-14）。</li>
+    <li><span class="n">5</span>「届かない」で「購読を作り直す」を表示 → <code>unsubscribe()</code> → <code>subscribe()</code> → <code>subscribePush({ replaceEndpoint })</code>（APNs 201 なのに未達のケース、AT-14）。</li>
+    <li><span class="n">6</span>起動のたびに <code>touchPushSubscription</code> で <code>last_seen_at</code> を更新。404/410 で失効した購読は自動削除、失敗回数を表示（FR-A-09, FR-S-03）。</li>
+    <li><span class="n">7</span><code>logoutOtherDevices</code>: 他端末のセッションと紐づく購読を失効（確認シートを 1 回挟む）。ログアウト時はこの端末の購読も削除（FR-A-16, AT-19）。</li>
+  </ul>
+</section>
+
+<!-- (c) resubscribe banner -->
+<section class="artboard">
+  <p class="frame-title">(c) 再購読バナー（起動時に購読なし）<small>S-A-02 今日の上部。getSubscription() が null</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:01</span><span>standalone</span></div>
+    <div class="dayhead"><span class="iconbtn">‹</span><span class="date">10/17(土) 今日</span><span class="iconbtn">›</span></div>
+    <div class="content">
+      <div class="banner"><b>!</b><div class="grow"><b>この端末の通知がオフになっています</b><span>新しい予約が届いても通知されません。</span><button class="btn small primary" style="align-self:flex-start">通知をオンにする</button></div></div>
+      <div class="img" style="flex:1">S-A-02 タイムライン</div>
+    </div>
+    <nav class="tabbar"><div class="tab on"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:400px;right:8px"><span class="n">8</span>permission ではなく購読の有無で判定</div>
+    <div class="note" style="top:460px;right:8px"><span class="n">9</span>ログインは維持</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">8</span>起動・復帰のたびに <code>getSubscription()</code>。null ならこのバナー（iOS は設定で OFF でも <code>permission</code> が <code>"default"</code> を返すため）（FR-A-09, AT-17）。</li>
+    <li><span class="n">9</span>1 週間ぶりの起動でも <code>Max-Age</code> 付き永続 Cookie でログイン状態は維持。ボタンは (a) と同じ購読処理、失敗時は (d) へ（FR-A-09, AT-17）。</li>
+  </ul>
+</section>
+
+<!-- (d) blocked -->
+<section class="artboard">
+  <p class="frame-title">(d) 通知が許可されていない（設定で OFF）<small>requestPermission() が granted 以外／ダイアログが出ない</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>18:02</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio">営業時間</div><div class="radio">メニュー</div><div class="radio on">通知</div><div class="radio">顧客</div></div>
+    <div class="content">
+      <div class="card">
+        <h2>通知が許可されていません</h2>
+        <p class="muted">iPhone の設定で通知を許可してから、もう一度お試しください。</p>
+        <ol class="steps">
+          <li>iPhone の「設定」アプリを開く</li>
+          <li>「通知」→「予約管理」を選ぶ</li>
+          <li>「通知を許可」をオンにする</li>
+          <li>集中モードで「予約管理」が止められていないか確認</li>
+        </ol>
+        <div class="img" style="height:120px">設定画面の図（通知を許可 = オン）</div>
+        <button class="btn primary">もう一度試す</button>
+      </div>
+      <p class="caption">この画面は通知をオンにできるまで、起動のたびに表示されます。</p>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:270px;right:8px"><span class="n">10</span>OS 設定への道順</div>
+    <div class="note" style="top:676px;right:8px"><span class="n">11</span>戻ったら再試行</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">10</span>アプリからは OS 設定を直接開けないため、「設定 &gt; 通知 &gt; 予約管理」の道順と図を表示。集中モードも案内（FR-A-09, AT-14b）。</li>
+    <li><span class="n">11</span>「もう一度試す」で再度 <code>requestPermission()</code> → 購読。Android でブロック済みの場合はサイト設定の手順に差し替え（FR-A-09, AT-20）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

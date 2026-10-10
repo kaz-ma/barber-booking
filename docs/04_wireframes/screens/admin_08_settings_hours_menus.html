@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WF-A 08 営業時間・メニュー</title>
+<link rel="stylesheet" href="../wf.css">
+<style>
+/* page-local: layout only */
+.doc{flex-basis:100%;background:#fff;border:1px solid var(--wf-line);border-radius:8px;padding:16px 24px}
+.doc h1{font-size:20px}
+.notes-list{margin:0}
+.tab{position:relative}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 4px)}
+/* 44px hit area around the kit toggle (visual track stays 52×32) */
+.toggle{height:44px;border:none}
+.toggle::before{content:"";position:absolute;left:0;right:0;top:6px;height:32px;border:2px solid var(--wf-ink);border-radius:999px;box-sizing:border-box}
+.toggle.off::before{border-color:var(--wf-line-strong)}
+.toggle::after{top:11px}
+.segbar{display:flex;gap:4px;padding:8px 16px;border-bottom:1px solid var(--wf-line)}
+.segbar .radio{flex:1;justify-content:center;padding:0 4px;font-size:13px}
+.content{gap:12px}
+.sect{font-size:13px;font-weight:700;color:var(--wf-muted)}
+.wk{display:grid;grid-template-columns:24px 52px 1fr;gap:12px;align-items:center;min-height:56px;border-bottom:1px solid var(--wf-line)}
+.wk .times{display:flex;align-items:center;gap:6px}
+.wk .times .input{flex:1;font-size:15px;justify-content:center;padding:0}
+.wk.off{color:var(--wf-faint)}
+.list .item{font-size:14px;line-height:1.4}
+.sel{justify-content:space-between}
+.sel::after{content:"▾";color:var(--wf-muted)}
+.seg{display:flex;gap:8px}
+.seg .radio{flex:1;justify-content:center;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sheet-modal{z-index:6}
+.sheet-modal .row .btn{flex:1}
+.handle{color:var(--wf-faint);font-size:20px;width:24px;text-align:center}
+.sticky-cta{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header class="doc">
+  <h1>S-A-08 営業時間・休業日 ／ S-A-09 メニュー</h1>
+  <p class="muted">WF-A v0.1（2026-10-10）・関連: FR-A-07, 08 ／ FR-S-02, 12 ／ AT-22 ・ タブ「設定」上部のセグメントで 営業時間 / メニュー / 通知 / 顧客 を切替</p>
+</header>
+
+<!-- (a) weekly hours -->
+<section class="artboard">
+  <p class="frame-title">(a) S-A-08 曜日ごとの受付時間＋臨時休業<small>タブ「設定」→ 営業時間</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:40</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio on">営業時間</div><div class="radio">メニュー</div><div class="radio">通知</div><div class="radio">顧客</div></div>
+    <div class="content">
+      <p class="sect">毎週の受付時間</p>
+      <div>
+        <div class="wk off"><b>月</b><span class="toggle off"></span><span>定休日</span></div>
+        <div class="wk"><b>火</b><span class="toggle on"></span><div class="times"><div class="input filled">18:00</div>–<div class="input filled">24:00</div></div></div>
+        <div class="wk"><b>水</b><span class="toggle on"></span><div class="times"><div class="input filled">18:00</div>–<div class="input filled">24:00</div></div></div>
+        <div class="wk"><b>木</b><span class="toggle on"></span><div class="times"><div class="input filled">18:00</div>–<div class="input filled">24:00</div></div></div>
+        <div class="wk"><b>金</b><span class="toggle on"></span><div class="times"><div class="input filled">18:00</div>–<div class="input filled">24:00</div></div></div>
+        <div class="wk"><b>土</b><span class="toggle on"></span><div class="times"><div class="input filled">18:00</div>–<div class="input filled">24:00</div></div></div>
+        <div class="wk"><b>日</b><span class="toggle on"></span><div class="times"><div class="input filled">18:00</div>–<div class="input filled" style="border-width:2px">23:00</div></div></div>
+      </div>
+      <p class="sect">臨時休業・時間変更</p>
+      <div class="list">
+        <div class="item"><div class="grow"><b>10/15(木)</b> 臨時休業<br><span class="caption">研修</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>11/3(火・祝)</b> 18:00–22:00<br><span class="caption">時間変更</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>12/31(木)–1/3(日)</b> 臨時休業<br><span class="caption">年末年始</span></div><span>›</span></div>
+      </div>
+      <button class="btn secondary">＋ 臨時休業・時間変更を追加</button>
+    </div>
+    <div class="sticky-cta"><button class="btn primary">変更 1 件を保存</button></div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:58px;right:8px"><span class="n">1</span>設定内はセグメント</div>
+    <div class="note" style="top:206px;left:200px"><span class="n">2</span>OFF = 定休日</div>
+    <div class="note" style="top:606px;left:150px"><span class="n">3</span>変更箇所を太枠</div>
+    <div class="note" style="top:640px;right:8px"><span class="n">4</span>特定日の上書き</div>
+    <div class="note" style="bottom:148px;right:8px"><span class="n">5</span>保存で即時反映</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">1</span>タブ「設定」の中を 営業時間 / メニュー / 通知 / 顧客 のセグメントで切替（ボトムタブは 4 つのまま）（02_screens MT）。</li>
+    <li><span class="n">2</span><code>business_hours</code> の曜日行。トグル OFF で定休日（例: 火曜を OFF にすると顧客サイトで火曜が非活性）。トグルは 44px のタップ領域（FR-A-07, AT-22）。</li>
+    <li><span class="n">3</span>未保存の変更を太枠で示し、保存ボタンに件数を出す。24:00 は終了専用値（FR-A-07）。</li>
+    <li><span class="n">4</span><code>business_hour_overrides</code>。臨時休業・時間変更を日付順に。行タップで (c) の編集シート（FR-A-07）。</li>
+    <li><span class="n">5</span><code>updateBusinessHours</code> → <code>updateTag</code> で営業時間キャッシュを即時失効し顧客サイトへ反映（FR-A-07, FR-S-12, AT-22）。</li>
+  </ul>
+</section>
+
+<!-- (b) slot rules -->
+<section class="artboard">
+  <p class="frame-title">(b) S-A-08 枠ルール<small>同じ画面を下にスクロール</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:41</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio on">営業時間</div><div class="radio">メニュー</div><div class="radio">通知</div><div class="radio">顧客</div></div>
+    <div class="content">
+      <p class="sect">予約枠のルール</p>
+      <div class="field"><span class="label">枠の刻み</span><div class="seg"><div class="radio on">15 分</div><div class="radio">30 分</div><div class="radio">60 分</div></div></div>
+      <div class="field"><span class="label">リードタイム（何分前まで web 予約可）</span><div class="input sel filled">開始の 60 分前まで</div></div>
+      <div class="field"><span class="label">先行予約の上限</span><div class="input sel filled">60 日先まで</div></div>
+      <div class="field"><span class="label">セルフキャンセル締切</span><div class="input sel filled">開始の 3 時間前まで</div><span class="help">締切後はキャンセル画面に「お電話ください」と表示</span></div>
+      <div class="card sunken"><b>プレビュー</b><p class="muted">今日 19:40 なら、web で予約できる最短の開始は 20:45。web 予約は 12/9（60 日先）まで受け付けます。</p></div>
+      <div class="row between"><div><b>祝日を表示</b><p class="caption">カレンダーに祝日名を出すだけで、自動では休みにしません</p></div><span class="toggle on"></span></div>
+    </div>
+    <div class="sticky-cta"><button class="btn primary" aria-disabled="true">保存済み</button></div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:180px;right:8px"><span class="n">6</span>settings テーブル</div>
+    <div class="note" style="top:612px;right:16px"><span class="n">7</span>結果を文章で確認</div>
+    <div class="note" style="top:764px;left:110px"><span class="n">8</span>Should</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">6</span><code>settings</code>（枠刻み・リードタイム・先行上限・セルフキャンセル締切）。値はサーバー側でも再検証に使う（FR-A-07, FR-S-02）。初期値は打ち合わせで確定【要確認】。</li>
+    <li><span class="n">7</span>数値設定の意味を具体的な時刻で示し、設定ミスを保存前に気づけるようにする（FR-A-07）。</li>
+    <li><span class="n">8</span>祝日は表示のみで自動休業にしない（FR-A-07 Should）。休む場合は (c) で臨時休業を登録。</li>
+  </ul>
+</section>
+
+<!-- (c) override sheet -->
+<section class="artboard">
+  <p class="frame-title">(c) S-A-08 臨時休業・時間変更の追加<small>「＋ 臨時休業・時間変更を追加」→ シート</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:42</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio on">営業時間</div><div class="radio">メニュー</div><div class="radio">通知</div><div class="radio">顧客</div></div>
+    <div class="content"><div class="img" style="flex:1">営業時間の一覧</div></div>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="sheet-modal">
+      <div class="grip"></div>
+      <h2>臨時休業・時間変更</h2>
+      <div class="seg"><div class="radio on">臨時休業</div><div class="radio">時間変更</div></div>
+      <div class="two"><div class="field"><span class="label">開始日</span><div class="input sel filled">10/24(土)</div></div><div class="field"><span class="label">終了日</span><div class="input sel filled">10/24(土)</div></div></div>
+      <div class="field"><span class="label">理由<span class="req">任意・自分用</span></span><div class="input filled">私用</div></div>
+      <div class="banner">この日には予約が 2 件あります（18:00 伊藤様／21:00 小林様）。登録しても予約は残ります。</div>
+      <div class="row"><button class="btn secondary">キャンセル</button><button class="btn primary">登録する</button></div>
+    </div>
+    <div class="note" style="top:420px;right:8px;z-index:7"><span class="n">9</span>時間変更なら時刻欄が出る</div>
+    <div class="note" style="top:640px;right:8px;z-index:7"><span class="n">10</span>既存予約を警告</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">9</span>臨時休業はその日の枠をすべて消す。時間変更を選ぶと開始・終了時刻を入力（<code>upsertHourOverride</code>）（FR-A-07, AT-22）。</li>
+    <li><span class="n">10</span>既存予約は自動キャンセルしない。件数と時刻を示し、連絡が必要なことを知らせる（FR-A-06, 07 と同じ原則）。</li>
+  </ul>
+</section>
+
+<!-- (d) menu list -->
+<section class="artboard">
+  <p class="frame-title">(d) S-A-09 メニュー一覧<small>セグメント「メニュー」</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:43</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio">営業時間</div><div class="radio on">メニュー</div><div class="radio">通知</div><div class="radio">顧客</div></div>
+    <div class="content">
+      <div class="row between"><p class="sect">表示順に並んでいます</p><span class="caption">公開</span></div>
+      <div class="list">
+        <div class="item"><span class="handle">≡</span><div class="grow"><b>カット</b><br><span class="caption">¥4,400／学生 ¥3,300・60 分＋10 分</span></div><span class="toggle on"></span></div>
+        <div class="item"><span class="handle">≡</span><div class="grow"><b>カットパーマ</b><br><span class="caption">¥8,800／学生 ¥7,700・120 分＋10 分</span></div><span class="toggle on"></span></div>
+        <div class="item"><span class="handle">≡</span><div class="grow"><b>カット＋眉</b><br><span class="caption">¥5,000／学生 ¥3,900・75 分＋10 分</span></div><span class="toggle on"></span></div>
+        <div class="item" style="color:var(--wf-faint)"><span class="handle">≡</span><div class="grow"><b>眉カット</b> <span class="pill">非公開</span><br><span class="caption">¥1,100・15 分＋0 分</span></div><span class="toggle off"></span></div>
+        <div class="item" style="color:var(--wf-faint)"><span class="handle">≡</span><div class="grow"><b>ヘッドスパ</b> <span class="pill">非公開</span><br><span class="caption">¥2,200・30 分＋5 分</span></div><span class="toggle off"></span></div>
+      </div>
+      <button class="btn secondary">＋ メニューを追加</button>
+      <p class="caption">価格・所要時間は第 2 回打ち合わせで確定【要確認】</p>
+    </div>
+    <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
+  </div>
+    <div class="note" style="top:180px;left:8px"><span class="n">11</span>長押しで並べ替え</div>
+    <div class="note" style="top:180px;right:60px"><span class="n">12</span>公開は即時切替</div>
+    <div class="note" style="top:620px;left:8px"><span class="n">13</span>価格・学生価格・所要・バッファを 1 行に</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">11</span>≡ を長押しでドラッグ（<code>reorderMenus</code>）。顧客サイトのメニュー順に反映（FR-A-08）。</li>
+    <li><span class="n">12</span>公開トグルは <code>setMenuActive</code> を即実行＋5 秒 Undo。非公開でも手動予約では選べる（FR-A-08, S-A-05）。</li>
+    <li><span class="n">13</span>行タップで (e) の編集シート。削除は設けず非公開で運用（過去予約の参照を壊さない）（FR-A-08）。</li>
+  </ul>
+</section>
+
+<!-- (e) menu edit sheet -->
+<section class="artboard">
+  <p class="frame-title">(e) S-A-09 メニュー編集シート<small>「カットパーマ」をタップ</small></p>
+  <div class="frame"><div class="screen">
+    <div class="statusbar"><span>23:44</span><span>standalone</span></div>
+    <div class="header"><span class="title">設定</span></div>
+    <div class="segbar"><div class="radio">営業時間</div><div class="radio on">メニュー</div><div class="radio">通知</div><div class="radio">顧客</div></div>
+    <div class="content"><div class="img" style="flex:1">メニュー一覧</div></div>
+  </div>
+    <div class="scrim" style="z-index:5"></div>
+    <div class="sheet-modal">
+      <div class="grip"></div>
+      <h2>メニューを編集</h2>
+      <div class="two"><div class="field"><span class="label">名称（日本語）</span><div class="input filled">カットパーマ</div></div><div class="field"><span class="label">名称（英語）</span><div class="input filled">Cut &amp; Perm</div></div></div>
+      <div class="two"><div class="field"><span class="label">一般価格</span><div class="input filled">¥8,800</div></div><div class="field"><span class="label">学生価格</span><div class="input filled">¥7,700</div></div></div>
+      <div class="two"><div class="field"><span class="label">所要時間</span><div class="input sel filled">120 分</div></div><div class="field"><span class="label">バッファ</span><div class="input sel filled">10 分</div></div></div>
+      <p class="help">24:00 終了の日は、最終開始が <b>21:50</b> になります</p>
+      <div class="row between"><b>顧客サイトに公開</b><span class="toggle on"></span></div>
+      <div class="row"><button class="btn secondary">キャンセル</button><button class="btn primary">保存</button></div>
+    </div>
+    <div class="note" style="top:250px;right:8px;z-index:7"><span class="n">14</span>JA / EN 両方</div>
+    <div class="note" style="top:588px;right:8px;z-index:7"><span class="n">15</span>最終開始を即計算</div>
+  </div>
+  <ul class="notes-list">
+    <li><span class="n">14</span>名称（JA/EN）・一般価格・学生価格・所要時間・バッファ・公開（<code>upsertMenu</code>）。保存で <code>updateTag</code> によりメニューキャッシュを即時失効（FR-A-08, FR-S-12）。</li>
+    <li><span class="n">15</span>所要＋バッファから最終開始時刻を表示（例: 所要 90 分・バッファ 0 なら 22:30）。空き枠計算と同じ式（FR-A-08, FR-S-02, AT-22）。</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>
