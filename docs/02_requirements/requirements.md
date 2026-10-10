@@ -5,7 +5,7 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | REQ-001 |
-| 版 | v0.2（ドラフト、第 2 回打ち合わせ提示用） |
+| 版 | v0.3（ドラフト、第 2 回打ち合わせ提示用） |
 | 作成日 | 2026-10-10 |
 | 作成者 | 開発者（フリーランス） |
 | 承認者 | 長田健豊 様 |
@@ -19,6 +19,7 @@
 |---|---|---|
 | v0.1 | 2026-10-10 | 初版ドラフト |
 | v0.2 | 2026-10-10 | 一次資料検証（09_gap_*）の反映: ホスティング前提の変更、Push ペイロード形式、カレンダー記号、法務記載の訂正 |
+| v0.3 | 2026-10-10 | ホスティング前提を Hobby 運用（規約リスク了承）に変更（PRE-08、CON-02、NFR-EN-01、NFR-PF-06、NFR-AV-05、FR-A-12、FR-S-04、11 章、OI-18 決定済み） |
 
 ### 構成
 
@@ -83,7 +84,7 @@
 
 | 優先度 | 顧客サイト | 管理 PWA | 基盤・運用 |
 |---|---|---|---|
-| **Must** | 段階開示フォーム、メニュー（価格・所要時間・学割）、空き枠のみ表示カレンダー（◎×の 2 記号・締切明記）、確認・完了画面（ICS・キャンセルリンク）、キャンセルフロー、JP/EN、ポリシーページ（プライバシー・キャンセル・特商法表記）、電話代替導線 | パスキーログイン、今日/週ビュー、予約詳細・状態変更、手動予約、時間ブロック、営業時間・休業日・メニュー設定、プッシュ通知（出荷版 Declarative Web Push 形式）、未確認バッジ＋ポーリング、日次サマリー、インストール案内 | 排他制約、空き計算、Bot 対策、レート制限、トークンハッシュ、監査ログ、日次バックアップ、エラー監視、`SITE_URL` によるドメイン非依存、Vercel Pro（本番） |
+| **Must** | 段階開示フォーム、メニュー（価格・所要時間・学割）、空き枠のみ表示カレンダー（◎×の 2 記号・締切明記）、確認・完了画面（ICS・キャンセルリンク）、キャンセルフロー、JP/EN、ポリシーページ（プライバシー・キャンセル・特商法表記）、電話代替導線 | パスキーログイン、今日/週ビュー、予約詳細・状態変更、手動予約、時間ブロック、営業時間・休業日・メニュー設定、プッシュ通知（出荷版 Declarative Web Push 形式）、未確認バッジ＋ポーリング、日次サマリー、インストール案内 | 排他制約、空き計算、Bot 対策、レート制限、トークンハッシュ、監査ログ、日次バックアップ、エラー監視、`SITE_URL` によるドメイン非依存、Vercel Hobby（Phase 1 本番。Pro / Cloudflare へ移行可能） |
 | **Should** | 月グリッド（空きのある日を探す）、Google カレンダー追加リンク、祝日表示 | 顧客一覧・検索・名寄せ、`no_show_count` による予約制限、JSON エクスポート・匿名化、他端末ログアウト、オフライン時の読み取り表示 | 保存期間ジョブ、Vercel WAF Rate Limiting の前段配置 |
 | **Could** | 「English available」バナー、Instagram DM 自動応答用の定型文 | ダークモード手動固定、週次 KPI カード | Lighthouse CI の性能予算強制、Serwist 導入 |
 | **Won't（Phase 1）** | 顧客アカウント、メール/SMS/LINE 通知、決済、予約変更（キャンセル→再予約で代替）、チャット | 複数スタイリスト UI、カルテ、Google カレンダー同期 | ネイティブアプリ、既存顧客一括取込【要確認】 |
@@ -249,7 +250,7 @@ ID 体系: `FR-C-xx` 顧客サイト、`FR-A-xx` 管理 PWA、`FR-S-xx` シス�
 | FR-A-09 | プッシュ購読・通知設定 | オンボーディングを「ホーム画面に追加 → アイコン起動 → ログイン → 設定『通知をオンにする』→ 許可」の一本道に。standalone でない場合は購読 UI を出さず追加手順を図解（iOS は共有メニュー、Android は `beforeinstallprompt`）。起動のたびに `getSubscription()` を確認し、null なら再購読バナー（iOS は設定で通知 OFF にしても `Notification.permission` が `"default"` を返すため、permission ではなく購読の有無を主条件にする）。`requestPermission()` がダイアログを出さない/`granted` 以外のときは「設定 > 通知 > <アプリ名>」への案内を表示。「テスト通知」ボタンはサーバーの APNs 応答（201）と端末受信を突き合わせ、届かない場合に購読を作り直す導線（unsubscribe → subscribe）を同じ画面に置く。端末一覧（`last_seen_at`）。管理者セッションは `Max-Age` 付き永続 Cookie 必須（WebKit 272325 がセッション Cookie をリセットする問題は未修正） | Must | Safari タブで `/admin` を開くと通知ボタンが出ず追加手順が表示される。standalone で通知をオンにすると `push_subscriptions` に 1 行入る。テスト通知が届く。iOS 設定で通知を OFF にして再起動すると設定への案内が出る。アプリを閉じて再度開いてもログイン状態が維持される | 統合レポート『iOS のプッシュは「ホーム画面追加・毎回通知表示・起動時再確認」で成立する』 |
 | FR-A-10 | 通知受信（新規予約・キャンセル） | 新規 web 予約、顧客キャンセルで即時プッシュ（`urgency: high`, `TTL: 6h`, `topic: booking-<id>`）。通知はタイトル＋本文＋`navigate`（該当予約の URL）＋`data` の最小構成（電話番号を含めない）。タップで該当予約の詳細を開く（`notificationclick` は `clients.matchAll` → 既存ウィンドウがあれば `client.navigate()`、なければ `openWindow()`）。SW は `push` 受信時に必ず `event.waitUntil(showNotification(...))` を呼ぶ。バックグラウンド復帰時のリロードで管理フォームの入力が失われないよう、手動予約・ブロックの下書きを `sessionStorage`/`IndexedDB` に保存 | Must | 顧客予約の確定から 10 秒以内に iOS/Android 実機に通知が届き、タップで詳細が開く。iOS では宣言的通知タップの `navigate` 遷移を「アプリ完全終了／バックグラウンド（端末スリープ後）／前面」の 3 状態で確認し、バックグラウンド時にルートへ戻る現象（WebKit 268797）が出た場合は起動時に未確認一覧へ誘導する UI で吸収する。`app_badge` がトップレベル・`notification` 内のどちらで反映されるかを iOS 26.x 実機で確認し、効いた側を残す。前面表示中に通知バナーが出ない場合はアプリ内トースト＋未確認バッジで代替 | 同上、『実装は app/manifest.ts + 手書き最小 SW + web-push…』 |
 | FR-A-11 | 未確認バッジ＋ポーリング | `bookings.acknowledged_at` を持ち、未確認件数をヘッダに表示。起動時・`visibilitychange`・可視中 20 秒間隔で再取得（非表示時は停止）。詳細を開くと確認済みにする。「すべて確認済みにする」 | Must | プッシュが届かない状態でも、PWA を開いて 20 秒以内に新規予約が一覧に現れ未確認件数が増える | 統合レポート『信頼性は「未確認件数バッジ＋可視時ポーリング＋日次サマリー…」で多層化する』 |
-| FR-A-12 | 日次サマリー | Vercel Cron（`0 12 * * *` = 21:00 JST。Pro は毎分精度のため 21:00 ちょうどに実行。Hobby で検証する間のみ 1 日 1 回・±59 分）で「明日の予約 n 件（18:00〜…）」をプッシュ。`CRON_SECRET` 照合、`digest_sent_on` で重複防止 | Must | 前日 21:00（±1 分）に翌日の件数と最初・最後の時刻が通知される。同日に 2 回実行しても 1 通のみ | 同上 |
+| FR-A-12 | 日次サマリー | Vercel Cron（`0 12 * * *` = 21:00 JST。Phase 1 の Hobby は 1 日 1 回・時間精度 ±59 分が前提のため 21:00〜21:59 のいずれかで実行。Pro 移行時は分単位精度で 21:00 ちょうど）で「明日の予約 n 件（18:00〜…）」をプッシュ。`CRON_SECRET` 照合、`digest_sent_on` で重複防止 | Must | 前日 21:00〜21:59（Hobby。Pro 移行後は 21:00 ±1 分）に翌日の件数と最初・最後の時刻が通知される。同日に 2 回実行しても 1 通のみ | 同上 |
 | FR-A-13 | 顧客一覧・検索 | 電話番号・氏名（かな正規化）で検索。来店回数、最終来店、`no_show_count`、`late_cancel_count`、`booking_restriction`（none / phone_only / blocked）。重複顧客のマージ | Should | 同一電話番号の予約が 1 顧客に紐づく。`phone_only` の顧客は web 予約時に「お電話ください」と案内される【要確認: 制限の運用】 | 研究ノート 08 Q2 |
 | FR-A-14 | エクスポート・匿名化 | 顧客単位の JSON エクスポート（予約・同意履歴）。削除依頼時の手動匿名化ボタン。CSV 一括エクスポート | Should | 匿名化後、氏名・ふりがな・電話が消え、予約の日時・メニュー・状態のみ残る | 統合レポート『個人情報保護法は個人事業主にも…』 |
 | FR-A-15 | PWA インストール | `app/manifest.ts`（`start_url: /admin`, `scope: /admin`, `display: standalone`, アイコン、`theme_color` ライト/ダーク、Android 用 `screenshots`・`description`）。`/sw.js` は `Cache-Control: no-cache`。顧客サイトには SW を登録しない | Must | iOS で追加後 URL バーなしで起動する。Android Chrome でインストールプロンプトが出る | 統合レポート『実装は app/manifest.ts…』 |
@@ -265,7 +266,7 @@ ID 体系: `FR-C-xx` 顧客サイト、`FR-A-xx` 管理 PWA、`FR-S-xx` シス�
 | FR-S-01 | 二重予約の DB 防止 | `bookings.during tstzrange` に `EXCLUDE USING gist (resource_id WITH =, during WITH &&) WHERE (status IN ('confirmed','arrived','in_progress'))`（`btree_gist`）。半開区間 `[)` を CHECK で強制。`idempotency_key = sha256(slotStart|menuId|phone)` を UNIQUE。分離レベルは READ COMMITTED | Must | 統合テストで同一枠に `Promise.all` で 2 件 INSERT すると 1 件が `23P01` で失敗する。19:00 終了と 19:00 開始は衝突しない | 統合レポート『二重予約は EXCLUDE USING gist…で最終防衛する』 |
 | FR-S-02 | 空き枠計算 | `generate_series(open, close - duration - buffer, step)` で JST 候補を生成し、`tstzrange` に変換、`bookings ∪ time_blocks` と `&&` で除外する SQL。フォームは ISO 文字列（`+09:00`）を送り、サーバー側でもリードタイム・上限・営業時間を再検証 | Must | 契約テスト（営業時間境界、定休日、60 分、バッファ、JST/UTC 日付境界）が全件パス。UI を迂回した直接 POST で営業時間外の枠が拒否される | 統合レポート『空き計算は…SQL 一発で行う』 |
 | FR-S-03 | Push 送信 | `web-push`（VAPID 固定）、`Promise.allSettled`、`timeout: 8000`。`WebPushError.statusCode` が 404/410 なら購読削除、`fail_count` 更新。ペイロードは出荷版 Declarative Web Push 形式の JSON: トップレベル `"web_push": 8030` ＋ `"notification": { title, body, lang, navigate（必須）, tag, data, app_badge }` ＋ トップレベル `app_badge`・`mutable: false`（`app_badge` は実機確認まで両方の位置に入れる）。Content-Type の変更は不要（web-push の既定 `application/octet-stream` + `aes128gcm` のまま送る）。iOS 18.4+ では SW を起動せず宣言的に表示され、それ以外では SW の `push` ハンドラが `notification` を `showNotification()` に転記する。`topic: booking-<id>` で未配信を置換（iOS では `tag` による置換は効かない）。`after()` で送信しレスポンスを遅らせない | Must | 失効エンドポイントに送ると購読行が削除される。送信失敗が予約確定を失敗させない | 統合レポート『実装は app/manifest.ts + 手書き最小 SW + web-push…』 |
-| FR-S-04 | レート制限 | `createBooking`: IP 5 回/10 分 ＋ 電話番号ハッシュ 3 件/日。`/cancel/[token]`: IP 10 回/分。ログイン試行制限。実装は Postgres `rate_limits` テーブル（追加サービスなし）。補完として Vercel WAF Rate Limiting（全プランで利用可。Hobby 1 ルール、Pro 40 ルール、固定窓 10 秒〜10 分、キーは IP/JA4）で `/cancel/*` と予約 Server Action への IP 単位の粗い制限を前段に置く | Must | 11 回目のキャンセル URL 試行が 429 になる。同一電話番号で 4 件目の予約が拒否される | 統合レポート『管理者 1 名の認証は…キャンセルトークンは 256 bit をハッシュ保存する』 |
+| FR-S-04 | レート制限 | `createBooking`: IP 5 回/10 分 ＋ 電話番号ハッシュ 3 件/日。`/cancel/[token]`: IP 10 回/分。ログイン試行制限。実装は Postgres `rate_limits` テーブル（追加サービスなし）。補完として Vercel WAF Rate Limiting（全プランで利用可。固定窓 10 秒〜10 分、キーは IP/JA4）で `/cancel/*` と予約 Server Action への IP 単位の粗い制限を前段に置く。Phase 1 の Hobby はルール 1 本のため両パスを 1 本のルールにまとめる（Pro 移行時は 40 ルールまで分割可） | Must | 11 回目のキャンセル URL 試行が 429 になる。同一電話番号で 4 件目の予約が拒否される | 統合レポート『管理者 1 名の認証は…キャンセルトークンは 256 bit をハッシュ保存する』 |
 | FR-S-05 | Bot 対策 | Cloudflare Turnstile（非対話型）を確定時に siteverify で検証（単回使用・300 秒）。ハニーポット `website` フィールド（非空なら成功を装って破棄）。CSP に `challenges.cloudflare.com` を許可 | Must | Turnstile トークンなし・再利用の POST が拒否される。ハニーポット入りの送信が DB に残らない | 統合レポート『セキュリティは「安価な検証を先に」…』 |
 | FR-S-06 | キャンセルトークン | `randomBytes(32)` base64url（43 文字）、DB は SHA-256 ハッシュのみ（`cancel_token_hash bytea UNIQUE`）、`timingSafeEqual` 照合、形式 `^[A-Za-z0-9_-]{43}$` で早期拒否。有効期限は予約開始の締切時刻まで、使用後は失効 | Must | DB ダンプに生トークンが含まれない。キャンセル後に同じ URL を開くと無効表示 | 同上 |
 | FR-S-07 | 監査ログ | `audit_log(actor, action, entity_type, entity_id, diff, created_at)` に予約作成・キャンセル・状態変更・手動変更・ブロック・設定変更・エクスポート・匿名化を記録（電話番号は末尾 4 桁ハッシュ） | Must | 手動キャンセルの履歴が `audit_log` から追える | 統合レポート『監視・バックアップ・ドメイン移行は…』 |
@@ -275,7 +276,7 @@ ID 体系: `FR-C-xx` 顧客サイト、`FR-A-xx` 管理 PWA、`FR-S-xx` シス�
 | FR-S-11 | エラー監視 | Sentry Developer（エラー、cron モニタ、uptime モニタ各 1）。`error.digest` でログ突合。ログに電話番号・氏名を書かない | Must | 意図的な例外が Sentry に届き、個人情報が含まれない | 同上 |
 | FR-S-12 | キャッシュ方針 | メニュー・営業時間は `"use cache"` + `cacheTag` + `cacheLife('days')`、管理操作で `updateTag`。空き枠・管理一覧はキャッシュせず動的 | Must | メニュー更新が即時反映される。空き枠が常に最新 | 統合レポート『Server Action で予約を書き、空き枠は "use cache" せず…』 |
 | FR-S-13 | ステージング環境 | `main` → 本番、`staging` ブランチ → 固定 URL（Vercel Authentication で保護。全プランで利用可）、Neon ブランチで DB 分離、PR ごとのプレビュー。Playwright E2E は Protection Bypass for Automation（全プラン）の `VERCEL_AUTOMATION_BYPASS_SECRET` を `x-vercel-protection-bypass` ヘッダに載せて保護された Preview に対して実行 | Must | staging で予約しても本番 DB に書き込まれない。CI の E2E が保護された Preview URL に対して通る | 統合レポート『公開は staging ブランチ方式…』 |
-| FR-S-14 | Web 解析 | Vercel Web Analytics。予約フローの各ステップを別 URL（またはクエリ）にしてページ遷移でファネルを計測。個人を識別する情報は送らない | Should | ステップ別の到達数がダッシュボードで読める | 研究ノート 08 Q7 |
+| FR-S-14 | Web 解析 | Vercel Web Analytics（Hobby: 月 5 万イベント、カスタムイベント不可）。予約フローの各ステップを別 URL（またはクエリ）にしてページ遷移でファネルを計測。個人を識別する情報は送らない | Should | ステップ別の到達数がダッシュボードで読める | 研究ノート 08 Q7 |
 
 ---
 
@@ -338,11 +339,11 @@ IPA 非機能要求グレードの 6 大項目に各 2〜5 行の目標値を置
 
 | ID | 項目 | 目標 | 備考 |
 |---|---|---|---|
-| NFR-AV-01 | 稼働率 | 月間 99.5% 以上（uptime モニタで計測）【要確認: SLA なし】 | Vercel Pro・Neon Free とも正式な SLA は提供しない（SLA は Enterprise のみ）。障害時の代替は電話受付 |
+| NFR-AV-01 | 稼働率 | 月間 99.5% 以上（uptime モニタで計測）【要確認: SLA なし】 | Vercel Hobby・Neon Free とも正式な SLA は提供しない（SLA は Enterprise のみ）。Hobby は規約リスクによる警告・停止の可能性がある（PRE-08）。障害・停止時の代替は電話受付 |
 | NFR-AV-02 | DB 冷起動 | Neon のスケール to ゼロからの再開（数百 ms）を Suspense のスケルトンで吸収し、エラーにしない | |
 | NFR-AV-03 | 通知の冗長化 | プッシュ不達時も、PWA 起動後 20 秒以内に未確認件数で検知できる | FR-A-11 |
 | NFR-AV-04 | 復旧 | バックアップからの復元手順を文書化し、復元リハーサルを公開前に 1 回実施。目標復旧時間 4 時間、目標復旧時点 24 時間 | FR-S-08 |
-| NFR-AV-05 | ロールバック | Vercel Instant Rollback。Pro は本番ドメインにエイリアスされた全デプロイへ戻せる（Hobby で検証する間は直前 1 件のみ）。ロールバック後は自動本番割当がオフになる点を含め手順書に明記 | |
+| NFR-AV-05 | ロールバック | Vercel Instant Rollback。Phase 1 の Hobby は直前の本番デプロイ 1 件のみ戻せる（それより前へは該当コミットを再デプロイ）。Pro 移行時は本番ドメインにエイリアスされた全デプロイへ戻せる。ロールバック後は自動本番割当がオフになる点を含め手順書に明記 | |
 
 ### 9.2 性能・拡張性
 
@@ -353,7 +354,7 @@ IPA 非機能要求グレードの 6 大項目に各 2〜5 行の目標値を置
 | NFR-PF-03 | 空き枠取得 | ウォーム時 p95 500 ms 以内（SQL 1 本） | |
 | NFR-PF-04 | 同時アクセス | 同時 50 ユーザーで予約フローが劣化しない。排他制約により同時送信でもデータ不整合なし | 1 席規模のため十分 |
 | NFR-PF-05 | 拡張性 | `resource_id` で複数席、`menus.duration_min` 可変、`customers` の `line_user_id`/`instagram_user_id` 列を Phase 1 から用意（NULL） | 10 章 |
-| NFR-PF-06 | 同梱量内の運用 | Neon Free 100 CU-hours/月・1 GB。Vercel Pro の $20 同梱クレジット内（Function Invocations $0.60/1M、Active CPU $0.128/時、Provisioned Memory $0.0106/GB-時を消費。Flat Rate CDN 1M リクエスト・1 TB 転送は別枠）。Spend Management の上限を低めに設定。PWA のポーリングは非表示時停止 | 月次で使用量を確認 |
+| NFR-PF-06 | 同梱量内の運用 | Neon Free 100 CU-hours/月・1 GB。Vercel Hobby の無料同梱枠内（Function Invocations・Active CPU・転送量等。上限到達時は課金ではなく制限・停止となる）。Pro 移行時は $20 同梱クレジット内（Function Invocations $0.60/1M、Active CPU $0.128/時、Provisioned Memory $0.0106/GB-時を消費。Flat Rate CDN 1M リクエスト・1 TB 転送は別枠）とし、Spend Management の上限を低めに設定。PWA のポーリングは非表示時停止 | 月次で使用量を確認 |
 
 ### 9.3 運用・保守性
 
@@ -397,7 +398,7 @@ IPA 非機能要求グレードの 6 大項目に各 2〜5 行の目標値を置
 
 | ID | 項目 | 目標 |
 |---|---|---|
-| NFR-EN-01 | 実行環境 | Vercel Pro（関数リージョン hnd1 東京、Node.js ランタイム統一、Fluid compute。代替は Cloudflare Workers Paid＋`@opennextjs/cloudflare`【要決定: OI-18】）、Neon Postgres（`btree_gist` 有効）、Node 24 LTS |
+| NFR-EN-01 | 実行環境 | Vercel Hobby（Phase 1 本番。規約上は Pro 相当だが、規約リスクを了承して Hobby で運用し、Vercel Pro／Cloudflare Workers Paid＋`@opennextjs/cloudflare` への移行可能性を担保: OI-18 決定済み。関数リージョン hnd1 東京、Node.js ランタイム統一、Fluid compute）、Neon Postgres（`btree_gist` 有効）、Node 24 LTS |
 | NFR-EN-02 | 技術スタック | Next.js 16.x App Router、React 19、TypeScript 7、next-intl 4、Drizzle ORM＋SQL マイグレーション、Zod 4、Better Auth、`web-push`、`temporal-polyfill`、Tailwind v4、Vitest 5、Playwright 1.64、Biome 2.5、ESLint 10（根拠: 統合レポート『バージョンと構成は 2026 年 10 月の実測値で固定する』） |
 | NFR-EN-03 | 対応ブラウザ（顧客） | iOS Safari 17 以降、Android Chrome 最新 2 版、デスクトップ Chrome / Safari / Edge / Firefox 最新 2 版。320px 幅で横スクロールなし（WCAG 1.4.10） |
 | NFR-EN-04 | 対応環境（管理 PWA） | iOS 16.4 以降のホーム画面追加アプリ（推奨 iOS 26、検証は 17.x と 26）、Android Chrome 最新 2 版。クライアント端末（最近の iPhone）で実機検証 |
@@ -505,7 +506,7 @@ erDiagram
 
 | 連携先 | 用途 | プラン | 方式 | フェーズ | 備考 |
 |---|---|---|---|---|---|
-| Vercel | ホスティング、Preview/Staging、Cron（日次サマリー）、Web Analytics、WAF Rate Limiting | Pro（$20/月。Hobby は商用不可のため本番不可、開発・検証のみ）【要決定: OI-18 費用負担と Cloudflare 代替】 | Git 連携デプロイ、環境変数 | 1 | Pro は cron 毎分精度・ランタイムログ 1 日・関数最大 800s |
+| Vercel | ホスティング、Preview/Staging、Cron（日次サマリー）、Web Analytics、WAF Rate Limiting | Hobby（0 円。規約上は Pro 相当だが、規約リスクを了承して Phase 1 は Hobby で運用: OI-18 決定済み） | Git 連携デプロイ、環境変数 | 1 | Hobby は cron 1 日 1 回 ±59 分・ランタイムログ 1 時間・WAF ルール 1 本・Web Analytics 月 5 万イベント。警告・停止時は Pro（$20/月。cron 毎分精度・ログ 1 日・関数最大 800s）または Cloudflare Workers Paid（$5/月）へ移行（FR-S-10） |
 | Neon（Vercel Marketplace） | Postgres | Free | `DATABASE_URL` 自動注入、Preview ブランチ | 1 | `btree_gist` 可用性を導入時に確認 |
 | Web Push（Apple / Google / Mozilla のプッシュサービス） | 管理者通知 | 無料 | `web-push` ＋ VAPID | 1 | iOS は `https://` の VAPID subject |
 | Cloudflare Turnstile | Bot 対策 | Free | ウィジェット＋ siteverify | 1 | CSP 許可 |
@@ -590,20 +591,20 @@ erDiagram
 | PRE-05 | 公開時は `*.vercel.app`、独自ドメインは後日 |
 | PRE-06 | 第 2 回打ち合わせでロゴファイル・メニュー価格・営業ルールを受領する |
 | PRE-07 | 統合レポートの判断表（デザイン・技術・運用）を本書の既定とし、変更は ADR に記録する |
-| PRE-08 | 本番ホスティングは Vercel Pro（約 $20/月、hnd1 東京）。Vercel Hobby は Fair Use Guidelines で商用利用不可のため本番公開に使わない（開発・ステージングの検証のみ）。代替は Cloudflare Workers Paid（$5/月）【要決定: OI-18 費用負担とプラン選択】 |
+| PRE-08 | Phase 1 の本番ホスティングは Vercel Hobby（無料、hnd1 東京）とする（OI-18 決定済み）。Hobby は Fair Use Guidelines で商用利用不可（「サービスの販売の宣伝」も商用に含まれる）であり、規約上は Pro 相当だが、無償案件のため規約リスクを開発者・クライアントが了承のうえ Hobby で運用する。警告・停止時は Vercel Pro（約 $20/月）または Cloudflare Workers Paid（$5/月）へ移行できる設計（FR-S-10）で移行可能性を担保する。有償案件では最初から Pro を使う |
 
 ### 13.2 制約
 
 | ID | 制約 | 対応 |
 |---|---|---|
 | CON-01 | iOS の Web Push はホーム画面追加アプリ内のみ。購読が無言で失効しうる。`pushsubscriptionchange` 未実装。`actions`/`image`/`badge` 非対応 | 最小構成の通知、起動時再確認、ポーリング、日次サマリー |
-| CON-02 | Vercel Hobby は商用利用不可（本番不可）。本番は Pro $20/月の固定費が発生し、$20 クレジット超過分は従量課金。Hobby で検証する間は cron 1 日 1 回・±59 分、ロールバック直前 1 件、ランタイムログ 1 時間 | 本番は Pro（または Cloudflare Workers Paid）。Spend Management の上限設定。バックアップは GitHub Actions。監査ログを DB に持ちログ保持に依存しない |
+| CON-02 | Phase 1 は Vercel Hobby で運用する（PRE-08）。Hobby は規約上商用利用不可のため警告・停止のリスクがあり、cron 1 日 1 回・±59 分、ロールバック直前 1 件、ランタイムログ 1 時間、WAF レート制限ルール 1 本、Web Analytics 月 5 万イベント（カスタムイベント不可）の制約を受ける | 公開前に Pro / Cloudflare Workers Paid への移行手順書を用意し切替をリハーサル。日次サマリーは ±59 分前提。バックアップは GitHub Actions。監査ログを DB に持ちログ保持に依存しない |
 | CON-03 | Neon Free: 5 分でスケール to ゼロ、履歴 6 時間、スケジュールバックアップなし、100 CU-hours/月 | Suspense、日次 `pg_dump`、ポーリングの非表示時停止 |
 | CON-04 | 顧客への自動通知手段がない | 完了画面の証憑化、ICS の VALARM、管理側からの電話 |
 | CON-05 | `NEXT_PUBLIC_` 変数はビルド時に固定される | `SITE_URL` をサーバー専用に |
 | CON-06 | Drizzle のスキーマ DSL で `EXCLUDE` を直接表現できない可能性 | カスタム SQL マイグレーション |
 | CON-07 | 開発者 1 名、クライアントのレビュー時間が限られる | 修正回数・レビュー期限を契約化（計画書 11 章） |
-| CON-08 | 一次資料（Vercel 規約、PPC ガイドライン・Q&A、WebKit ブログ・Bugzilla、HPB 公式ガイド等）は 2026-10-10 の検証ノート `09_gap_*` で確認済み。未解決は HPB の締切分数、RESERVA の日時画面、iOS 26.x の前面通知・`app_badge` 位置・`navigate` 挙動、PPC のアレルギー情報の見解、特商法の適用 | 未解決項目は受け入れテスト（実機）と第 2 回打ち合わせ・照会で確定し、差分は ADR |
+| CON-08 | 一次資料（Vercel 規約、PPC ガイドライン・Q&A、WebKit ブログ・Bugzilla、HPB 公式ガイド等）は 2026-10-10 の検証ノート `09_gap_*` で確認済み。未解決は HPB の締切分数、RESERVA の日時画面、iOS 26.x の前面通知・`app_badge` 位置・`navigate` 挙動、PPC のアレルギー情報の見解、特商法の適用。Vercel 規約上 Hobby は商用不可と確認済みだが、Phase 1 は規約リスクを了承して Hobby で運用する（PRE-08） | 未解決項目は受け入れテスト（実機）と第 2 回打ち合わせ・照会で確定し、差分は ADR |
 
 ---
 
@@ -628,7 +629,7 @@ erDiagram
 | OI-15 | 各種アカウント名義（Vercel / Neon / GitHub / ドメイン / Sentry）と支払い | クライアント名義 | 開発者名義で構築後に移管 | NFR-MG-03 | 第 2 回 |
 | OI-16 | `no_show_count` による予約制限の運用（何回で phone_only にするか） | 2 回目以降 | 1 回 / 2 回 / 手動のみ | FR-A-13 | 第 2 回 |
 | OI-17 | 現状の月間予約件数・DM 件数（KPI ベースライン） | 未計測 | 概算ヒアリング | KPI-03/04 | 第 2 回 |
-| OI-18 | ホスティング費用の負担と選択（計画書 Q-14） | Vercel Pro 約 $20/月（≒ 3,000 円）をクライアント負担 | Vercel Pro（互換性リスク最小・運用最簡・東京リージョン）／Cloudflare Workers Paid $5/月（安価だが `proxy.ts` は experimental、Images binding・DNS 移管・着手前 1 日の検証が必要）。Vercel Hobby は商用不可のため選択肢にない | PRE-08, NFR-EN-01, NFR-PF-06, 11 章 | 第 2 回 |
+| OI-18 | ホスティングの選択（計画書 Q-14）【決定済み】 | **決定: Vercel Hobby（0 円）で開始**（2026-10-10、開発者・クライアント了承） | 規約リスク（Fair Use で商用不可、「サービスの販売の宣伝」も商用）を了承。警告・停止時は Vercel Pro $20/月（互換性リスク最小・運用最簡）または Cloudflare Workers Paid $5/月（`proxy.ts` は experimental、Images binding・DNS 移管・着手前 1 日の検証が必要）へ移行。有償案件は最初から Pro | PRE-08, CON-02, NFR-EN-01, NFR-PF-06, 11 章 | 決定済み（2026-10-10） |
 | OI-19 | 予約ステップの順序（計画書 Q-15） | 「メニュー → お客様情報 → 日時 → 確認」（クライアント要望） | HPB/RESERVA と同じ「メニュー → 日時 → お客様情報 → 確認」に変えるか。HPB 慣れの若年客には日時先行が自然だが、情報入力先行は枠を押さえる前に学割価格を確定できる | FR-C-01, S-C-02/03, WF | 第 2 回 |
 
 ---
@@ -679,7 +680,7 @@ erDiagram
 | AT-20 | Android Chrome | インストールプロンプト、通知受信、`topic` による通知置換 |
 | AT-21 | 手動予約・ブロック | 重なり警告、2 タップブロック、顧客サイトから当該枠が消える、Undo 5 秒 |
 | AT-22 | 設定変更 | 定休日・臨時休業・所要時間変更が顧客サイトへ即時反映 |
-| AT-23 | 日次サマリー | 前日 21:00（Pro: ±1 分。Hobby での検証時のみ ±59 分）に翌日の件数が通知される |
+| AT-23 | 日次サマリー | 前日 21:00〜21:59（Hobby: ±59 分。Pro 移行後は ±1 分）に翌日の件数が通知される |
 
 ### 15.4 非機能・運用
 
