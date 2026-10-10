@@ -58,5 +58,5 @@ for (const r of report) {
 }
 console.log(fail ? `\nVERIFY: ${fail} issue(s)` : `\nVERIFY: all checks passed (${report.length} files)`);
 // PNG -> JPG + contact sheet (python3 PIL)
-execFileSync('python3', ['-I', new URL('./post.py', import.meta.url).pathname, DIR], { stdio: 'inherit' });
+execFileSync('python3', ['-I', new URL('./post_admin.py', import.meta.url).pathname, DIR], { stdio: 'inherit' });
 process.exitCode = fail ? 1 : 0;
