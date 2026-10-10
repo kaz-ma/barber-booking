@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style Tile B Modern Barber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ---- 1. Primitive tokens ---- */
+:root {
+  --paper-100: #ffffff; --paper-99: #faf7f2; --paper-96: #f0ece5; --paper-90: #e6e0d6;
+  --ink-10: #191919; --ink-35: #5e5852; --ink-40: #666058;
+  --burgundy-40: #7c0000; --burgundy-30: #600000; --blue-40: #0f5f8f;
+  --font-display: "Lato", "Noto Sans JP", system-ui, sans-serif;
+  --font-sans: "Lato", "Noto Sans JP", system-ui, sans-serif;
+  --radius-card: 16px; --radius-pill: 999px;
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);
+}
+/* ---- 2. Semantic tokens ---- */
+:root {
+  --bg: var(--paper-99); --bg-card: var(--paper-100); --bg-sunken: var(--paper-96);
+  --fg: var(--ink-10); --fg-muted: var(--ink-35); --fg-disabled: var(--ink-40);
+  --accent: var(--burgundy-40); --accent-pressed: var(--burgundy-30); --on-accent: var(--paper-100);
+  --border: var(--paper-90); --border-strong: var(--ink-10); --ring: var(--blue-40);
+  --status-open: var(--blue-40); --status-full: var(--ink-40);
+}
+/* ---- 3. Usage ---- */
+* { box-sizing: border-box; }
+html { background: #e9e4dc; }
+body { margin: 0; font-family: var(--font-sans); color: var(--fg); font-size: 16px; line-height: 1.7; letter-spacing: .02em; -webkit-font-smoothing: antialiased; }
+.tile { width: 390px; margin: 0 auto; background: var(--bg); }
+h1, h2, h3, p, dl, dd, ul { margin: 0; }
+.num { font-family: "Lato", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.eyebrow { font: 700 12px/16px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--fg-muted); }
+.tile-head { display: flex; justify-content: space-between; padding: 16px 24px; font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.tile-head b { color: var(--fg); letter-spacing: .14em; }
+section { padding: 48px 24px; }
+section + section { border-top: 1px solid var(--border); }
+.sh { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
+.sh h2 { font: 700 32px/40px var(--font-display); letter-spacing: -.01em; }
+.sh h2 small { display: block; font: 500 14px/20px var(--font-sans); letter-spacing: .02em; color: var(--fg-muted); }
+.sh .idx { font: 700 12px/16px var(--font-display); letter-spacing: .14em; color: var(--fg-muted); }
+/* logo */
+.logo-row { display: grid; grid-template-columns: 152px 1fr; gap: 24px; align-items: center; }
+.logo-row img { width: 152px; height: auto; filter: brightness(.32); }
+.logo-row p { font-size: 14px; line-height: 24px; color: var(--fg-muted); }
+.logo-row p b { display: block; font: 700 16px/24px var(--font-display); letter-spacing: .2em; color: var(--fg); }
+.appbar { margin-top: 40px; display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 8px 0 16px; background: var(--bg-card); border-radius: var(--radius-card); box-shadow: 0 1px 2px rgba(25,25,25,.06), 0 8px 24px rgba(25,25,25,.06); }
+.brand { display: flex; align-items: center; gap: 12px; font: 700 14px/1 var(--font-display); letter-spacing: .22em; }
+.brand img { height: 36px; filter: brightness(.32); }
+.appbar .right { display: flex; align-items: center; gap: 4px; }
+.lang { min-width: 44px; height: 44px; display: grid; place-items: center; font: 700 14px/1 var(--font-display); }
+.cap { margin-top: 12px; font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+/* swatches */
+.swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 16px; }
+.sw .chip { height: 72px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(25,25,25,.08); }
+.sw b { display: block; margin-top: 8px; font-size: 13px; line-height: 20px; }
+.sw code { display: block; font: 400 12px/16px ui-monospace, Menlo, monospace; color: var(--fg-muted); }
+.sw .ratio { display: block; font: 700 12px/16px "Lato", sans-serif; margin-top: 4px; }
+.sw .ratio em { font-style: normal; font-weight: 400; color: var(--fg-muted); }
+.map { margin-top: 32px; font: 400 12px/20px ui-monospace, Menlo, monospace; color: var(--fg-muted); }
+/* type */
+.spec + .spec { margin-top: 32px; }
+.spec small { display: block; margin-bottom: 8px; font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.h1-en { font: 700 44px/48px var(--font-display); letter-spacing: -.02em; }
+.h1-ja { font-weight: 700; font-size: 32px; line-height: 44px; font-feature-settings: "palt"; letter-spacing: .02em; }
+.h2 { font-weight: 700; font-size: 24px; line-height: 32px; font-feature-settings: "palt"; }
+.digits { display: flex; gap: 24px; font-weight: 700; font-size: 40px; line-height: 48px; }
+.digits span:last-child { color: var(--fg-muted); font-weight: 400; }
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 0 32px; border-radius: var(--radius-pill); font: 700 16px/1 var(--font-sans); letter-spacing: .04em; border: 0; transition: background-color 100ms var(--ease-standard); }
+.btn-primary { width: 100%; background: var(--accent); color: var(--on-accent); }
+.btn-primary::after { content: "→"; font-family: "Lato"; margin-left: 8px; }
+.btn-secondary { min-height: 48px; background: transparent; color: var(--fg); box-shadow: inset 0 0 0 1.5px var(--border-strong); }
+.btn-row { display: grid; gap: 16px; }
+.btn-row div { display: flex; gap: 16px; }
+.btn-row div .btn { flex: 1; padding: 0 16px; }
+.focus { outline: 2px solid var(--ring); outline-offset: 2px; }
+/* menu card */
+.card { background: var(--bg-card); border-radius: var(--radius-card); padding: 24px; box-shadow: 0 1px 2px rgba(25,25,25,.06), 0 8px 24px rgba(25,25,25,.06); }
+.mc-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.mc-top h3 { font-size: 24px; line-height: 32px; font-weight: 700; }
+.mc-top h3 span { display: block; font: 400 14px/20px var(--font-display); letter-spacing: .04em; color: var(--fg-muted); }
+.pill { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: var(--radius-pill); background: var(--bg-sunken); font-size: 12px; font-weight: 700; }
+.mc-desc { margin-top: 8px; font-size: 14px; line-height: 24px; color: var(--fg-muted); }
+.mc-price { display: flex; align-items: baseline; gap: 16px; margin-top: 24px; }
+.mc-price dd { font: 700 40px/48px "Lato", sans-serif; letter-spacing: -.01em; }
+.mc-price dt { font-size: 12px; color: var(--fg-muted); }
+.mc-price .stu { font-size: 14px; color: var(--fg-muted); }
+.mc-price .stu b { font: 700 16px "Lato", sans-serif; color: var(--fg); }
+.card .btn { width: 100%; margin-top: 24px; }
+/* availability */
+.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cal-head b { font: 700 20px/28px "Lato", "Noto Sans JP", sans-serif; }
+.cal-head div { display: flex; gap: 8px; }
+.arrow { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--border-strong); font: 700 16px/1 "Lato"; }
+.week { display: grid; grid-template-columns: repeat(7, 44px); justify-content: space-between; }
+.day { height: 72px; display: grid; align-content: center; justify-items: center; gap: 4px; border-radius: var(--radius-pill); font-size: 12px; line-height: 16px; color: var(--fg-muted); }
+.day b { font: 700 18px/20px "Lato", sans-serif; color: var(--fg); }
+.day.sel { background: var(--accent); color: var(--on-accent); }
+.day.sel b { color: var(--on-accent); }
+.day.off { color: var(--fg-disabled); }
+.day.off b { color: var(--fg-disabled); text-decoration: line-through; font-weight: 400; }
+.day.today::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--fg); }
+.slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
+.slot { display: block; min-height: 64px; padding: 12px 16px; border-radius: 12px; background: var(--bg-card); box-shadow: inset 0 0 0 1.5px var(--status-open); color: var(--fg); text-align: left; font-size: 16px; line-height: 20px; border: 0; }
+.slot .mk { display: block; font-size: 12px; line-height: 16px; font-weight: 700; color: var(--status-open); margin-top: 4px; }
+.slot.sel { background: var(--accent); box-shadow: none; color: var(--on-accent); }
+.slot.sel .mk { color: var(--on-accent); }
+.slot.full { background: var(--bg-sunken); box-shadow: none; color: var(--fg-disabled); }
+.slot.full .t { text-decoration: line-through; }
+.slot.full .mk { color: var(--fg-disabled); }
+.slot .t { font-weight: 700; }
+.legend { margin-top: 16px; font-size: 12px; line-height: 20px; color: var(--fg-muted); }
+.legend b { color: var(--status-open); }
+.legend b.x { color: var(--fg-disabled); }
+.tel { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 700; color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
+/* done */
+.done .eyebrow { color: var(--status-open); }
+.done h3 { margin-top: 8px; font-size: 24px; line-height: 32px; }
+.when { margin: 24px 0; }
+.when small { display: block; font-size: 14px; color: var(--fg-muted); }
+.when b { font: 700 40px/48px "Lato", sans-serif; letter-spacing: -.01em; }
+.done dl { display: grid; grid-template-columns: 72px 1fr; row-gap: 12px; align-items: center; font-size: 14px; line-height: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.done dt { color: var(--fg-muted); }
+.done dd { display: flex; align-items: center; justify-content: space-between; font-weight: 500; }
+.copy { min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: var(--bg-sunken); font: 700 12px/1 var(--font-sans); color: var(--fg); }
+.done .note { margin-top: 16px; font-size: 12px; line-height: 20px; color: var(--fg-muted); }
+/* mood */
+.mood { padding: 0; display: grid; gap: 8px; }
+.mood li { list-style: none; display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.mood b { font-size: 28px; line-height: 40px; font-weight: 700; font-feature-settings: "palt"; }
+.mood span { font: 400 14px/20px var(--font-display); color: var(--fg-muted); }
+.foot { padding: 24px; border-top: 1px solid var(--border); color: var(--fg-muted); font-size: 12px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 100ms !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main class="tile">
+  <header class="tile-head"><b>STYLE TILE B</b><span>モダン・バーバー / Modern Barber</span></header>
+
+  <section>
+    <div class="sh"><h2>Logo<small>ロゴ配置</small></h2><span class="idx">01</span></div>
+    <div class="logo-row">
+      <img src="../../research/reference/neuer_logo.png" alt="Neuer Barber ロゴ">
+      <p><b>NEUER BARBER</b>エンブレムは単色で小さく、店名はワードマークとして横に組む。</p>
+    </div>
+    <div class="appbar">
+      <span class="brand"><img src="../../research/reference/neuer_logo.png" alt="">NEUER</span>
+      <span class="right"><span class="lang" lang="en">EN</span><a class="btn btn-primary" style="width:auto;min-height:44px;padding:0 20px;font-size:14px">予約</a></span>
+    </div>
+    <p class="cap">ヘッダー 64px · エンブレム 36px + ワードマーク · タップ領域 44px</p>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Color<small>カラー（比は #faf7f2 に対して）</small></h2><span class="idx">02</span></div>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#faf7f2"></div><b>paper-99</b><code>#faf7f2</code><span class="ratio">base <em>背景</em></span></div>
+      <div class="sw"><div class="chip" style="background:#191919"></div><b>ink-10</b><code>#191919</code><span class="ratio" data-fg="#191919" data-bg="#faf7f2">16.45:1</span></div>
+      <div class="sw"><div class="chip" style="background:#7c0000"></div><b>burgundy-40</b><code>#7c0000</code><span class="ratio" data-fg="#7c0000" data-bg="#faf7f2">10.58:1</span></div>
+      <div class="sw"><div class="chip" style="background:#5e5852"></div><b>ink-35</b><code>#5e5852</code><span class="ratio" data-fg="#5e5852" data-bg="#faf7f2">6.56:1</span></div>
+      <div class="sw"><div class="chip" style="background:#0f5f8f"></div><b>blue-40</b><code>#0f5f8f</code><span class="ratio" data-fg="#0f5f8f" data-bg="#faf7f2">6.43:1</span></div>
+      <div class="sw"><div class="chip" style="background:#ffffff"></div><b>paper-100</b><code>#ffffff</code><span class="ratio" data-fg="#ffffff" data-bg="#faf7f2">1.07:1</span></div>
+    </div>
+    <p class="map">--bg ← paper-99 · --bg-card ← paper-100<br>--fg ← ink-10 · --fg-muted ← ink-35<br>--accent ← burgundy-40（CTA と選択中のみ）<br>--status-open ← blue-40</p>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Type<small>書体</small></h2><span class="idx">03</span></div>
+    <div class="spec"><small>H1 EN · Lato 700 · 44/48 · −.02em</small><p class="h1-en" lang="en">Sharp cuts, after&nbsp;dark.</p></div>
+    <div class="spec"><small>H1 JA · Noto Sans JP 700 · 32/44 · palt</small><p class="h1-ja">夜の一席を、予約する。</p></div>
+    <div class="spec"><small>H2 · 24/32</small><p class="h2">メニューと料金</p></div>
+    <div class="spec"><small>Body JA · 16 / 1.7 / .02em</small><p>クラシックから現代のネオバーバーまで。<span style="white-space:nowrap">18時から24時</span>、完全予約制で一人ずつ担当します。</p></div>
+    <div class="spec" lang="en"><small>Body EN · 16 / 1.7 / .02em</small><p>Classic to neo-barber styles. Open 6 PM – midnight, by appointment only.</p></div>
+    <div class="spec"><small>Numerals · Lato 700 / 400</small><p class="digits num"><span>¥5,000</span><span>60 min</span></p></div>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Buttons<small>ボタン</small></h2><span class="idx">04</span></div>
+    <div class="btn-row">
+      <button class="btn btn-primary">予約する</button>
+      <div><button class="btn btn-secondary">メニュー</button><button class="btn btn-secondary focus">フォーカス</button></div>
+    </div>
+    <p class="cap">Primary 56px pill · Secondary 48px · focus ring 2px blue + offset 2px</p>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Menu<small>メニューカード</small></h2><span class="idx">05</span></div>
+    <article class="card">
+      <div class="mc-top"><h3>カット<span lang="en">Cut</span></h3><span class="pill num">60分</span></div>
+      <p class="mc-desc">シャンプー・スタイリング込み</p>
+      <dl class="mc-price"><dd class="num">¥5,000</dd><dt class="stu">学生 <b class="num">¥4,500</b></dt></dl>
+      <p class="mc-desc">税込 · 学生料金は「職業」選択で自動適用</p>
+      <button class="btn btn-secondary">このメニューを選ぶ</button>
+    </article>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Slots<small>空き状況</small></h2><span class="idx">06</span></div>
+    <div class="cal-head"><b class="num">10月 2026</b><div><span class="arrow" aria-label="前の週">‹</span><span class="arrow" aria-label="次の週">›</span></div></div>
+    <div class="week">
+      <div class="day today">土<b>10</b></div><div class="day">日<b>11</b></div><div class="day off">月<b>12</b></div>
+      <div class="day sel">火<b>13</b></div><div class="day">水<b>14</b></div><div class="day">木<b>15</b></div><div class="day">金<b>16</b></div>
+    </div>
+    <div class="slots">
+      <button class="slot"><span class="t num">18:00</span><span class="num">–19:00</span><span class="mk">◎ 空き</span></button>
+      <div class="slot full" aria-disabled="true"><span class="t num">19:00</span><span class="num">–20:00</span><span class="mk">× 満席</span></div>
+      <button class="slot sel" aria-pressed="true"><span class="t num">20:00</span><span class="num">–21:00</span><span class="mk">◎ 選択中</span></button>
+      <button class="slot"><span class="t num">21:00</span><span class="num">–22:00</span><span class="mk">◎ 空き</span></button>
+    </div>
+    <p class="legend"><b>◎</b>：予約できます（この時刻から施術開始）<br><b class="x">×</b>：予約できません　月：定休日</p>
+    <a class="tel">本日の残り枠はお電話で →</a>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Done<small>完了カード</small></h2><span class="idx">07</span></div>
+    <article class="card done">
+      <p class="eyebrow">Booking confirmed</p>
+      <h3>ご予約が確定しました</h3>
+      <p class="when"><small>2026年10月13日（火）</small><b class="num">20:00–21:00</b></p>
+      <dl>
+        <dt>予約番号</dt><dd><span class="num">NB-1013-2000</span><button class="copy">コピー</button></dd>
+        <dt>メニュー</dt><dd>カット <span class="num">¥5,000</span></dd>
+        <dt>担当</dt><dd>長田 健豊</dd>
+      </dl>
+      <p class="note">この画面をスクリーンショットで保存してください（確認メールは送信されません）。</p>
+    </article>
+  </section>
+
+  <section>
+    <div class="sh"><h2>Mood<small>ムード</small></h2><span class="idx">08</span></div>
+    <ul class="mood">
+      <li><b>余白</b><span lang="en">Space</span></li>
+      <li><b>端正</b><span lang="en">Sharp</span></li>
+      <li><b>今っぽい</b><span lang="en">Current</span></li>
+      <li><b>軽やか</b><span lang="en">Easy</span></li>
+    </ul>
+  </section>
+  <footer class="foot">390px · 8px grid · radius 16px（カード）/ pill（操作要素）· テクスチャなし</footer>
+</main>
+</body>
+</html>
