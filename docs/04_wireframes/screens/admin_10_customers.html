@@ -88,13 +88,13 @@
     </div>
   </div>
     <div class="note" style="top:58px;right:8px"><span class="n">4</span>回数を先に</div>
-    <div class="note" style="top:246px;right:8px"><span class="n">5</span>OI: 制限の運用</div>
+    <div class="note" style="top:246px;right:8px"><span class="n">5</span>OI-16 制限の運用</div>
     <div class="note" style="top:460px;right:40px"><span class="n">6</span>行 → S-A-04</div>
     <div class="note" style="bottom:56px;left:8px"><span class="n">7</span>不可逆は確認あり</div>
   </div>
   <ul class="notes-list">
     <li><span class="n">4</span>来店・無断（<code>no_show_count</code>）・遅刻キャンセル（<code>late_cancel_count</code>）・最終来店を上部に集約（FR-A-13）。</li>
-    <li><span class="n">5</span><code>updateCustomerRestriction</code>。none / phone_only / blocked。運用基準（例: 無断 2 回で電話のみ）は【要確認】（FR-A-13）。</li>
+    <li><span class="n">5</span><code>updateCustomerRestriction</code>。none / phone_only / blocked。運用基準（既定案: 無断 2 回目以降で電話のみ）は【要確認: OI-16】（FR-A-13）。</li>
     <li><span class="n">6</span>履歴行タップで S-A-04（MT: CU → DT）。同一電話番号の予約は 1 顧客に紐づく（FR-A-13）。</li>
     <li><span class="n">7</span>JSON エクスポート（予約・同意履歴）、重複マージ、匿名化。匿名化だけは Undo できないため (c) の確認ダイアログを出す（FR-A-14）。</li>
   </ul>

@@ -100,7 +100,7 @@
       <div class="field"><span class="label">枠の刻み</span><div class="seg"><div class="radio on">15 分</div><div class="radio">30 分</div><div class="radio">60 分</div></div></div>
       <div class="field"><span class="label">リードタイム（何分前まで web 予約可）</span><div class="input sel filled">開始の 60 分前まで</div></div>
       <div class="field"><span class="label">先行予約の上限</span><div class="input sel filled">60 日先まで</div></div>
-      <div class="field"><span class="label">セルフキャンセル締切</span><div class="input sel filled">開始の 3 時間前まで</div><span class="help">締切後はキャンセル画面に「お電話ください」と表示</span></div>
+      <div class="field"><span class="label">セルフキャンセル締切</span><div class="input sel filled">開始の 2 時間前まで</div><span class="help">締切後はキャンセル画面に「お電話ください」と表示</span></div>
       <div class="card sunken"><b>プレビュー</b><p class="muted">今日 19:40 なら、web で予約できる最短の開始は 20:45。web 予約は 12/9（60 日先）まで受け付けます。</p></div>
       <div class="row between"><div><b>祝日を表示</b><p class="caption">カレンダーに祝日名を出すだけで、自動では休みにしません</p></div><span class="toggle on"></span></div>
     </div>
@@ -112,7 +112,7 @@
     <div class="note" style="top:764px;left:110px"><span class="n">8</span>Should</div>
   </div>
   <ul class="notes-list">
-    <li><span class="n">6</span><code>settings</code>（枠刻み・リードタイム・先行上限・セルフキャンセル締切）。値はサーバー側でも再検証に使う（FR-A-07, FR-S-02）。初期値は打ち合わせで確定【要確認】。</li>
+    <li><span class="n">6</span><code>settings</code>（枠刻み・リードタイム・先行上限・セルフキャンセル締切）。値はサーバー側でも再検証に使う（FR-A-07, FR-S-02）。初期値はリードタイム 60 分（OI-06）・締切 2 時間前（OI-05 草案）【要確認】。</li>
     <li><span class="n">7</span>数値設定の意味を具体的な時刻で示し、設定ミスを保存前に気づけるようにする（FR-A-07）。</li>
     <li><span class="n">8</span>祝日は表示のみで自動休業にしない（FR-A-07 Should）。休む場合は (c) で臨時休業を登録。</li>
   </ul>
@@ -163,7 +163,7 @@
         <div class="item" style="color:var(--wf-faint)"><span class="handle">≡</span><div class="grow"><b>ヘッドスパ</b> <span class="pill">非公開</span><br><span class="caption">¥2,200・30 分＋5 分</span></div><span class="toggle off"></span></div>
       </div>
       <button class="btn secondary">＋ メニューを追加</button>
-      <p class="caption">価格・所要時間は第 2 回打ち合わせで確定【要確認】</p>
+      <p class="caption">価格・所要・バッファは仮の値（OI-01, OI-07）【要確認】</p>
     </div>
     <nav class="tabbar"><div class="tab"><span class="ico"></span>今日</div><div class="tab"><span class="ico"></span>週</div><div class="tab"><span class="ico"></span>受信箱</div><div class="tab on"><span class="ico"></span>設定</div></nav>
   </div>
