@@ -7,7 +7,7 @@
 | パス | 内容 | 状態 |
 |---|---|---|
 | `evaluation/` | 評価レポート（計画書 8 章の評価計画） | 作成中 |
-| `evaluation/cognitive_walkthrough_wf.md` | EVAL-001 v0.1 認知的ウォークスルー＋簡易ヒューリスティック評価（WF-C / WF-A v0.1）。問題 33 件と WF v0.2 の修正リスト | ドラフト v0.1 |
+| `evaluation/cognitive_walkthrough_wf.md` | EVAL-001 v0.1 認知的ウォークスルー＋簡易ヒューリスティック評価（WF-C / WF-A v0.1）。問題 33 件と WF v0.2 の修正リスト、末尾に「v0.2 対応状況」（ID ごとの対応区分） | ドラフト v0.1（v0.2 対応状況を追記） |
 
 ## 今後追加する予定
 

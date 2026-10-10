@@ -11,7 +11,7 @@ LABELS = {  # flow order, not alphabetical
     'customer_01_top': 'S-C-01 トップ',
     'customer_02_book_menu': 'S-C-02 予約 1 メニューを選ぶ',
     'customer_03_time': 'S-C-03 予約 2 日時を選ぶ',
-    'customer_04_book_info': 'S-C-02 予約 3 お客様情報',
+    'customer_04_book_info': 'S-C-02b 予約 3 お客様情報',
     'customer_05_confirm': 'S-C-04 予約 4 確認',
     'customer_06_done': 'S-C-05 予約完了',
     'customer_07_cancel': 'S-C-06 キャンセル',

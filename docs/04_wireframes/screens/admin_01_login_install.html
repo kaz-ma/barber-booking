@@ -57,7 +57,7 @@
   </div>
   <ul class="notes-list">
     <li><span class="n">1</span><code>signIn.passkey()</code>。成功で <code>/admin</code>（S-A-02 今日）へ。PWA 内で Face ID ログインできること（FR-A-01, AT-13）。</li>
-    <li><span class="n">2</span>Face ID 不可時の代替。マジックリンクは Safari で開いてしまい PWA にセッションが入らないため、メールで届く 6 桁コードをアプリ内で入力する方式に決定（OI-12 決定、FR-A-01 の文言は要件で改める）。</li>
+    <li><span class="n">2</span>Face ID 不可時の代替。マジックリンクは Safari で開いてしまい PWA にセッションが入らないため、メールで届く 6 桁コードをアプリ内で入力する方式に決定（OI-12 決定、要件 v0.4 FR-A-01）。</li>
     <li><span class="n">3</span>管理者 1 名・サインアップ無効（seed で作成）。未認証で <code>/admin/*</code> を開くとこの画面へ（FR-A-01）。</li>
     <li><span class="n">4</span><code>__Host-</code> Cookie・<code>Max-Age</code> 30 日。アプリを閉じて開き直してもログイン維持（FR-A-09, AT-17）。</li>
   </ul>
@@ -78,7 +78,7 @@
       <div class="field">
         <label class="label" for="otp">確認コード（6 桁）</label>
         <input id="otp" class="input filled otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" value="4819">
-        <span class="help">キーボード上の候補（メールから）をタップするか、貼り付けてください。6 桁そろうと自動でログインします</span>
+        <span class="help">キーボード上の候補（メールから）をタップするか、貼り付けてください。6 桁そろうと自動でログインします（有効期限 10 分）</span>
       </div>
       <button class="btn secondary small" style="align-self:flex-start">コードを再送する（60 秒後）</button>
       <div class="spacer"></div>
@@ -89,7 +89,7 @@
     <div class="note" style="top:484px;right:8px"><span class="n">6</span>試行回数制限</div>
   </div>
   <ul class="notes-list">
-    <li><span class="n">5</span>コード欄は 6 マスに分けず 1 欄（<code>inputmode="numeric" autocomplete="one-time-code" maxlength="6"</code>）。iOS のメールからの自動入力候補と貼り付けがそのまま効く。6 桁そろった時点で送信（CW-28、OI-12 決定）。iOS のホーム画面アプリは Safari と Cookie が分離しているため、リンク方式ではなくアプリ内コード入力で同じストレージにセッションを作る（研究ノート 05 Q7）。</li>
+    <li><span class="n">5</span>コード欄は 6 マスに分けず 1 欄（<code>inputmode="numeric" autocomplete="one-time-code" maxlength="6"</code>）。iOS のメールからの自動入力候補と貼り付けがそのまま効く。6 桁そろった時点で送信。コードの有効期限は 10 分で、バナーに「10 分間有効」と明記し、期限切れは「コードの有効期限が切れました。再送してください」（CW-28、OI-12 決定）。iOS のホーム画面アプリは Safari と Cookie が分離しているため、リンク方式ではなくアプリ内コード入力で同じストレージにセッションを作る（研究ノート 05 Q7）。</li>
     <li><span class="n">6</span>アカウント単位のログイン試行制限（FR-S-04）。5 回失敗で 15 分ロック【要確認】。</li>
   </ul>
 </section>

@@ -35,7 +35,7 @@
 <div class="sheet">
   <div class="sheet-head">
     <h1>WF-C v0.2 / S-C-03 予約 ステップ 2 日時を選ぶ（/ja/book/time）</h1>
-    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。週ストリップ（日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 満席 / 締切）を添える。時刻はすべて JST。</p>
+    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。週ストリップ（日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 休業 / 満席 / 締切）を添える。時刻はすべて JST。</p>
   </div>
 
   <!-- (a) mixed: tap a slot -> next step -->
@@ -55,7 +55,7 @@
           <a class="day"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="note" style="top:-36px;right:56px"><span class="n">2</span>今日・明日</div>
+          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div><div class="note" style="top:-36px;right:56px"><span class="n">2</span>今日・明日</div>
         </div>
         <div class="legend anc"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span><div class="note" style="top:0;right:0"><span class="n">3</span>凡例は直下</div></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -79,11 +79,11 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>週ストリップは今日から 14 日分を横スクロール、日セル 44×64px 以上。× の日（定休・満席・締切）は × と理由ラベル（満席は取り消し線も）で示し、リンクにもボタンにもしない（フォーカス対象外）（FR-C-07, FR-C-08）。</li>
+      <li><span class="n">1</span>週ストリップは今日から 14 日分を横スクロール、日セル 44×64px 以上。× の日（定休・休業・満席・締切）は × と理由ラベル（満席は取り消し線も）で示し、リンクにもボタンにもしない（フォーカス対象外）（FR-C-07, FR-C-08）。</li>
       <li><span class="n">2</span>今日と翌日のセルは曜日の位置に「今日」「明日」（/en は Today / Tmrw）。曜日は <code>aria-label</code>（例「10月11日 日曜 明日」）と下の見出しで伝える（FR-C-07、CW-04）。</li>
-      <li><span class="n">3</span>凡例はストリップの直下に置き、FR-C-07 の文言どおり「◎ 予約できます ／ × 予約できません」。× の理由は日セル・行の右に小さく出す（定休 / 満席 / 締切）。○・△ は使わない（FR-C-07、CW-09）。</li>
-      <li><span class="n">4</span>× の時刻は行を残すが、ボタンにせずフォーカスも当てない（<code>&lt;div&gt;</code> の文字情報として読み上げる）。行が消えると「その時刻は営業していない」と誤解されるため（CW-10、FR-C-07 本文は要件で改める）。18:00 は 17:02 時点でリードタイム 60 分を過ぎたため「締切」、満席と区別する（CW-09）。</li>
-      <li><span class="n">5</span>◎ の枠をタップすると選択表示（✓）を 150ms 見せてそのまま次の段へ進む。確認ボタンは挟まない（日 1＋時間 1 タップ、US-01、CW-05）。遷移先は通常 <code>/ja/book/info</code>（お客様情報）。お客様情報が入力済み（確認画面から「変更」で来た・(d) の 23P01 から戻った）なら <code>/ja/book/confirm</code> へ直行する。</li>
+      <li><span class="n">3</span>凡例はストリップの直下に置き、FR-C-07 の文言どおり「◎ 予約できます ／ × 予約できません」。× の理由は日セル・行の右に小さく出す（定休 = 曜日の定休日、休業 = 臨時休業、満席、締切 = リードタイム経過）。○・△ は使わない（FR-C-07、CW-09）。</li>
+      <li><span class="n">4</span>× の時刻は行を残すが、ボタンにせずフォーカスも当てない（<code>&lt;div&gt;</code> の文字情報として読み上げる）。行が消えると「その時刻は営業していない」と誤解されるため（CW-10、要件 v0.4 FR-C-07）。18:00 は 17:02 時点でリードタイム 60 分を過ぎたため「締切」、満席と区別する（CW-09）。</li>
+      <li><span class="n">5</span>◎ の枠をタップすると選択表示（✓）を 150ms 見せてそのまま次の段へ進む。確認ボタンは挟まない（日 1＋時間 1 タップ、US-01、CW-05）。遷移先は通常 <code>/ja/book/info</code>（S-C-02b お客様情報）。お客様情報が入力済み（確認画面から「変更」で来た・(d) の 23P01 から戻った）なら <code>/ja/book/confirm</code> へ直行する。</li>
       <li><span class="n">6</span>リストの下に電話導線（HPB の TEL 枠と同じ位置）（FR-C-07, FR-C-16、OI-10）。</li>
     </ul>
   </div>
@@ -105,7 +105,7 @@
           <a class="day selected" aria-pressed="true"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div>
         </div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -150,7 +150,7 @@
           <a class="day"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div>
         </div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -166,7 +166,7 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。14 日すべて空きなしなら「2 週間以内に空きがありません。お電話で…」＋「さらに先を見る」（FR-C-07）。選択がないので固定 CTA は出さない。</li>
+      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休 / 休業）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。14 日すべて空きなしなら「2 週間以内に空きがありません。お電話で…」＋「さらに先を見る」（FR-C-07）。選択がないので固定 CTA は出さない。</li>
       <li><span class="n">2</span>当日はリードタイム 60 分で締切済みでも、電話なら受けられる可能性があるため電話導線を残す（FR-C-08, FR-C-16）。</li>
     </ul>
   </div>
@@ -214,7 +214,7 @@
           <a class="day selected" aria-pressed="true"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
           <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>金</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div>
         </div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -255,7 +255,7 @@
           <a class="day"><span>Tue</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
           <div class="day off"><span>Wed</span><b><s>14</s></b><span class="mark">×</span><span class="mark">Full</span></div>
           <a class="day"><span>Thu</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>Fri</span><b>16</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><span>Fri</span><b>16</b><span class="mark">×</span><span class="mark">Off</span></div>
           <div class="note" style="top:-36px;right:56px"><span class="n">1</span>Today / Tmrw</div>
         </div>
         <div class="legend anc"><span>◎ Available</span><span>/</span><span>× Unavailable</span><div class="note" style="top:0;right:0"><span class="n">2</span>EN 凡例</div></div>
@@ -279,7 +279,7 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>/en の日セルは Today / Tmrw と英語の曜日略称（Mon…）、× の理由は Closed / Full / Cutoff（FR-C-07, FR-C-13）。</li>
+      <li><span class="n">1</span>/en の日セルは Today / Tmrw と英語の曜日略称（Mon…）、× の理由は Closed（定休）/ Off（休業）/ Full（満席）/ Cutoff（締切）（FR-C-07, FR-C-13）。</li>
       <li><span class="n">2</span>凡例は「◎ Available / × Unavailable」。締切文と「All times are JST」を 1 文にまとめる（FR-C-07, FR-C-13）。</li>
       <li><span class="n">3</span>12 時間制の最長の行「11:00 PM–12:00 AM」と「× Cutoff」が 1 行に収まり、横はみ出しがないことを検証対象にした（CW-03）。タップの振る舞いは (a) と同じ。</li>
     </ul>
