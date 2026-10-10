@@ -5,11 +5,11 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-00 |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
 | 作成者 | 開発者（フリーランス） |
 | 関連要件 | FR-S-01〜14、NFR-AV-01〜05、NFR-PF-01〜06、NFR-OP-01〜08、NFR-MG-01〜05、NFR-SC-01〜10、NFR-EN-01〜07、PRE-01〜08、CON-01〜08 |
-| 上位文書 | `docs/02_requirements/requirements.md`（REQ-001 v0.2）、`docs/01_plan/project_plan.md`（PLAN-001 v0.3） |
+| 上位文書 | `docs/02_requirements/requirements.md`（REQ-001 v0.4）、`docs/01_plan/project_plan.md`（PLAN-001 v0.4） |
 | 凡例 | 【要確認】＝要件定義書 14 章の未決事項（OI-xx）に対応。ID は要件定義書の FR-/NFR-/S-/AT- をそのまま参照する |
 
 ### 変更履歴
@@ -17,6 +17,7 @@
 | 版 | 日付 | 変更内容 |
 |---|---|---|
 | v0.1 | 2026-10-10 | 初版（WF 工程前の設計ドラフト。M3 で承認予定） |
+| v0.2 | 2026-10-10 | 要件定義書 v0.4 の反映: 予約ルートに `/book/info`（S-C-02b）を追加（OI-19）、`RESEND_API_KEY` の用途をワンタイムコード送信に（OI-12） |
 
 ---
 
@@ -145,8 +146,9 @@ flowchart LR
 | ルート | 種別 | 静的シェル | 動的ホール | 関連画面 |
 |---|---|---|---|---|
 | `/{locale}` | 静的（`generateStaticParams` で ja/en） | ヘッダー、ヒーロー、メニュー概要、アクセス | なし | S-C-01 |
-| `/{locale}/book` | 静的シェル＋クライアントフォーム | ステッパー、メニューカード（cache） | なし（入力はクライアント状態） | S-C-02 |
+| `/{locale}/book` | 静的シェル＋クライアント | ステッパー、メニューカード（cache） | なし（選択はクライアント状態） | S-C-02 |
 | `/{locale}/book/time` | PPR | ステッパー、凡例、締切文言 | 週ストリップの日状態・時間枠（Suspense） | S-C-03 |
+| `/{locale}/book/info` | 静的シェル＋クライアントフォーム | ステッパー、フォームの枠 | なし（要約と入力はクライアント状態） | S-C-02b |
 | `/{locale}/book/confirm` | 静的シェル＋クライアント | 同意文言、ポリシーリンク | なし（下書きから描画） | S-C-04 |
 | `/{locale}/book/done/[token]` | 動的 | 最小ヘッダー | 予約カード | S-C-05 |
 | `/{locale}/cancel/[token]` | 動的 | 最小ヘッダー | 予約内容・締切判定 | S-C-06 |
@@ -166,7 +168,7 @@ flowchart LR
 | `DATABASE_URL_UNPOOLED` | server | 必須 | Neon 連携で自動注入／GitHub Secrets | マイグレーション、`pg_dump`/`pg_restore` | 直結エンドポイント | FR-S-08 |
 | `BETTER_AUTH_SECRET` | server | 必須 | Vercel | セッション署名・暗号化 | 32 バイト以上の乱数 | FR-A-01 |
 | `ADMIN_EMAIL` | server | seed 時 | ローカル／CI | 初回管理者ユーザーの作成（サインアップ無効のため） | — | FR-A-01 |
-| `RESEND_API_KEY` | server | 任意【要確認: OI-12】 | Vercel | マジックリンク（フォールバック）送信 | — | FR-A-01 |
+| `RESEND_API_KEY` | server | 任意【要確認: OI-21】 | Vercel | ログインのフォールバック（アプリ内で入力するワンタイムコード）のメール送信。OI-12 決定済み | — | FR-A-01 |
 | `VAPID_PUBLIC_KEY` | server（クライアントへは props） | 必須 | Vercel | `applicationServerKey` | base64url | FR-A-09 |
 | `VAPID_PRIVATE_KEY` | server | 必須 | Vercel | Push 署名。**一度生成したら変更しない**（変更すると全購読が無効） | base64url | FR-S-03 |
 | `VAPID_SUBJECT` | server | 必須 | Vercel | VAPID の連絡先。Safari は `https://localhost` を拒否 | `mailto:…` または `https://…` | FR-S-03 |
@@ -223,9 +225,10 @@ barber-booking/
     │   │   ├── layout.tsx         # <html lang>、NextIntlClientProvider、Header/Footer
     │   │   ├── page.tsx           # S-C-01
     │   │   ├── book/
-    │   │   │   ├── layout.tsx     # BookingDraftProvider（クライアント状態を S-C-02〜04 で共有）
-    │   │   │   ├── page.tsx       # S-C-02
-    │   │   │   ├── time/page.tsx  # S-C-03
+    │   │   │   ├── layout.tsx     # BookingDraftProvider（クライアント状態を S-C-02〜04・S-C-02b で共有）
+    │   │   │   ├── page.tsx       # S-C-02（1. メニュー）
+    │   │   │   ├── time/page.tsx  # S-C-03（2. 日時）
+    │   │   │   ├── info/page.tsx  # S-C-02b（3. お客様情報）
     │   │   │   ├── confirm/page.tsx      # S-C-04
     │   │   │   └── done/[token]/page.tsx # S-C-05
     │   │   ├── cancel/[token]/page.tsx   # S-C-06

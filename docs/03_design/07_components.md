@@ -5,8 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-07 |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
+| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。`ShareCopyButton`、`SlotList` の × 行（非活性の `SlotRow`）、`SelectionSummary`（S-C-02b）、`OtpFallbackForm`、ブロックのプリセット変更、ステップ順序の固定 |
 | 関連要件 | FR-C-01〜16, FR-A-02〜18, NFR-PF-01, NFR-PF-02, NFR-EN-03〜07, AT-09, AT-10, AT-24, AT-25 |
 | 関連文書 | `02_screens.md`（画面ごとの使用コンポーネント）、`docs/05_design_comps/`（デザインガイド。トークン値の正本はデザインガイド確定後にそちら） |
 
@@ -45,6 +46,7 @@
 | `ErrorSummary` | Client | `errors: { fieldId, message }[]` | `role="alert"`、表示時にフォーカス、各エラーへのリンク |
 | `VisuallyHidden` / `LiveRegion` | Server/Client | `children`, `politeness` | 段階遷移の通知に使用 |
 | `CopyButton` | Client | `value`, `label`, `copiedLabel` | Clipboard API、失敗時は選択状態にする。結果を `aria-live` で通知 |
+| `ShareCopyButton` | Client | `url`, `title`, `text?`, `label`（「共有・コピー」/ "Share or copy"）, `copiedLabel` | `navigator.share` があれば `{ title, text, url }` で共有シートを開く。未対応、または `AbortError` 以外で失敗したら `CopyButton` と同じ処理でクリップボードにコピーし `aria-live` で「コピーしました」。ユーザー操作内でのみ呼ぶ。完了画面のキャンセルリンク用（FR-C-11、CW-15） |
 | `StickyCta` | Client | `children` | `padding-bottom: max(16px, env(safe-area-inset-bottom))`、ページ側で `scroll-padding-bottom` を設定 |
 | `Icon` | Server | `name`, `label?` | インライン SVG。意味を持つ場合のみ `label`（それ以外は `aria-hidden`） |
 
@@ -57,15 +59,17 @@
 | `SiteHeader` | `features/booking/components`（共通レイアウトは `app/(public)` で合成） | Server（`LocaleSwitcher` のみ Client） | `locale`, `phoneHref` | 全画面 | FR-C-13, 16 |
 | `LocaleSwitcher` | 同上 | Client | `currentLocale`, `alternateHref` | 全画面 | FR-C-13 |
 | `BookCta` | 同上 | Server | `locale`, `menuSlug?` | S-C-01, 10 | FR-C-14 |
-| `MenuSummary` / `MenuCard` | 同上 | Server（`MenuCard` は `RadioCard` を内包するため Client） | `menu: MenuDTO`, `selected?`, `occupation?` | S-C-01, 02 | FR-C-02, 04 |
-| `BookingDraftProvider` | `features/booking/components` | Client（`/book/layout.tsx`） | 状態: `{ menuSlug, name, nameKana, occupation, phone, note, startsAt, submissionNonce, updatedAt }`。`sessionStorage` 同期、30 分無操作で破棄 | S-C-02〜04 | FR-C-01 |
-| `BookingStepper` | 同上 | Server | `current: 1..4`, `locale` | S-C-02〜04 | FR-C-01 |
-| `BookingForm` | 同上 | Client | `menus: MenuDTO[]`, `locale`, `sequence: Step[]`。`history.state` と `?step=` を管理、`popstate` で段階復元 | S-C-02 | FR-C-01, AT-09 |
-| `MenuStep` / `NameStep` / `KanaField` / `OccupationStep` / `PhoneStep` / `NoteStep` | 同上 | Client | 各段階の値・エラー・`onComplete`。`KanaField` は `locale === 'ja'` のときのみ描画 | S-C-02 | FR-C-02〜06 |
-| `StepSummary` | 同上 | Client | `label`, `value`, `onEdit` | S-C-02 | FR-C-01 |
+| `MenuSummary` / `MenuCard` | 同上 | Server（`MenuCard` は `RadioCard` を内包するため Client） | `menu: MenuDTO`, `selected?`, `occupation?`。一般・学生の両価格を併記 | S-C-01, 02 | FR-C-02, 04 |
+| `BookingDraftProvider` | `features/booking/components` | Client（`/book/layout.tsx`） | 状態: `{ menuSlug, startsAt, name, nameKana, occupation, phone, note, submissionNonce, updatedAt }`。`sessionStorage` 同期、30 分無操作で破棄 | S-C-02, 03, 02b, 04 | FR-C-01 |
+| `BookingStepper` | 同上 | Server | `current: 1..4`（1 メニュー / 2 日時 / 3 お客様情報 / 4 確認）, `locale` | S-C-02, 03, 02b, 04 | FR-C-01 |
+| `MenuStep` | 同上 | Client | メニューのラジオグループと固定 CTA「空き時間を見て予約する」（選択まで `aria-disabled`） | S-C-02 | FR-C-01, 02 |
+| `SelectionSummary` | 同上 | Client（下書きを読む） | `menu`, `startsAt`, `price`（職業に応じて再計算）, `editMenuHref`, `editTimeHref`。お客様情報の上部に置くコンパクトな 2 行要約 | S-C-02b | FR-C-01, 04 |
+| `BookingForm` | 同上 | Client | `menus: MenuDTO[]`, `locale`。段階は `name → occupation → phone` で固定（OI-19 決定済み）。`history.state` と `?step=` を管理、`popstate` で段階復元 | S-C-02b | FR-C-01, AT-09 |
+| `NameStep` / `KanaField` / `OccupationStep` / `PhoneStep`（＋`NoteField`） | 同上 | Client | 各段階の値・エラー・`onComplete`。`KanaField` は `locale === 'ja'` のときのみ描画。`OccupationStep` はラジオ選択で `onComplete`。`NoteField` は `PhoneStep` 内の「＋ご要望を追加（任意）」で開く | S-C-02b | FR-C-03〜06 |
+| `StepSummary` | 同上 | Client | `label`, `value`, `onEdit` | S-C-02b | FR-C-01 |
 | `WeekStrip` | `features/availability/components` | Server（各日は `<Link>`。スクロール位置保持の小さな Client ラッパー） | `days: DayDTO[]`, `selectedDate`, `menuSlug`, `locale` | S-C-03 | FR-C-07 |
-| `DayCell` | 同上 | Server | `date`, `status: 'available'\|'full'\|'closed'`, `selected` | S-C-03 | FR-C-07 |
-| `SlotList` / `SlotButton` | 同上 | Client（選択で下書き更新して遷移） | `slots: string[]`（ISO+09:00）, `durationMin`, `locale` | S-C-03 | FR-C-07, 08 |
+| `DayCell` | 同上 | Server | `date`, `status: 'available'\|'full'\|'deadline'\|'closed'`, `closedReason?`, `isTomorrow`, `selected`。`available` のみ `<Link>`、それ以外は理由ラベル付きの非活性セル（フォーカス対象外） | S-C-03 | FR-C-07 |
+| `SlotList` / `SlotButton` / `SlotRow` | 同上 | Client（`SlotButton` の選択で下書き更新して遷移） | `slots: { startsAt, status }[]`（ISO+09:00）, `durationMin`, `locale`, `selectedStartsAt?`。**全候補時刻を行として描画**し、`available` は `SlotButton`（タップ → 150 ms の選択表示 → 次段へ）、`full`・`deadline` は `SlotRow`（× と理由ラベル。ボタン・リンクにせず `tabindex` なし）。`selectedStartsAt` があるとき（戻ってきたとき）だけ `StickyCta`「この日時で進む」 | S-C-03 | FR-C-07, 08 |
 | `SlotListSkeleton` | 同上 | Server | — | S-C-03 | NFR-AV-02 |
 | `SlotLegend` / `DeadlineNotice` / `PhoneFallback` | 同上 | Server | `leadTimeMin`, `phoneHref` | S-C-03, 06 | FR-C-07, 16 |
 | `CheckAnswers` | `features/booking/components` | Client（下書きを読む） | `rows: { key, label, value, editHref }[]` | S-C-04 | FR-C-09 |
@@ -73,7 +77,7 @@
 | `TurnstileWidget` | 同上 | Client | `siteKey`（props で受け取る）, `onToken`, `onExpire` | S-C-04 | FR-S-05 |
 | `Honeypot` | 同上 | Server | — | S-C-04 | FR-S-05 |
 | `ConfirmBookingForm` | 同上 | Client | `useActionState(createBooking)` | S-C-04 | FR-C-10 |
-| `DoneCard` | 同上 | Server（`CopyButton` のみ Client） | `booking: BookingByTokenDTO`, `cancelUrl`, `icsUrl`, `shop` | S-C-05 | FR-C-11 |
+| `DoneCard` | 同上 | Server（`CopyButton`・`ShareCopyButton` のみ Client） | `booking: BookingByTokenDTO`, `cancelUrl`, `icsUrl`, `shop`（店名・住所・地図 URL。OI-09 決定済み）。予約番号は `CopyButton`、キャンセルリンクは `ShareCopyButton`＋「カレンダーの予定からもキャンセルできます」 | S-C-05 | FR-C-11 |
 | `AddToCalendar` | 同上 | Server | `icsUrl`, `googleUrl?` | S-C-05 | FR-C-11 |
 | `CancelPanel` | 同上 | Client | `token`, `deadline`, `canCancel` | S-C-06 | FR-C-12 |
 | `PolicyArticle` / `TokushohoTable` | `app/(public)/[locale]/policy` 近傍 | Server | `locale` | S-C-08, 09 | FR-C-15 |
@@ -91,18 +95,19 @@
 | `Timeline` | 同上 | Server（描画）＋`NowLine`（Client） | `date`, `openMin`, `closeMin`, `items: (BookingCardDTO\|BlockCardDTO)[]`、15 分グリッド | S-A-02 | FR-A-02 |
 | `BookingCard` | 同上 | Server（`tel:` はリンク） | `id, start, end, name, nameKana, menuName, source, status, hasNote, phoneHref?, unacknowledged` | S-A-02, 07 | FR-A-02 |
 | `BlockCard` | `features/blocks/components` | Client（削除・Undo） | `id, start, end, kind, label` | S-A-02 | FR-A-06 |
-| `Fab` / `QuickActionSheet` | `features/admin-calendar/components` | Client | プリセット: `now30`, `now60`, `allDay`、「手動予約」「期間指定」。プリセットは `createTimeBlock` を直接呼び Undo トースト | S-A-02 | FR-A-05, 06 |
+| `Fab` / `QuickActionSheet` | `features/admin-calendar/components` | Client | プリセット: `now60`, `now120`, `untilClose`、「手動予約」「期間指定」。開いた時点で各プリセットの重なりを取得し行に表示（種別「休憩として」等も）。重なりのないプリセットは `createTimeBlock` を直接呼び、顧客サイトへの影響を添えた Undo トースト | S-A-02 | FR-A-05, 06 |
 | `WeekGrid` / `DayCell`（管理） | 同上 | Server | `days: { date, bookingCount, freeSlots, closed, hasBlocks }[]` | S-A-03 | FR-A-03 |
 | `BookingDetail` / `StatusActions` | 同上 | Server / Client | `booking: BookingDetailDTO`、許可遷移のみボタン表示（`domain/booking-status.ts`） | S-A-04 | FR-A-04 |
 | `ConfirmUrlPanel` | 同上 | Client | `bookingId`, `reissue()` | S-A-04, 05 | FR-A-05 |
 | `ManualBookingForm` | 同上 | Client | 下書きを `sessionStorage['bb.draft.manual']` に保存。`OverlapAlert` を内包 | S-A-05 | FR-A-05, 10 |
-| `OverlapAlert` | 同上（ブロックでも使用するため `components/ui` に昇格可） | Client | `overlaps: OverlapDTO[]`, `mode: 'blocking'\|'warning'` | S-A-05, 06 | FR-A-05, 06 |
+| `OverlapAlert` | 同上（ブロックでも使用するため `components/ui` に昇格可） | Client | `overlaps: OverlapDTO[]`, `mode: 'blocking'\|'warning'`。手動予約は `blocking`（「時間を変更」のみ、上書き保存なし。OI-11）、ブロックは `warning`（「それでもブロック」可） | S-A-05, 06 | FR-A-05, 06 |
 | `BlockForm` | `features/blocks/components` | Client | 下書き `sessionStorage['bb.draft.block']` | S-A-06 | FR-A-06 |
 | `InboxList` | `features/admin-calendar/components` | Server＋行の既読化は Client | `items: { id, kind: 'created'\|'cancelled', start, name, menuName, createdAt }[]` | S-A-07 | FR-A-11 |
 | `WeeklyHoursEditor` / `OverrideList` / `SlotRulesForm` | `features/settings/components` | Client | 曜日 7 行、オーバーライド一覧、枠ルール | S-A-08 | FR-A-07 |
 | `MenuList` / `MenuEditSheet` | 同上 | Client | 並べ替えは上下ボタン（ドラッグ不要、WCAG 2.5.7） | S-A-09 | FR-A-08 |
 | `PushOnboarding` / `PushStatusCard` / `TestPushPanel` / `ResubscribeBanner` | `features/notifications/components` | Client | `vapidPublicKey`（props）、状態機械（03_screen_specs.md 9.1） | S-A-02, 10 | FR-A-09 |
 | `DeviceList` / `LogoutOthersButton` | `features/auth/components` | Server / Client | `sessions`, `subscriptions` | S-A-10 | FR-A-16 |
+| `PasskeyLoginButton` / `OtpFallbackForm` | `features/auth/components` | Client | `next?`。`OtpFallbackForm` は「確認コードを送る」（`requestAdminOtp`）と 1 欄のコード入力（`inputmode="numeric"`、`autocomplete="one-time-code"`、6 桁で `verifyAdminOtp`）。マジックリンクの UI は持たない（OI-12） | S-A-01 | FR-A-01 |
 | `InstallGuide` / `StandaloneGate` | `features/notifications/components` | Client | `platform`（UA 推定）、`beforeinstallprompt` を保持 | S-A-01, 12 | FR-A-09, 15 |
 | `OfflineBanner`（Should） | `features/admin-calendar/components` | Client | `navigator.onLine`＋最終取得時刻 | S-A-02 | FR-A-17 |
 | `BackButton` | `components/ui` | Client | `fallbackHref='/admin'`。`history.length` が 1 なら fallback | S-A-04〜11 | FR-A-04 |
@@ -193,12 +198,12 @@
 | `nav` | ヘッダー・フッター、言語切替ラベル（「EN」/「日本語」）、電話 | `SiteHeader` | FR-C-13, 16 |
 | `home` | ヒーロー、受付時間、アクセス、対応言語・決済【要確認: OI-14】 | S-C-01 | FR-C-14 |
 | `menu` | メニュー見出し、学生価格・所要時間の表記 | S-C-01, 02 | FR-C-02 |
-| `booking.steps` | ステッパー（「1. メニューを選ぶ」…）、段階見出し、`aria-live` 文言 | S-C-02〜04 | FR-C-01 |
-| `booking.form` | ラベル・ヒント・プレースホルダ（ふりがなは ja のみ） | S-C-02 | FR-C-03〜06 |
-| `booking.errors` | Zod・サーバーエラー文（03_screen_specs.md 1.3、06_api.md 5 章） | S-C-02〜04 | AT-06 |
-| `availability` | 凡例、締切、満席・定休、空なし、電話案内、JST 注記 | S-C-03 | FR-C-07 |
+| `booking.steps` | ステッパー（「1. メニューを選ぶ → 2. 日時を選ぶ → 3. お客様情報 → 4. 確認」）、段階見出し、`aria-live` 文言、CTA「空き時間を見て予約する」 | S-C-02, 03, 02b, 04 | FR-C-01 |
+| `booking.form` | ラベル・ヒント・プレースホルダ（ふりがなは ja のみ）、要約の「変更」 | S-C-02b | FR-C-03〜06 |
+| `booking.errors` | Zod・サーバーエラー文（03_screen_specs.md 1.3、06_api.md 5 章） | S-C-02, 02b, 04 | AT-06 |
+| `availability` | 凡例「◎ 予約できます ／ × 予約できません」、理由ラベル（定休・満席・締切・休業）、「明日 / Tmrw」、締切、空なし、電話案内、JST 注記、「この日時で進む」 | S-C-03 | FR-C-07 |
 | `confirm` | 確認見出し、同意文、ポリシー要点、確定ボタン | S-C-04 | FR-C-09 |
-| `done` | 完了見出し、スクリーンショット案内、カード項目、カレンダー追加 | S-C-05 | FR-C-11 |
+| `done` | 完了見出し、スクリーンショット案内、カード項目（店名・住所）、カレンダー追加、「共有・コピー」、「カレンダーの予定からもキャンセルできます」 | S-C-05 | FR-C-11 |
 | `cancel` | キャンセル各状態の文言、ダイアログ | S-C-06 | FR-C-12 |
 | `ics` | ICS の `SUMMARY`・`DESCRIPTION` テンプレート | S-C-07 | FR-C-11 |
 | `policy` / `privacy` | 見出し・本文（本文は MDX にする場合は対象外） | S-C-08, 09 | FR-C-15 |

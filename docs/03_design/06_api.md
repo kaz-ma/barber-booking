@@ -5,8 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-06 |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
+| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。ログインのフォールバック `requestAdminOtp`・`verifyAdminOtp`（OI-12）、`getAvailability` が × の枠も理由付きで返す（FR-C-07）、`createTimeBlock` のプリセット変更（FR-A-06）、`createManualBooking` に重なり上書きがないことを明記（OI-11） |
 | 関連要件 | FR-C-07〜12, FR-A-01〜16, FR-S-02〜08, FR-S-10〜12, NFR-SC-02〜05, AT-03, AT-07, AT-08, AT-27 |
 | 関連 ADR | ADR-0004（公開 REST なし）、ADR-0006（認証）、ADR-0007（Push） |
 
@@ -77,21 +78,32 @@ export const Uuid = z.uuid()
 
 | 関数 | 引数 | 戻り値（DTO） | キャッシュ | 呼び出し元 | 関連 |
 |---|---|---|---|---|---|
-| `getActiveMenus(locale)` | `Locale` | `MenuDTO[]`（`slug, name, description, priceJpy, priceStudentJpy, durationMin`） | `"use cache"` `cacheTag('menus')` `cacheLife('days')` | S-C-01, 02, 04 | FR-C-02, FR-S-12 |
+| `getActiveMenus(locale)` | `Locale` | `MenuDTO[]`（`slug, name, description, priceJpy, priceStudentJpy, durationMin`） | `"use cache"` `cacheTag('menus')` `cacheLife('days')` | S-C-01, 02, 02b, 04 | FR-C-02, FR-S-12 |
 | `getBusinessCalendar()` | — | 曜日テンプレート＋今後 60 日のオーバーライド | `cacheTag('hours')` | S-C-01、JSON-LD | FR-C-14 |
 | `getPublicSettings()` | — | `{ leadTimeMin, cancelDeadlineMin, maxAdvanceDays }` | `cacheTag('settings')` | S-C-03, 09 | FR-C-07 |
-| `getAvailability({ menuSlug, from, to })` | `MenuSlug`, JST 暦日 ×2（最大 14 日） | `{ days: { date, status: 'available'\|'full'\|'closed'\|'out_of_range', slots: string[] }[], nextAvailableDate?: string }` | **なし**（Suspense 配下） | S-C-03 | FR-C-07, 08, FR-S-02 |
+| `getAvailability({ menuSlug, from, to })` | `MenuSlug`, JST 暦日 ×2（最大 14 日） | `{ days: { date, status: 'available'\|'full'\|'deadline'\|'closed'\|'out_of_range', closedReason?: 'regular'\|'override', slots: { startsAt: string, status: 'available'\|'full'\|'deadline' }[] }[], nextAvailableDate?: string }`。`slots` は営業時間内の候補時刻すべて（閉店をまたぐ時刻は含めない）で、`available` 以外は UI で × の非活性行（理由ラベル 満席 / 締切）になる | **なし**（Suspense 配下） | S-C-03 | FR-C-07, 08, FR-S-02 |
 | `getBookingByToken(token)` | `CancelToken` | `{ publicCode, menuName, start, end, priceJpy, isStudent, locale, canCancel, deadline } \| null` | なし（`connection()`） | S-C-05, 06, ICS | FR-C-11, 12 |
 
 ---
 
 ## 3. 管理（`/admin`）Server Actions
 
+### 3.0 ログインのフォールバック（認証前）
+
+OI-12 で「アプリ内で入力する 6 桁のワンタイムコード」に決定（ADR-0006 の改訂）。マジックリンク用のアクション・`magicLink()` プラグインは設けない。実装は Better Auth の `emailOTP()` プラグイン（`otpLength: 6`、`disableSignUp: true`）のサーバー API を薄く包む。この 2 つだけは `requireAdmin()` の前に呼べる。
+
+| 名前 | 入力（Zod の形） | 出力 | 副作用 | エラー | 関連 |
+|---|---|---|---|---|---|
+| `requestAdminOtp` | `{}`（宛先はサーバーの `ADMIN_EMAIL` に固定し、入力で受け取らない） | `ok`（送信の有無にかかわらず同じ応答。列挙対策） | 6 桁コードを生成しハッシュ化して `auth_verification` に保存（期限 仮 10 分）、Resend で管理者メールへ送信、`rate_limits`（`otp:ip:{hmac}` 3 回/10 分・仮）、`audit_log auth.otp_requested`。配信経路は【要確認: OI-21】（メールを使わない場合は事前発行のリカバリーコードに置き換え、このアクションは不要） | `rate_limited`、`error` | FR-A-01, AT-13 |
+| `verifyAdminOtp` | `{ code: string.regex(/^\d{6}$/), next?: string（同一オリジンの相対パスのみ） }` | `ok: { redirectTo }` | 照合（`timingSafeEqual`、失敗 5 回で失効・仮）→ セッション発行（`__Host-` Cookie、30 日ローリング）、`audit_log auth.otp_login` | `invalid`（不一致・期限切れ）、`rate_limited` | FR-A-01, AT-13 |
+
+### 3.1 管理アクション（要ログイン）
+
 すべて `requireAdmin()` を最初に実行し、未認証は `unauthorized` を返す（AT-27）。
 
 | 名前 | 入力（Zod の形） | 出力 | 副作用 | エラー | 関連 |
 |---|---|---|---|---|---|
-| `createManualBooking` | `{ customerId?: uuid, name: string(1..50), nameKana?: string(..50), phone?: PhoneE164, menuId: uuid, startsAt: StartsAt, source: 'phone'\|'walk_in'\|'instagram'\|'line'\|'manual', ownerNote?: string(..500), linkLocale: Locale }` | `ok: { bookingId, confirmUrl, warnings: ('outside_hours'\|'block_overlap')[] }` | `customers` 作成/紐付け（電話あり＝`phone_unverified=true`）、`bookings`（`acknowledged_at=now()`、トークン発行）、`audit_log` | `invalid`、`conflict: overlap`（23P01、重なり詳細付き） | FR-A-05, US-04 |
+| `createManualBooking` | `{ customerId?: uuid, name: string(1..50), nameKana?: string(..50), phone?: PhoneE164, menuId: uuid, startsAt: StartsAt, source: 'phone'\|'walk_in'\|'instagram'\|'line'\|'manual', ownerNote?: string(..500), linkLocale: Locale }` | `ok: { bookingId, confirmUrl, warnings: ('outside_hours'\|'block_overlap')[] }` | `customers` 作成/紐付け（電話あり＝`phone_unverified=true`）、`bookings`（`acknowledged_at=now()`、トークン発行）、`audit_log` | `invalid`、`conflict: overlap`（23P01、重なり詳細付き）。重なりを上書きして保存する入力（`force` 等）は持たない（OI-11 決定済み） | FR-A-05, US-04 |
 | `updateBookingStatus` | `{ bookingId: uuid, to: BookingStatus, lateMinutes?: int(0..180), reason?: string(..200) }` | `ok: { undoToken?: string, expiresAt? }` | 遷移表（05 章 1.1）に従う。カウンタ増減、`audit_log` | `invalid`（不正な遷移）、`not_found` | FR-A-04 |
 | `undoBookingChange` | `{ undoToken: string }` | `ok` | 直前状態とカウンタを復元、`audit_log booking.undo` | `invalid`（期限切れ）、`conflict: undo_blocked`（23P01） | FR-A-04 |
 | `deleteBooking` | `{ bookingId: uuid }` | `ok: { undoToken }` | `status = cancelled_by_owner`、`deleted_at = now()`、`cancel_reason = 'deleted'` | `not_found` | FR-A-04 |
@@ -99,7 +111,7 @@ export const Uuid = z.uuid()
 | `reissueConfirmationUrl` | `{ bookingId: uuid, linkLocale: Locale }` | `ok: { confirmUrl }` | 新トークン発行（旧リンク無効）、`audit_log booking.reissue_token` | `not_found`、`invalid`（有効状態でない） | FR-A-05 |
 | `acknowledgeBooking` | `{ bookingId: uuid }` | `ok: { unacknowledged: number }` | `acknowledged_at = now()`（冪等） | `not_found` | FR-A-11 |
 | `acknowledgeAll` | `{}` | `ok: { unacknowledged: 0 }` | 未確認をすべて確認済み | — | FR-A-11 |
-| `createTimeBlock` | `{ preset?: 'now30'\|'now60'\|'allDay', date?: iso.date, start?: StartsAt, end?: StartsAt, kind: 'break'\|'private'\|'closed', label?: string(..50), force?: boolean }`（preset か start/end のどちらか必須、`end > start`、最大 60 日） | `ok: { blockId, start, end }` | `time_blocks` INSERT（lock 下）、`audit_log` | `invalid`、`conflict: overlap`（有効予約あり かつ `force` なし） | FR-A-06, AT-21 |
+| `createTimeBlock` | `{ preset?: 'now60'\|'now120'\|'untilClose', date?: iso.date, start?: StartsAt, end?: StartsAt, kind: 'break'\|'private'\|'closed', label?: string(..50), force?: boolean }`（preset か start/end のどちらか必須、`end > start`、最大 60 日） | `ok: { blockId, start, end, publicImpactUntil: string \| null }`（顧客サイトで受付を止めた終端。リードタイム内で影響がなければ `null`。トーストの 1 行に使う） | `time_blocks` INSERT（lock 下）、`audit_log`。`now60`/`now120` は種別 `break`、`untilClose` は当日の閉店時刻までで種別 `closed` | `invalid`、`conflict: overlap`（有効予約あり かつ `force` なし） | FR-A-06, AT-21 |
 | `deleteTimeBlock` | `{ blockId: uuid }` | `ok` | `deleted_at = now()`、`audit_log` | `not_found` | FR-A-06 |
 | `restoreTimeBlock` | `{ blockId: uuid }` | `ok` | `deleted_at = NULL`（削除後 10 秒以内のみ） | `invalid`（期限切れ） | FR-A-06 |
 | `updateBusinessHours` | `{ days: { weekday: 0..6, isClosed: boolean, openMin?: 0..1440, closeMin?: 0..1440 }[7] }` | `ok` | `business_hours` 7 行 upsert、`updateTag('hours')`、`audit_log` | `invalid`（`open < close`） | FR-A-07, AT-22 |
@@ -119,7 +131,7 @@ export const Uuid = z.uuid()
 | `updateCustomerRestriction`（Should） | `{ customerId: uuid, restriction: 'none'\|'phone_only'\|'blocked' }` | `ok` | `customers.booking_restriction`、`audit_log` | `not_found` | FR-A-13 |
 | `mergeCustomers`（Should） | `{ sourceId: uuid, targetId: uuid }` | `ok` | `bookings.customer_id`・`consents.customer_id` を付け替え、カウンタ合算、`source.merged_into_customer_id = target`、`audit_log` | `invalid`（同一 ID） | FR-A-13 |
 
-ログイン・ログアウトは Better Auth のクライアント（`authClient.signIn.passkey()`、`signOut()`）経由で `/api/auth/*` を使う（Server Action ではない）。
+パスキーのログインとログアウトは Better Auth のクライアント（`authClient.signIn.passkey()`、`signOut()`）経由で `/api/auth/*` を使う（Server Action ではない）。フォールバックのコードログインは 3.0 の Server Action を使う。
 
 ---
 

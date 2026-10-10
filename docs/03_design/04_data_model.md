@@ -5,8 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-04 |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
+| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
 | 関連要件 | 10 章（10.1〜10.3）、FR-S-01, FR-S-02, FR-S-06, FR-S-07, FR-S-09, FR-C-08, FR-C-10, FR-C-11, FR-A-04〜08, FR-A-11〜14, NFR-PF-05, NFR-MG-02, NFR-SC-05, NFR-SC-07, NFR-EN-07 |
 | 関連 ADR | ADR-0002（Neon）、ADR-0003（EXCLUDE を生 SQL で）、ADR-0006（Better Auth テーブル）、ADR-0008（顧客スナップショットを持たない） |
 
@@ -403,7 +404,7 @@ CREATE INDEX time_blocks_during_gist ON time_blocks USING gist (resource_id, dur
 --   auth_user(id, name, email UNIQUE, email_verified, image, created_at, updated_at)
 --   auth_session(id, user_id FK, token UNIQUE, expires_at, ip_address, user_agent, created_at, updated_at)
 --   auth_account(id, user_id FK, account_id, provider_id, …)
---   auth_verification(id, identifier, value, expires_at, …)       -- マジックリンク採用時（OI-12）
+--   auth_verification(id, identifier, value, expires_at, …)       -- ログインのワンタイムコード（emailOTP、OI-12 決定済み。v0.1 のマジックリンク案は不採用）
 --   auth_passkey(id, user_id FK, name, public_key, credential_id, counter, device_type, backed_up, transports, created_at)
 
 CREATE TABLE push_subscriptions (
@@ -516,7 +517,7 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 | `settings` | `slot_step_min=30, lead_time_min=60, max_advance_days=60, cancel_deadline_min=120, allow_same_day=true, digest_hour_jst=21` | 【要確認: OI-05, OI-06】 |
 | `business_hours` | 0（日）・2〜6（火〜土）: `open_min=1080, close_min=1440`。1（月）: `is_closed=true` | 【要確認: OI-02, OI-03】 |
 | `menus` | 下表 9 件。**価格は第 2 回打ち合わせで確定するまで `price_jpy=0`・`is_active=false`**（推測値を入れない） | 【要確認: OI-01, OI-07】 |
-| `auth_user` | `ADMIN_EMAIL` で 1 名。パスキーは初回ログイン時に登録 | 【要確認: OI-12】 |
+| `auth_user` | `ADMIN_EMAIL` で 1 名。初回はワンタイムコードでログインし、パスキーを登録 | コードの配信経路【要確認: OI-21】 |
 
 | sort | slug | name_ja | name_en（仮） | duration_min | buffer_after_min |
 |---|---|---|---|---|---|
@@ -534,7 +535,7 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 
 ## 6. 空き計算 SQL（FR-S-02）
 
-1 回のクエリで「期間内の各日の状態」と「空き開始時刻の配列」を返す。JST で候補を生成 → `tstzrange` に変換 → 有効予約と未削除ブロックを `&&` で除外。
+1 回のクエリで「期間内の各日の状態」と「候補開始時刻とその状態（`available` / `full` / `deadline`）の配列」を返す。JST で候補を生成 → `tstzrange` に変換 → リードタイム内を `deadline`、有効予約・未削除ブロックと `&&` で重なるものを `full` に分類する（v0.2: FR-C-07 の「× の行も表示し操作不可」に合わせ、埋まった候補も返す。閉店をまたぐ時刻は候補にしない）。
 
 ```sql
 -- getAvailability: $1 menu_slug text, $2 from_date date (JST), $3 to_date date (JST), $4 now timestamptz
@@ -552,6 +553,7 @@ WITH s AS (
 ), hours AS (
   SELECT days.d,
          COALESCE(o.is_closed, h.is_closed) AS is_closed,
+         COALESCE(o.is_closed, false)       AS override_closed,
          COALESCE(o.open_min,  h.open_min)  AS open_min,
          COALESCE(o.close_min, h.close_min) AS close_min
   FROM days
@@ -570,30 +572,38 @@ WITH s AS (
 ), slots AS (
   SELECT c.d, c.start_at,
          tstzrange(c.start_at,
-                   c.start_at + make_interval(mins => p.duration_min + p.buffer_after_min), '[)') AS r
+                   c.start_at + make_interval(mins => p.duration_min + p.buffer_after_min), '[)') AS r,
+         c.start_at < p.not_before AS in_lead_time               -- リードタイム内（× 締切）
   FROM cand c CROSS JOIN p
-  WHERE c.start_at >= p.not_before                            -- リードタイム
-), free AS (
-  SELECT sl.d, sl.start_at
+), classified AS (
+  SELECT sl.d, sl.start_at,
+         CASE WHEN sl.in_lead_time THEN 'deadline'
+              WHEN EXISTS (SELECT 1 FROM bookings b
+                           WHERE b.resource_id = 1
+                             AND b.status IN ('confirmed', 'arrived', 'in_progress')
+                             AND b.during && sl.r)
+                OR EXISTS (SELECT 1 FROM time_blocks t
+                           WHERE t.resource_id = 1 AND t.deleted_at IS NULL
+                             AND t.during && sl.r)
+              THEN 'full'
+              ELSE 'available' END AS slot_status
   FROM slots sl
-  WHERE NOT EXISTS (SELECT 1 FROM bookings b
-                    WHERE b.resource_id = 1
-                      AND b.status IN ('confirmed', 'arrived', 'in_progress')
-                      AND b.during && sl.r)
-    AND NOT EXISTS (SELECT 1 FROM time_blocks t
-                    WHERE t.resource_id = 1 AND t.deleted_at IS NULL
-                      AND t.during && sl.r)
 )
 SELECT hr.d AS date,
-       CASE WHEN hr.d > (SELECT last_date FROM p) THEN 'out_of_range'
-            WHEN hr.is_closed                    THEN 'closed'
-            WHEN count(f.start_at) = 0           THEN 'full'
-            ELSE 'available' END                 AS day_status,
-       COALESCE(array_agg(f.start_at ORDER BY f.start_at) FILTER (WHERE f.start_at IS NOT NULL),
-                '{}'::timestamptz[])             AS slots
+       CASE WHEN hr.d > (SELECT last_date FROM p)                         THEN 'out_of_range'
+            WHEN hr.is_closed                                             THEN 'closed'
+            WHEN count(*) FILTER (WHERE c.slot_status = 'available') > 0 THEN 'available'
+            WHEN count(*) FILTER (WHERE c.slot_status = 'full') > 0      THEN 'full'
+            WHEN count(c.start_at) > 0                                    THEN 'deadline'
+            ELSE 'full' END                                               AS day_status,
+       CASE WHEN hr.override_closed THEN 'override'
+            WHEN hr.is_closed       THEN 'regular' END                    AS closed_reason,
+       COALESCE(json_agg(json_build_object('startsAt', c.start_at, 'status', c.slot_status)
+                         ORDER BY c.start_at) FILTER (WHERE c.start_at IS NOT NULL),
+                '[]'::json)                                               AS slots
 FROM hours hr
-LEFT JOIN free f ON f.d = hr.d
-GROUP BY hr.d, hr.is_closed
+LEFT JOIN classified c ON c.d = hr.d
+GROUP BY hr.d, hr.is_closed, hr.override_closed
 ORDER BY hr.d;
 ```
 
@@ -602,15 +612,15 @@ ORDER BY hr.d;
 | 60 分・18:00〜24:00・30 分刻み | 18:00 … 23:00 の 11 枠。23:30 は出ない | FR-C-08, AT-04 |
 | 90 分メニュー | 最終開始 22:30 | FR-A-08 |
 | 月曜 | `closed` | FR-C-08 |
-| `now` = 19:01 JST、リードタイム 60 分 | `not_before` = 20:01 のため 20:30 開始以降のみ（「現在時刻 + 59 分の枠が表示されない」を満たす） | FR-C-08 |
+| `now` = 19:01 JST、リードタイム 60 分 | `not_before` = 20:01 のため 20:00 開始以前は `deadline`、20:30 開始以降のみ `available`（「現在時刻 + 59 分の枠が予約可能として表示されない」を満たす） | FR-C-08 |
 | 61 日後 | `out_of_range` | FR-C-08 |
-| 19:00–20:00 の有効予約 | 18:30・19:00・19:30 開始が消える（18:00 は 19:00 終了で `[)` のため残る） | FR-S-01 |
+| 19:00–20:00 の有効予約 | 18:30・19:00・19:30 開始が `full`（18:00 は 19:00 終了で `[)` のため `available` のまま） | FR-S-01 |
 | キャンセル済み予約 | 枠に影響しない | 6.3 |
 | 臨時休業オーバーライド | `closed` | FR-A-07 |
 | 時間ブロック（`deleted_at` あり） | 影響しない | FR-A-06 |
 | JST 0:00 前後（UTC 15:00） | 日付の帰属が JST 暦日 | NFR-EN-07 |
 
-同じ規則を `src/domain/availability.ts`（純粋関数）にも実装し、契約テストで SQL の結果と突き合わせる（テストのオラクル兼、管理画面の重なり表示に使う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に含まれることを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。
+同じ規則を `src/domain/availability.ts`（純粋関数）にも実装し、契約テストで SQL の結果と突き合わせる（テストのオラクル兼、管理画面の重なり表示に使う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に `status = 'available'` で含まれることを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。
 
 ---
 
@@ -699,4 +709,4 @@ export const bookings = pgTable('bookings', {
 | Phase 2 チャット | `chat_threads(id, customer_id, channel, external_thread_id, access_token_hash, last_message_at)`、`chat_messages(id bigint, thread_id, sender, body, read_at, created_at)` | `customers.line_user_id`・`instagram_user_id`（UNIQUE, NULL） |
 | Phase 2 顧客通知 | `notification_log.channel` に `line` / `email` を追加、`template` に `reminder` | `notification_log` の構造 |
 | Phase 3 カルテ | `karte_records(id, customer_id, booking_id, visited_at, menu_id, body jsonb, created_at)`、`karte_photos(id, karte_id, object_key, consent_id)`。要配慮情報は別テーブル・別同意 | `consents.kind` に `health_notes`/`photo_karte`/`photo_sns` |
-| 意図的重複（OI-11 で許容となった場合） | `bookings.overlap_allowed boolean` を追加し、EXCLUDE を `WHERE (status IN (…) AND NOT overlap_allowed)` で張り直す | 制約は 0002 の 1 文で再作成可能 |
+| 意図的重複（OI-11 は「Phase 1 は許容しない」に決定済み。クライアントが掛け持ちを求めた場合のみ） | `bookings.overlap_allowed boolean` を追加し、EXCLUDE を `WHERE (status IN (…) AND NOT overlap_allowed)` で張り直す | 制約は 0002 の 1 文で再作成可能 |

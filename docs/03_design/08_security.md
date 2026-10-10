@@ -5,8 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-08 |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
+| 変更履歴 | v0.2（2026-10-10）: ログインのフォールバックをアプリ内ワンタイムコード（`emailOTP()`）に確定（OI-12 決定済み、ADR-0006 改訂） |
 | 関連要件 | NFR-SC-01〜10, FR-A-01, FR-A-16, FR-C-10, FR-C-12, FR-S-04〜08, FR-S-11, NFR-AV-04, NFR-OP-01, NFR-OP-04, 10.3, 12 章, AT-07, AT-08, AT-19, AT-26〜28 |
 | 関連 ADR | ADR-0001, ADR-0004, ADR-0006, ADR-0007 |
 
@@ -114,7 +115,7 @@ export async function createTimeBlock(input: unknown): Promise<ActionResult<Bloc
 
 | 項目 | 設定 | 関連 |
 |---|---|---|
-| 構成 | Better Auth 1.7（Drizzle アダプタ、`modelName` を `auth_*` に変更）＋`passkey()` プラグイン。フォールバックは `magicLink()`（Resend）またはリカバリーコード【要確認: OI-12】 | FR-A-01, ADR-0006 |
+| 構成 | Better Auth 1.7（Drizzle アダプタ、`modelName` を `auth_*` に変更）＋`passkey()` プラグイン。フォールバックは `emailOTP()`（6 桁、アプリ内で入力。OI-12 決定済み）。`magicLink()` は使わない（メールのリンクが Safari で開き PWA にセッションが入らないため）。コードの配信経路は Resend（管理者メール宛）を既定とし、メールを使わない場合はリカバリーコード【要確認: OI-21】。コードはハッシュ保存・期限 仮 10 分・失敗 5 回で失効、送信は `otp:ip:{hmac}` で制限 | FR-A-01, ADR-0006 |
 | サインアップ | 無効（`emailAndPassword.enabled: false`、`disableSignUp`）。初回管理者は `scripts/seed.ts` で `ADMIN_EMAIL` から作成し、初回ログイン（フォールバック経由）でパスキーを登録 | FR-A-01 |
 | パスキー | `rpID` = `new URL(SITE_URL).hostname`、`rpName` = 管理アプリ名、`origin` = `SITE_URL`。iCloud キーチェーン同期を前提に 2 本目（予備端末）の登録を推奨 | FR-A-01 |
 | セッション | `expiresIn: 30 日`、`updateAge: 1 日`（利用のたびに延長＝30 日ローリング）。`auth_session` に UA・IP を保持し端末一覧に使う | NFR-SC-01 |

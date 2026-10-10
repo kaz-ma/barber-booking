@@ -5,8 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | ID | DES-ADR |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
+| 変更履歴 | v0.2（2026-10-10）: ADR-0006 の改訂（フォールバック確定）を反映。OI-11・OI-12・OI-19 の決定に伴い「今後 ADR 化する候補」を更新 |
 | 関連要件 | PRE-07（統合レポートの判断表を既定とし、変更は ADR に記録する）、CON-08 |
 
 ## 書式
@@ -24,7 +25,7 @@ MADR を簡略化した次の見出しで、1 決定 1 ファイル（`NNNN-keba
 | [ADR-0003](0003-exclusion-constraint-via-raw-sql-migration.md) | 排他制約は Drizzle の手書き SQL マイグレーションで定義 | Accepted | FR-S-01, CON-06 |
 | [ADR-0004](0004-server-actions-for-booking.md) | 書き込みは Server Actions、公開 REST API は作らない | Accepted | FR-C-10, NFR-SC-02 |
 | [ADR-0005](0005-i18n-always-prefixed-asia-tokyo.md) | next-intl 常時接頭辞（/ja・/en）、Asia/Tokyo 固定 | Accepted | FR-C-13, NFR-EN-07 |
-| [ADR-0006](0006-auth-better-auth-passkey-single-admin.md) | Better Auth＋パスキー、永続 Cookie 30 日ローリング | Accepted（フォールバックは OI-12） | FR-A-01, NFR-SC-01 |
+| [ADR-0006](0006-auth-better-auth-passkey-single-admin.md) | Better Auth＋パスキー、永続 Cookie 30 日ローリング、フォールバックはアプリ内ワンタイムコード | Accepted（2026-10-10 改訂: OI-12 決定済み） | FR-A-01, NFR-SC-01 |
 | [ADR-0007](0007-web-push-best-effort-declarative-payload.md) | Web Push は best-effort＋ポーリング＋日次サマリー、Declarative 形式 | Accepted | FR-A-09〜12, FR-S-03 |
 | [ADR-0008](0008-no-customer-snapshot-in-bookings.md) | 予約行に顧客スナップショットを持たない | Proposed | 10.1, 10.3 |
 
@@ -32,9 +33,7 @@ MADR を簡略化した次の見出しで、1 決定 1 ファイル（`NNNN-keba
 
 | 候補 | 契機 |
 |---|---|
-| 予約ステップ順序の変更（日時先行） | OI-19 の決定 |
-| 手動予約の意図的重複の許容（`overlap_allowed`） | OI-11 の決定 |
-| 管理者ログインのフォールバック方式 | OI-12 の決定 |
+| 手動予約の意図的重複の許容（`overlap_allowed`） | OI-11 は「Phase 1 は許容しない」に決定済み（2026-10-10）。クライアントが掛け持ちの運用を求めた場合に起票 |
 | ホスティング移行（Pro または Cloudflare） | Hobby の警告・停止、同梱量 80% 到達、有償化（ADR-0001 を Superseded に） |
 | オフライン表示のための Serwist 導入 | FR-A-17（Should）の実装判断 |
 | Phase 2 の通知チャネル（LINE／メール） | Phase 2 合意 |

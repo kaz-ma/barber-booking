@@ -5,9 +5,10 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-01 |
-| 版 | v0.1 |
+| 版 | v0.2 |
 | 日付 | 2026-10-10 |
-| 関連要件 | FR-C-01, FR-C-07, FR-C-11〜16, FR-A-01, FR-A-15, FR-S-10, FR-S-14, NFR-EN-05, NFR-EN-07, NFR-MG-01, S-C-01〜10, S-A-01〜12 |
+| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
+| 関連要件 | FR-C-01, FR-C-07, FR-C-11〜16, FR-A-01, FR-A-15, FR-S-10, FR-S-14, NFR-EN-05, NFR-EN-07, NFR-MG-01, S-C-01〜10, S-C-02b, S-A-01〜12 |
 | 関連 ADR | ADR-0001（ドメイン移行）、ADR-0005（i18n） |
 
 ---
@@ -20,9 +21,10 @@ flowchart TD
   ROOT -->|"307"| EN["/en"]
 
   subgraph PUB["顧客サイト /ja と /en は同一構造"]
-    JA --> BOOK["/ja/book<br/>S-C-02 メニューとお客様情報"]
-    BOOK --> TIME["/ja/book/time<br/>S-C-03 日時"]
-    TIME --> CONF["/ja/book/confirm<br/>S-C-04 確認"]
+    JA --> BOOK["/ja/book<br/>S-C-02 メニュー（1）"]
+    BOOK --> TIME["/ja/book/time<br/>S-C-03 日時（2）"]
+    TIME --> INFO["/ja/book/info<br/>S-C-02b お客様情報（3）"]
+    INFO --> CONF["/ja/book/confirm<br/>S-C-04 確認（4）"]
     CONF --> DONE["/ja/book/done/token<br/>S-C-05 完了"]
     DONE --> CANCEL["/ja/cancel/token<br/>S-C-06 キャンセル"]
     DONE --> ICS["/api/ics/token<br/>S-C-07 ICS"]
@@ -75,9 +77,10 @@ flowchart TD
 |---|---|---|---|---|---|---|---|
 | `/` | — | 公開 | — | GET | — | ロケール検出して `/ja` または `/en` へ 307 | FR-C-13 |
 | `/{locale}` | S-C-01 | 公開 | index | GET | — | `generateStaticParams` で ja/en を静的生成 | FR-C-14 |
-| `/{locale}/book` | S-C-02 | 公開 | index | GET | `?step=menu\|name\|occupation\|phone\|note`（段階計測用、任意）、`?menu={slug}`（トップからのディープリンク） | 段階は `history.state` が正。クエリは計測と再読込時の復元補助 | FR-C-01〜06, FR-S-14 |
-| `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&date=YYYY-MM-DD` | 日付は JST 暦日。未指定は「今日以降で最初に空きがある日」 | FR-C-07, 08 |
-| `/{locale}/book/confirm` | S-C-04 | 公開 | noindex | GET（確定は Server Action POST） | — | 下書きが無ければ `/book` へ戻す | FR-C-09, 10 |
+| `/{locale}/book` | S-C-02 | 公開 | index | GET | `?menu={slug}`（トップ・Instagram からのディープリンク。選択済みで開始） | ステップ 1（メニュー）。CTA「空き時間を見て予約する」で `/book/time` へ | FR-C-01, 02, FR-S-14 |
+| `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&date=YYYY-MM-DD` | ステップ 2。日付は JST 暦日。未指定は「今日以降で最初に空きがある日」。メニュー未選択なら `/book` へ戻す | FR-C-07, 08 |
+| `/{locale}/book/info` | S-C-02b | 公開 | noindex | GET | `?step=name\|occupation\|phone`（段階計測用、任意） | ステップ 3。段階は `history.state` が正。クエリは計測と再読込時の復元補助。メニュー・日時が下書きに無ければ `/book` または `/book/time` へ戻す | FR-C-01, 03〜06, FR-S-14 |
+| `/{locale}/book/confirm` | S-C-04 | 公開 | noindex | GET（確定は Server Action POST） | — | ステップ 4。下書きが無ければ `/book` へ、日時・お客様情報が欠けていれば該当ステップへ戻す | FR-C-09, 10 |
 | `/{locale}/book/done/{token}` | S-C-05 | トークン保持者 | noindex | GET | — | トークンは 43 文字 base64url | FR-C-11 |
 | `/{locale}/cancel/{token}` | S-C-06 | トークン保持者 | noindex | GET（副作用なし）／キャンセルは Server Action POST | — | IP 10 回/分（proxy.ts＋WAF） | FR-C-12, FR-S-04 |
 | `/api/ics/{token}` | S-C-07 | トークン保持者 | noindex | GET | — | `text/calendar`。キャンセル URL と同じレート制限 | FR-C-11 |
@@ -111,8 +114,8 @@ flowchart TD
 | U-06 | トークンを含むページは `Referrer-Policy: no-referrer`、`X-Robots-Tag: noindex, nofollow`、Web Analytics の `beforeSend` でパスを `/[locale]/book/done/[token]` に置換 | — | トークン漏えい防止（08_security.md） |
 | U-07 | 管理画面は `/admin` 配下に集約し、ロケール接頭辞を付けない（日本語固定） | `/admin/week` | PWA の `scope` を顧客サイトと分離 |
 | U-08 | ドメインをコード・DB に書かない。絶対 URL は `absoluteUrl(path)`（`SITE_URL` 基準） | `absoluteUrl('/ja/cancel/' + token)` | FR-S-10。ドメイン移行時にコード変更不要 |
-| U-09 | 予約フローの段階は URL を分けて計測可能にする（S-C-02 内の段階は `?step=` を `pushState`） | `/ja/book?step=phone` | FR-S-14 ファネル計測 |
-| U-10 | 予約順序（OI-19）が「日時 → お客様情報」に変わっても URL を変えない。`/book` はメニュー＋（順序に応じた）入力、`/book/time` は日時のまま、遷移順だけを設定で入れ替える | — | 【要確認: OI-19】 |
+| U-09 | 予約フローの段階は URL を分けて計測可能にする（S-C-02b 内の段階は `?step=` を `pushState`） | `/ja/book/info?step=phone` | FR-S-14 ファネル計測 |
+| U-10 | 予約順序は「メニュー（`/book`）→ 日時（`/book/time`）→ お客様情報（`/book/info`）→ 確認（`/book/confirm`）」の 4 URL に 1 ステップずつ対応させる（OI-19 決定済み、2026-10-10）。v0.1 の「順序を設定で入れ替える」案は廃止 | `/en/book/info` | ステップ別のファネル計測、ブラウザの戻るとの対応 |
 
 ---
 
@@ -195,7 +198,7 @@ flowchart TD
 | 料金 | 5,000 円（税込） ※数値は menus の値 | ¥5,000 (tax incl.) | FR-C-02 |
 | ふりがな欄 | 表示・必須 | 描画しない【要確認: OI-13】 | FR-C-03 |
 | 電話例 | 09012345678 | 090 1234 5678 or +44 7700 900123 | FR-C-05 |
-| タイムゾーン注記 | 不要 | 「All times are Japan Standard Time (JST)」を S-C-03〜05 に表示 | NFR-EN-07 |
+| タイムゾーン注記 | 不要 | 「All times are Japan Standard Time (JST)」を S-C-03〜05 と S-C-02b（日時の要約）に表示 | NFR-EN-07 |
 
 ---
 
@@ -216,8 +219,8 @@ flowchart TD
 | プロパティ | 値の出所 | 備考 |
 |---|---|---|
 | `@type` | `HairSalon` | schema.org に BarberShop 型はないため HairSalon を使う |
-| `name` / `alternateName` | `config/shop.ts` | 【要確認: OI-08, OI-09】 |
-| `address`（`PostalAddress`） | `config/shop.ts` | 掲載可否【要確認: OI-09】。不可なら `address` を出力しない |
+| `name` / `alternateName` | `config/shop.ts` | 店名 Neuer Barber（OI-09 決定済み）。英語表記・スタイリスト名は【要確認: OI-08】 |
+| `address`（`PostalAddress`） | `config/shop.ts` | 大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）を出力する（OI-09 決定済み）。完了画面・ICS `LOCATION` と同じ値 |
 | `telephone` | `config/shop.ts` | 【要確認: OI-10】 |
 | `openingHoursSpecification` | `business_hours`（cache） | 定休日は出力しない |
 | `availableLanguage` | `["ja", "en"]` | — |
@@ -239,7 +242,7 @@ export default function robots(): MetadataRoute.Robots {
 | 対象 | robots.txt | `X-Robots-Tag` | `<meta name="robots">` | sitemap.xml |
 |---|---|---|---|---|
 | `/{locale}`、`/book`、`/privacy`、`/policy` | allow | なし | index | 掲載（hreflang 付き） |
-| `/{locale}/book/time`・`/confirm` | allow | `noindex` | noindex | 非掲載 |
+| `/{locale}/book/time`・`/info`・`/confirm` | allow | `noindex` | noindex | 非掲載 |
 | `/{locale}/book/done/*`・`/cancel/*`・`/api/ics/*` | allow（未知の URL のためクロールされない前提） | `noindex, nofollow` | noindex | 非掲載 |
 | `/admin/**` | disallow | `noindex, nofollow` | noindex | 非掲載 |
 | staging / preview | Vercel Authentication で非公開 | `noindex`（`VERCEL_ENV !== 'production'` で全ページ付与） | — | 非公開 |
