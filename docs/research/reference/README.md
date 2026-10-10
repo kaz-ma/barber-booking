@@ -72,3 +72,22 @@
 - メニュー選択後は別ページ（日時選択）に遷移
 - 下部固定タブ: 「予約」「ログイン」
 - 担当者選択以降はCloudflareのbot対策で取得不可。構造はスクリプトから推定
+
+## 追加取得（ギャップ検証）
+
+2026-10-10 19:10〜19:45 JST に Playwright（iPhone UA 390×844 @2x、RESERVA は Chrome UA）で取得し、幅780px・JPEG品質80に縮小。根拠と読み取り結果は `docs/research/research_notes/美容師予約サイト制作ナレッジ/09_gap_competitors_design.md`。
+
+| ファイル | 内容 |
+| --- | --- |
+| `hpb_salon_top_mobile.jpg` | HPB サロンページ（barber shop 刈部倶楽舞 天王寺店 slnH000670004）ファーストビュー。「空席確認・予約する」ボタン |
+| `hpb_step1_coupon_mobile.jpg` | HPB 予約 Step1「クーポン・メニューを選ぶ」。ステップ表示、セグメントタブ、クーポンカード（価格のみ・所要時間なし） |
+| `hpb_step2_top_mobile.jpg` | HPB 予約 Step2「日時を指定する」上部。選択済クーポン（施術時間合計・指名料）、スタイリスト指名チップ |
+| `hpb_step2_calendar_mobile.jpg` | HPB 週グリッド（横=日付7列、縦=30分刻み、◎/×、午後・夜ジャンプ） |
+| `hpb_step2_legend_mobile.jpg` | HPB グリッド下部の凡例「◎：予約できます。／TEL：直前のため…／◎TEL：ご指定のクーポンでは予約できません。」と「電話番号を表示」 |
+| `hpb_step2_full_tel_cuffia.jpg` | HPB CUFFIA MEN'S FADE CAMPO 天王寺（H000749506）全画面。19:19 JST 時点で当日 19:00 枠が「TEL」、営業時間外が「－」 |
+| `hpb_step2_full_tel_sunflat.jpg` | HPB BARBER SHOP Sun FLat（H000189906）全画面。平日限定クーポンで日曜列が灰色◎、祝日列が縦書き「休」 |
+| `hpb_step3_login_mobile.jpg` | HPB で◎をタップした直後に遷移する Recruit ID ログイン画面（未ログインでは先に進めない） |
+| `reserva_glock_mobile_desktopua_step0.jpg` | RESERVA glockhairservice 初期画面（Chrome UA、390px）。担当者セレクトの日英併記。担当者選択後の Ajax は Cloudflare 403 |
+| `reserva_biz_price_desktop.jpg` | RESERVA 公式料金ページ（biz.reserva.be/price/）全画面 |
+| `reserva_sample_plantation_mobile.jpg` | RESERVA 公式サンプル予約ページ（イベント型）のメニュー一覧。価格・所要時間併記 |
+| `reserva_sample_plantation_step1_mobile.jpg` | 同サンプルの予約ページ。「予約締切：6時間前まで」、人数選択、無効状態の「次へ」 |
