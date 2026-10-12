@@ -5,8 +5,8 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { requestAdminOtpAction, verifyAdminOtpAction } from '../actions'
 import { S } from '../strings'
-import { Icon } from './icon'
 import { hardNavigate } from './client-hooks'
+import { Icon } from './icon'
 
 /*
  * S-A-01 login (FR-A-01, ADR-0006, DES-03 §9.4). Primary: passkey (Face ID). Fallback: a
@@ -23,7 +23,7 @@ export function LoginPanel({ next }: { next: string }) {
   const [error, setError] = useState<string | null>(null)
   const [code, setCode] = useState('')
   const [sentAt, setSentAt] = useState<number | null>(null)
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(0)
   const [redirectTo, setRedirectTo] = useState(next)
   const [pending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)

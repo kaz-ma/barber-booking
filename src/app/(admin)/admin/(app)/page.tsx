@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { connection } from 'next/server'
 import { Suspense } from 'react'
 import { formatDateJa } from '@/domain/jst-format'
 import { addDays, isDateString, jstDate } from '@/domain/time'
@@ -30,6 +31,8 @@ function freeLabel(min: number): { value: number; unit: string } {
 }
 
 async function Today({ searchParams }: Pick<PageProps<'/admin'>, 'searchParams'>) {
+  // Request-time first: "today" must never be computed during a prerender.
+  await connection()
   const sp = await searchParams
   const today = jstDate(new Date())
   const raw = typeof sp.date === 'string' ? sp.date : ''

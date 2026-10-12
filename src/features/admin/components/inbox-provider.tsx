@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { S } from '../strings'
+import { hardNavigate } from './client-hooks'
 import { setBadge } from './push-client'
 import { useToast } from './toast'
-import { hardNavigate } from './client-hooks'
 
 /*
  * Unread badge + polling (FR-A-11, NFR-AV-03, 05 §8): fetch /api/admin/inbox-count at launch,

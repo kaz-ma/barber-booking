@@ -11,8 +11,8 @@ import {
 } from '../actions'
 import type { AdminHours, AdminSettings } from '../queries'
 import { S } from '../strings'
-import { Icon } from './icon'
 import { useNowMinute } from './client-hooks'
+import { Icon } from './icon'
 import { nowMinutes } from './time-utils'
 import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
@@ -156,6 +156,7 @@ export function HoursSettings({
                   className="vh-input"
                   type="checkbox"
                   role="switch"
+                  aria-checked={!d.isClosed}
                   aria-label={`${long} ${S.settings.open}`}
                   checked={!d.isClosed}
                   onChange={(e) =>
@@ -459,6 +460,7 @@ export function HoursSettings({
               className="vh-input"
               type="checkbox"
               role="switch"
+              aria-checked={rules.allowSameDay}
               aria-label={S.settings.sameDay}
               checked={rules.allowSameDay}
               onChange={(e) => setRules((r) => ({ ...r, allowSameDay: e.target.checked }))}

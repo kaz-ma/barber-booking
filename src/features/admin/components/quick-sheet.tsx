@@ -49,10 +49,23 @@ export function QuickSheet(props: {
   )
 }
 
-function buildPresets(date: string, isToday: boolean, closeMin: number | null, anchorMin: number | null, nowMin: number) {
+function buildPresets(
+  date: string,
+  isToday: boolean,
+  closeMin: number | null,
+  anchorMin: number | null,
+  nowMin: number,
+) {
   const list: Preset[] = []
   if (anchorMin !== null) {
-    list.push({ key: 'anchor', title: S.sheet.startAt(hhmm(anchorMin)), startMin: anchorMin, endMin: anchorMin + 60, kind: 'break', overlaps: null })
+    list.push({
+      key: 'anchor',
+      title: S.sheet.startAt(hhmm(anchorMin)),
+      startMin: anchorMin,
+      endMin: anchorMin + 60,
+      kind: 'break',
+      overlaps: null,
+    })
     return list
   }
   if (!isToday) return list
@@ -60,7 +73,14 @@ function buildPresets(date: string, isToday: boolean, closeMin: number | null, a
   list.push({ key: 'now60', title: S.sheet.now60, startMin: s, endMin: s + 60, kind: 'break', overlaps: null })
   list.push({ key: 'now120', title: S.sheet.now120, startMin: s, endMin: s + 120, kind: 'break', overlaps: null })
   if (closeMin !== null && closeMin > s) {
-    list.push({ key: 'untilClose', title: S.sheet.untilClose, startMin: s, endMin: closeMin, kind: 'closed', overlaps: null })
+    list.push({
+      key: 'untilClose',
+      title: S.sheet.untilClose,
+      startMin: s,
+      endMin: closeMin,
+      kind: 'closed',
+      overlaps: null,
+    })
   }
   void date
   return list

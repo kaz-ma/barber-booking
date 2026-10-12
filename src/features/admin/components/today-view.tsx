@@ -25,7 +25,11 @@ export function TodayView({
   leadTimeMin: number
 }) {
   const toast = useToast()
-  const [sheet, setSheet] = useState<{ open: boolean; anchor: number | null; at: number }>({ open: false, anchor: null, at: 0 })
+  const [sheet, setSheet] = useState<{ open: boolean; anchor: number | null; at: number }>({
+    open: false,
+    anchor: null,
+    at: 0,
+  })
   const [block, setBlock] = useState<AgendaBlock | null>(null)
   const [pending, startTransition] = useTransition()
   const online = useOnline()

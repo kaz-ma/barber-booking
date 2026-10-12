@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { S } from '../strings'
 import { markBrowseOnly } from './admin-boot'
-import { Icon } from './icon'
 import { usePlatform } from './client-hooks'
+import { Icon } from './icon'
 import { isStandalone } from './push-client'
 
 type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }

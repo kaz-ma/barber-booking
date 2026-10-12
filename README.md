@@ -49,3 +49,33 @@ CI (`.github/workflows/ci.yml`) runs the same steps against a Postgres 16 servic
 
 Double booking is prevented by the `bookings_no_overlap` exclusion constraint; see
 `docs/03_design/adr/0003-exclusion-constraint-via-raw-sql-migration.md`.
+
+## Customer UI
+
+Implements the approved comps in `docs/05_design_comps/` (DG-001 v0.3, `base/` and
+`expanded/customer/`). Design tokens: `src/styles/tokens.css` (copy of the source of truth) wired
+into Tailwind v4 in `src/styles/globals.css` (`@theme inline`, `paper` utility, component classes
+ported from the comps, reduced motion). UI primitives live in `src/components/ui/`
+(Button, Card, Stepper, FieldWrapper, TextInput, RadioGroup, Checkbox, Sheet on `<dialog>`, Toast,
+CopyButton / ShareCopyButton, InstagramLink, Header variants, Footer). All copy is in
+`messages/{ja,en}.json`; shop facts (address, Instagram, hero photo slot) in `src/config/shop.ts`.
+To use the real hero photo, put it under `public/brand/` and set `shop.heroPhoto`.
+
+Pages: `/{locale}` (top, JSON-LD `HairSalon` without telephone, hreflang), `/book` →
+`/book/time` → `/book/info` → `/book/confirm` → `/book/done/{token}`, `/cancel/{token}`,
+`/privacy`, `/policy`, `/tokusho`, localized 404 and error boundary; `robots.txt` / `sitemap.xml`.
+
+### End-to-end checks
+
+```bash
+node test/e2e/run.mjs              # recreate DB barber_e2e, next build, next start :3100, run scenarios
+node test/e2e/run.mjs --no-build   # reuse the existing .next build
+#   --port 3100  --shots <dir> (default test-results/e2e)  --keep-db
+#   E2E_PG_URL=postgresql://…/postgres  to use a server other than scripts/db-local.sh
+```
+
+Uses the Playwright library from `/opt/node-tools/node_modules/playwright` (override with
+`PLAYWRIGHT_MODULE`); `@playwright/test` is not a dependency. Scenarios: JA full flow
+(menu → time → info → confirm → done → `.ics` → cancel dialog → cancelled → invalid link), EN flow
+without furigana and with no stray Japanese, keyboard-only month calendar, 320px no overflow +
+44px targets, done page ≤ 844px at 390×844 (JA and EN).

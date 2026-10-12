@@ -208,6 +208,7 @@ export function MenusSettings({ menus, typicalCloseMin }: { menus: AdminMenu[]; 
                 className="vh-input"
                 type="checkbox"
                 role="switch"
+                aria-checked={m.isActive}
                 aria-label={S.menus.publish(m.nameJa)}
                 checked={m.isActive}
                 disabled={pending}
@@ -317,6 +318,7 @@ export function MenusSettings({ menus, typicalCloseMin }: { menus: AdminMenu[]; 
                   className="vh-input"
                   type="checkbox"
                   role="switch"
+                  aria-checked={form.isActive}
                   aria-label={S.menus.publishLabel}
                   checked={form.isActive}
                   onChange={(e) => setForm({ ...form, isActive: e.target.checked })}

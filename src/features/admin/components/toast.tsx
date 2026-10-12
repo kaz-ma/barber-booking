@@ -33,13 +33,15 @@ const CIRC = 62.8
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<(ToastInput & { id: number; startedAt: number }) | null>(null)
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(0)
   const seq = useRef(0)
 
   const dismiss = useCallback(() => setToast(null), [])
   const show = useCallback((t: ToastInput) => {
     seq.current += 1
-    setToast({ ...t, id: seq.current, startedAt: Date.now() })
+    const startedAt = Date.now()
+    setNow(startedAt)
+    setToast({ ...t, id: seq.current, startedAt })
   }, [])
 
   useEffect(() => {

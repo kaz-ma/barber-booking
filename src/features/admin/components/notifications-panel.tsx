@@ -7,13 +7,12 @@ import { authClient } from '@/lib/auth-client'
 import { logoutOtherDevicesAction, sendTestPushAction, unsubscribePushAction } from '../actions'
 import type { DeviceSession, DeviceSubscription } from '../queries'
 import { S } from '../strings'
+import { hardNavigate, useIsClient, useStandalone } from './client-hooks'
 import { Icon } from './icon'
-import { useIsClient, useStandalone } from './client-hooks'
 import { deviceLabel } from './push-client'
 import { usePush } from './push-provider'
 import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
-import { hardNavigate } from './client-hooks'
 
 /*
  * S-A-10 通知設定・端末 (FR-A-09, 12, 16; DES-03 §9; AT-13, 14, 14b, 19). One path:
@@ -301,8 +300,7 @@ export function NotificationsPanel({
           <li>
             <Icon name="phone-dev" />
             <span className="grow">
-              <b>{isClient ? deviceLabel(navigator.userAgent) : ''}</b>{' '}
-              <span className="me">{S.notif.thisDevice}</span>
+              <b>{isClient ? deviceLabel(navigator.userAgent) : ''}</b> <span className="me">{S.notif.thisDevice}</span>
               <span className="cap">{S.notif.notRegistered}</span>
             </span>
           </li>

@@ -45,13 +45,22 @@ export function usePush(): PushCtx {
 }
 
 /** Reads the device state without touching React state (all awaits happen first). */
-async function probePushState(): Promise<{ state: PushState; endpoint: string | null; subscription: PushSubscription | null }> {
+async function probePushState(): Promise<{
+  state: PushState
+  endpoint: string | null
+  subscription: PushSubscription | null
+}> {
   if (!pushSupported()) return { state: 'unsupported', endpoint: null, subscription: null }
   await registerServiceWorker()
-  if (!isStandalone() && detectPlatform() === 'ios') return { state: 'not-standalone', endpoint: null, subscription: null }
+  if (!isStandalone() && detectPlatform() === 'ios')
+    return { state: 'not-standalone', endpoint: null, subscription: null }
   const sub = await currentSubscription()
   if (!sub) {
-    return { state: Notification.permission === 'denied' ? 'blocked' : 'unsubscribed', endpoint: null, subscription: null }
+    return {
+      state: Notification.permission === 'denied' ? 'blocked' : 'unsubscribed',
+      endpoint: null,
+      subscription: null,
+    }
   }
   return { state: 'subscribed', endpoint: sub.endpoint, subscription: sub }
 }
@@ -60,27 +69,31 @@ export function PushProvider({ vapidPublicKey, children }: { vapidPublicKey: str
   const [state, setState] = useState<PushState>('checking')
   const [endpoint, setEndpoint] = useState<string | null>(null)
 
-  const check = useCallback(async () => {
-    const result = await probePushState()
+  const apply = useCallback((result: Awaited<ReturnType<typeof probePushState>>) => {
     setEndpoint(result.endpoint)
     setState(result.state)
-    if (result.subscription) {
-      const sub = result.subscription
-      const touched = await touchPushSubscriptionAction({ endpoint: sub.endpoint })
+    const sub = result.subscription
+    if (!sub) return
+    void touchPushSubscriptionAction({ endpoint: sub.endpoint }).then((touched) => {
       if (touched.status === 'ok' && !touched.data.known) {
-        await subscribePushAction({ subscription: subscriptionJson(sub), platform: detectPlatform() })
+        void subscribePushAction({ subscription: subscriptionJson(sub), platform: detectPlatform() })
       }
-    }
+    })
   }, [])
 
   useEffect(() => {
-    void check()
+    const run = () => {
+      probePushState()
+        .then(apply)
+        .catch(() => {})
+    }
+    run()
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') void check()
+      if (document.visibilityState === 'visible') run()
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => document.removeEventListener('visibilitychange', onVisibility)
-  }, [check])
+  }, [apply])
 
   const subscribe = useCallback(
     async (replaceEndpoint?: string): Promise<PushState> => {

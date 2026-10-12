@@ -9,6 +9,7 @@ import type { AdminMenu, CustomerSuggestion } from '../queries'
 import { MANUAL_SOURCES } from '../schema'
 import { errorText, S } from '../strings'
 import type { OverlapDTO } from '../types'
+import { useIsClient } from './client-hooks'
 import { Icon } from './icon'
 import { Sheet } from './sheet'
 import { hhmm, isoAt, nowMinutes } from './time-utils'
@@ -43,19 +44,29 @@ type Saved = { bookingId: string; confirmUrl: string; warnings: string[]; draft:
 const START_OPTIONS = Array.from({ length: (24 - 6) * 4 }, (_, i) => hhmm(6 * 60 + i * 15))
 const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5))
 
-export function ManualBookingForm({
-  menus,
-  initialDate,
-  initialStart,
-}: {
-  menus: AdminMenu[]
-  initialDate: string
-  initialStart: string | null
-}) {
+type FormProps = { menus: AdminMenu[]; initialDate: string; initialStart: string | null }
+
+/** Rendered on the client only, so the sessionStorage draft can seed the initial state. */
+export function ManualBookingForm(props: FormProps) {
+  const isClient = useIsClient()
+  return isClient ? <ManualBookingFormInner {...props} /> : <p className="wrap form">{S.loading}</p>
+}
+
+function readDraft(initialStart: string | null): Partial<Draft> {
+  if (initialStart) return {}
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY)
+    return raw ? (JSON.parse(raw) as Partial<Draft>) : {}
+  } catch {
+    return {}
+  }
+}
+
+function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps) {
   const router = useRouter()
   const toast = useToast()
   const defaultMenu = menus.find((m) => m.isActive) ?? menus[0]
-  const [draft, setDraft] = useState<Draft>({
+  const [draft, setDraft] = useState<Draft>(() => ({
     name: '',
     nameKana: '',
     phone: '',
@@ -66,13 +77,13 @@ export function ManualBookingForm({
     start: initialStart ?? '',
     source: 'phone',
     ownerNote: '',
-  })
-  const [restored, setRestored] = useState(false)
-  const [suggestions, setSuggestions] = useState<CustomerSuggestion[]>([])
+    ...readDraft(initialStart),
+  }))
+  const [fetchedSuggestions, setSuggestions] = useState<CustomerSuggestion[]>([])
   const [comboOpen, setComboOpen] = useState(false)
   const [active, setActive] = useState(0)
-  const [overlaps, setOverlaps] = useState<OverlapDTO[]>([])
-  const [outsideHours, setOutsideHours] = useState(false)
+  const [fetchedOverlaps, setOverlaps] = useState<OverlapDTO[]>([])
+  const [fetchedOutside, setOutsideHours] = useState(false)
   const [freeStarts, setFreeStarts] = useState<string[]>([])
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -87,31 +98,19 @@ export function ManualBookingForm({
     [],
   )
 
-  // Restore / persist the draft (sessionStorage survives the iOS background reload).
+  // Persist the draft (sessionStorage survives the iOS background reload).
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(DRAFT_KEY)
-      if (raw && !initialStart) {
-        const d = JSON.parse(raw) as Partial<Draft>
-        setDraft((cur) => ({ ...cur, ...d, date: d.date ?? cur.date }))
-      }
-    } catch {}
-    setRestored(true)
-  }, [initialStart])
-  useEffect(() => {
-    if (!restored || saved) return
+    if (saved) return
     try {
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     } catch {}
-  }, [draft, restored, saved])
+  }, [draft, saved])
 
   // Customer suggestions (name / kana / phone), 250 ms debounce.
   const query = draft.customerId ? '' : draft.phone.replace(/\D/g, '').length >= 10 ? draft.phone : draft.name
+  const suggestions = query.trim().length >= 2 ? fetchedSuggestions : []
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setSuggestions([])
-      return
-    }
+    if (query.trim().length < 2) return
     const ctrl = new AbortController()
     const t = setTimeout(() => {
       fetch(`/api/admin/customers/suggest?q=${encodeURIComponent(query.trim())}`, {
@@ -149,12 +148,11 @@ export function ManualBookingForm({
 
   // Overlap pre-check (DES-03 §7.3): 300 ms debounce on date / start / menu.
   const total = menu ? menu.durationMin + menu.bufferAfterMin : 0
+  const checkable = Boolean(draft.start && menu)
+  const overlaps = checkable ? fetchedOverlaps : []
+  const outsideHours = checkable && fetchedOutside
   useEffect(() => {
-    if (!draft.start || !menu) {
-      setOverlaps([])
-      setOutsideHours(false)
-      return
-    }
+    if (!draft.start || !menu) return
     const ctrl = new AbortController()
     const t = setTimeout(() => {
       const s = toMin(draft.start)
@@ -333,10 +331,11 @@ export function ManualBookingForm({
             </button>
           ) : null}
           {comboOpen && suggestions.length > 0 && !draft.customerId ? (
-            <ul className="sug" id="sug" role="listbox" aria-label={S.manual.suggestLabel}>
+            <div className="sug" id="sug" role="listbox" aria-label={S.manual.suggestLabel}>
               {suggestions.map((c, i) => (
-                <li
+                <div
                   key={c.id}
+                  tabIndex={-1}
                   id={`sug-${i}`}
                   role="option"
                   aria-selected={i === active}
@@ -365,9 +364,10 @@ export function ManualBookingForm({
                     </span>
                   </span>
                   <Icon name="chev-r" />
-                </li>
+                </div>
               ))}
-              <li
+              <div
+                tabIndex={-1}
                 id={`sug-${suggestions.length}`}
                 role="option"
                 aria-selected={active === suggestions.length}
@@ -378,8 +378,8 @@ export function ManualBookingForm({
                 <span className="grow new">
                   <Icon name="userplus" /> {S.manual.suggestNew(draft.name)}
                 </span>
-              </li>
-            </ul>
+              </div>
+            </div>
           ) : null}
         </div>
 
@@ -522,13 +522,13 @@ export function ManualBookingForm({
                 <p className="cap" id="near-h">
                   {S.manual.nearFree}
                 </p>
-                <div className="chips" role="group" aria-labelledby="near-h">
+                <fieldset className="chips" aria-labelledby="near-h">
                   {near.map((t) => (
                     <button key={t} className="time-chip" type="button" onClick={() => set('start', t)}>
                       {t}
                     </button>
                   ))}
-                </div>
+                </fieldset>
               </>
             ) : null}
           </div>
@@ -539,13 +539,13 @@ export function ManualBookingForm({
               <small>{S.manual.freeHelp(menu.nameJa, menu.durationMin, menu.bufferAfterMin)}</small>
             </p>
             {freeStarts.length > 0 ? (
-              <div className="chips" role="group" aria-labelledby="free-h">
+              <fieldset className="chips" aria-labelledby="free-h">
                 {freeStarts.slice(0, 12).map((t) => (
                   <button key={t} className="time-chip" type="button" onClick={() => set('start', t)}>
                     {t}
                   </button>
                 ))}
-              </div>
+              </fieldset>
             ) : (
               <p className="help">{S.manual.freeNone}</p>
             )}
@@ -662,9 +662,7 @@ export function ManualBookingForm({
                   </label>
                 </div>
               </fieldset>
-              <span className="urlbox" role="textbox" aria-readonly="true" aria-label={S.manual.urlLabel}>
-                {url}
-              </span>
+              <input className="urlbox" readOnly value={url} aria-label={S.manual.urlLabel} />
               <button className="btn btn-primary btn-block" type="button" onClick={() => copy(url, S.manual.urlCopied)}>
                 <Icon name="copy" />
                 {S.manual.copyUrl}

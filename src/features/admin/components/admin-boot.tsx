@@ -3,8 +3,8 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
-import { detectPlatform, isStandalone } from './push-client'
 import { hardNavigate } from './client-hooks'
+import { detectPlatform, isStandalone } from './push-client'
 
 /*
  * Launch-time housekeeping for the standalone admin app:
@@ -44,8 +44,7 @@ export function AdminBoot() {
         sessionStorage.setItem(SESSION_TOUCH_KEY, String(Date.now()))
       } catch {}
       void authClient.getSession().then((res) => {
-        if (!res.data && !res.error)
-          hardNavigate(`/admin/login?next=${encodeURIComponent(window.location.pathname)}`)
+        if (!res.data && !res.error) hardNavigate(`/admin/login?next=${encodeURIComponent(window.location.pathname)}`)
       })
     }
     touch()

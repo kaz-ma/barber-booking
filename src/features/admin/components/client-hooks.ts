@@ -23,7 +23,11 @@ export function useStandalone(): boolean {
 }
 
 export function usePlatform(): PushPlatform {
-  return useSyncExternalStore(noopSubscribe, () => detectPlatform(), () => 'other')
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => detectPlatform(),
+    () => 'other',
+  )
 }
 
 function subscribeMinute(onChange: () => void): () => void {

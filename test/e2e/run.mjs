@@ -120,7 +120,10 @@ async function step(name, fn) {
   } catch (e) {
     results.push({ name, ok: false })
     console.error(`  ✗ ${name}\n    ${e.message}`)
-    if (currentPage) await currentPage.screenshot({ path: join(SHOTS, `FAILED-${name.replace(/\W+/g, '_')}.png`), fullPage: true }).catch(() => {})
+    if (currentPage)
+      await currentPage
+        .screenshot({ path: join(SHOTS, `FAILED-${name.replace(/\W+/g, '_')}.png`), fullPage: true })
+        .catch(() => {})
     throw e
   }
 }
@@ -152,13 +155,18 @@ const targets44 = async (page) => {
     const out = []
     for (const el of document.querySelectorAll('a[href], button, input, textarea, summary')) {
       if (el.closest('[aria-hidden="true"]') || el.classList.contains('skip-link')) continue
-      const box = (el.matches('input[type=radio], input[type=checkbox]') ? el.parentElement : el).getBoundingClientRect()
+      const box = (
+        el.matches('input[type=radio], input[type=checkbox]') ? el.parentElement : el
+      ).getBoundingClientRect()
       const style = getComputedStyle(el)
       if (box.width === 0 || box.height === 0 || style.visibility === 'hidden') continue
       if (el.matches('input[type=hidden]')) continue
       // DG-001 §4: below 360px the calendar cells are ~42×52 (approved; ≥ 24px WCAG 2.5.8 minimum).
       const min = el.classList.contains('cd') && window.innerWidth < 360 ? 40 : 43.5
-      if (Math.min(box.width, box.height) < min) out.push(`${el.tagName} "${(el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 30)}" ${Math.round(box.width)}×${Math.round(box.height)}`)
+      if (Math.min(box.width, box.height) < min)
+        out.push(
+          `${el.tagName} "${(el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 30)}" ${Math.round(box.width)}×${Math.round(box.height)}`,
+        )
     }
     return out
   })
@@ -197,7 +205,10 @@ try {
     await page.goto(`${BASE}/ja`)
     await oneH1(page)
     assert((await page.locator('article.menu-card').count()) === 9, '9 menu cards')
-    assert((await page.locator('article.menu-card a, article.menu-card button').count()) === 0, 'menu cards are not links')
+    assert(
+      (await page.locator('article.menu-card a, article.menu-card button').count()) === 0,
+      'menu cards are not links',
+    )
     const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())
     assert(ld['@type'] === 'HairSalon' && !('telephone' in ld), 'JSON-LD HairSalon without telephone')
     assert((await page.locator('link[rel="alternate"][hreflang="en"]').count()) === 1, 'hreflang en')
@@ -216,7 +227,10 @@ try {
     await page.locator('header').getByRole('link', { name: '予約する' }).click()
     await page.waitForURL(/\/ja\/book$/)
     await oneH1(page)
-    assert((await page.getByRole('link', { name: /空き時間を見て予約する/ }).count()) === 0, 'no CTA before a menu is chosen')
+    assert(
+      (await page.getByRole('link', { name: /空き時間を見て予約する/ }).count()) === 0,
+      'no CTA before a menu is chosen',
+    )
     await shot(page, '04_menu_initial_ja')
     await page.locator('label.rcard', { hasText: 'カット' }).first().click()
     await page.waitForURL(/menu=cut/)
@@ -320,7 +334,10 @@ try {
     await trigger.click()
     const dialog = page.getByRole('dialog', { name: 'この予約を取り消しますか？' })
     await dialog.waitFor()
-    assert((await page.evaluate(() => document.activeElement?.textContent)) === '予約を残す', 'initial focus on 予約を残す')
+    assert(
+      (await page.evaluate(() => document.activeElement?.textContent)) === '予約を残す',
+      'initial focus on 予約を残す',
+    )
     await shot(page, '07_cancel_sheet_ja', false)
     await page.keyboard.press('Escape')
     await dialog.waitFor({ state: 'hidden' })
@@ -443,7 +460,18 @@ try {
 
   await step('320px: no horizontal overflow, 44px targets', async () => {
     const page = await newPage({ width: 320, height: 640 })
-    const paths = ['/ja', '/en', '/ja/book?menu=cut', '/ja/book/time?menu=cut', '/en/book/time?menu=cut', '/ja/privacy', '/ja/policy', '/ja/tokusho', '/en/policy', '/ja/no-such-page']
+    const paths = [
+      '/ja',
+      '/en',
+      '/ja/book?menu=cut',
+      '/ja/book/time?menu=cut',
+      '/en/book/time?menu=cut',
+      '/ja/privacy',
+      '/ja/policy',
+      '/ja/tokusho',
+      '/en/policy',
+      '/ja/no-such-page',
+    ]
     for (const p of paths) {
       await page.goto(`${BASE}${p}`)
       await page.waitForLoadState('networkidle')
@@ -462,7 +490,15 @@ try {
         'bb.bookingDraft.v1',
         JSON.stringify({
           savedAt: Date.now(),
-          draft: { menuSlug: 'bleach-extra', startsAt: `${d}T23:00:00+09:00`, name: '山田 太郎', nameKana: 'やまだ たろう', occupation: 'student', phone: '09012345678', note: '' },
+          draft: {
+            menuSlug: 'bleach-extra',
+            startsAt: `${d}T23:00:00+09:00`,
+            name: '山田 太郎',
+            nameKana: 'やまだ たろう',
+            occupation: 'student',
+            phone: '09012345678',
+            note: '',
+          },
         }),
       )
     })

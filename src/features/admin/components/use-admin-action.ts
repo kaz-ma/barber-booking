@@ -14,9 +14,7 @@ export function describeFailure(result: ActionResult<unknown> | { status: string
     case 'ok':
       return null
     case 'unauthorized':
-      hardNavigate(
-        `/admin/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`,
-      )
+      hardNavigate(`/admin/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`)
       return S.errors.unauthorized as string
     case 'invalid':
       return firstFieldError((result as { fieldErrors: Record<string, string[]> }).fieldErrors)

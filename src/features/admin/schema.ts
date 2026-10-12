@@ -214,7 +214,7 @@ export const otpCodeSchema = z.object({
 
 /** Same-origin relative admin path only (open-redirect guard for ?next=). */
 export function safeAdminNext(next: string | undefined): string {
-  if (!next || !next.startsWith('/admin') || next.startsWith('//') || next.includes('\\')) return '/admin'
+  if (!next?.startsWith('/admin') || next.startsWith('//') || next.includes('\\')) return '/admin'
   if (next.startsWith('/admin/login')) return '/admin'
   return next
 }
