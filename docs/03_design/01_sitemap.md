@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-01 |
-| 版 | v0.4 |
+| 版 | v0.5 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップから `/book/time` への直接リンクを置かないことを明記し、`/book` の `?menu=` はトップからは付けない（外部リンク用）。`/book/time` の `date` 未指定時は今日を選択（OI-24 決定済み）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-03 に月送りの `?month=` を追加（F2）、S-C-10 の電話リンクを Instagram リンクに変更、構造化データに `telephone` を出力しない（OI-10 決定済み、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
+| 変更履歴 | v0.5（2026-10-12）: 実装との同期。特商法表記を `/{locale}/tokusho` の別ページに、未定義パスはキャッチオール `[...rest]` でロケール別 404、ロケール外は `global-not-found`、`/admin/settings`（→ hours）・`/admin/customers/{id}` を追記、`/book/time`・`/admin/bookings/new`・`/admin/blocks/new` のクエリを実装に合わせる、`request.ts` は `next/root-params`、proxy.ts の Server Action POST の扱い、OGP・sitemap の実際の対象。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップから `/book/time` への直接リンクを置かないことを明記し、`/book` の `?menu=` はトップからは付けない（外部リンク用）。`/book/time` の `date` 未指定時は今日を選択（OI-24 決定済み）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-03 に月送りの `?month=` を追加（F2）、S-C-10 の電話リンクを Instagram リンクに変更、構造化データに `telephone` を出力しない（OI-10 決定済み、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
 | 関連要件 | FR-C-01, FR-C-07, FR-C-11〜16, FR-A-01, FR-A-15, FR-S-10, FR-S-14, NFR-EN-05, NFR-EN-07, NFR-MG-01, S-C-01〜10, S-C-02b, S-A-01〜12 |
 | 関連 ADR | ADR-0001（ドメイン移行）、ADR-0005（i18n） |
 
@@ -29,7 +29,9 @@ flowchart TD
     DONE --> CANCEL["/ja/cancel/token<br/>S-C-06 キャンセル"]
     DONE --> ICS["/api/ics/token<br/>S-C-07 ICS"]
     JA --> PRIV["/ja/privacy<br/>S-C-08"]
-    JA --> POL["/ja/policy<br/>S-C-09 キャンセルポリシーと特商法表記"]
+    JA --> POL["/ja/policy<br/>S-C-09 キャンセルポリシー"]
+    JA --> TOK["/ja/tokusho<br/>S-C-09 特商法表記"]
+    JA --> NF["/ja/未定義のパス<br/>S-C-10 404"]
     EN -.->|"同一構造"| BOOK
   end
 
@@ -46,6 +48,7 @@ flowchart TD
     SM["/admin/settings/menus S-A-09"]
     SN["/admin/settings/notifications S-A-10"]
     CU["/admin/customers S-A-11"]
+    CUD["/admin/customers/id S-A-11"]
     TODAY --> WEEK
     TODAY --> INBOX
     TODAY --> DET
@@ -55,17 +58,18 @@ flowchart TD
     SH --- SM
     SM --- SN
     TODAY --> CU
+    CU --> CUD
   end
 
   subgraph API["/api と静的リソース"]
     A1["/api/auth/..."]
     A2["/api/cron/daily-digest"]
     A3["/api/cron/retention"]
-    A4["/api/admin/inbox-count など"]
+    A4["/api/admin/inbox-count overlaps<br/>free-starts customers/suggest push/rotate"]
     S1["/sw.js"]
     S2["/manifest.webmanifest"]
     S3["/robots.txt と /sitemap.xml"]
-    S4["/monitoring Sentry tunnel"]
+    S4["/monitoring Sentry tunnel 未導入"]
   end
 ```
 
@@ -77,28 +81,32 @@ flowchart TD
 |---|---|---|---|---|---|---|---|
 | `/` | — | 公開 | — | GET | — | ロケール検出して `/ja` または `/en` へ 307 | FR-C-13 |
 | `/{locale}` | S-C-01 | 公開 | index | GET | — | `generateStaticParams` で ja/en を静的生成 | FR-C-14 |
-| `/{locale}/book` | S-C-02 | 公開 | index | GET | `?menu={slug}`（Instagram など外部からのディープリンク。選択済みで開始。トップの CTA は付けない） | ステップ 1（メニュー）。予約の唯一の入口（トップ・ヘッダー・404 の「予約する」の遷移先、OI-25）。メニュー選択後の CTA「空き時間を見て予約する」で `/book/time` へ | FR-C-01, 02, FR-S-14 |
-| `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&month=YYYY-MM&date=YYYY-MM-DD` | ステップ 2。月カレンダーの表示月（`month`）と選択日（`date`）は JST 暦日。`date` があれば `month` はその月、どちらも未指定は今月・今日を選択（OI-24 決定済み。今日が × でも今日を選択し空きなしの表示）。トップ（`/{locale}`）からはリンクしない（OI-25）。範囲外の `month` は今月へ寄せる。メニュー未選択なら `/book` へ戻す | FR-C-07, 08 |
+| `/{locale}/book` | S-C-02 | 公開 | index | GET | `?menu={slug}`（Instagram など外部からのディープリンク。選択済みで開始。トップの CTA は付けない。選択するとクライアントが `?menu=` を同期）、`?expired=1`（下書きの期限切れで戻されたとき） | ステップ 1（メニュー）。予約の唯一の入口（トップ・ヘッダー・404 の「予約する」の遷移先、OI-25）。メニュー選択後の CTA「空き時間を見て予約する」で `/book/time` へ | FR-C-01, 02, FR-S-14 |
+| `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&month=YYYY-MM&date=YYYY-MM-DD`。補助: `sel={startsAt}`（選択済みで戻ったときの固定バー）、`return=confirm`（確認画面からの日時変更）、`taken=1`（`slot_taken` で戻されたときの通知） | ステップ 2。月カレンダーの表示月（`month`）と選択日（`date`）は JST 暦日。`date` があれば `month` はその月、どちらも未指定は今月・今日を選択（OI-24 決定済み。今日が × でも今日を選択し空きなしの表示）。`month` だけを指定（月送り）したときは選択を解除。トップ（`/{locale}`）からはリンクしない（OI-25）。範囲外の `month` は今月で取り直す。メニュー未指定・未知・非公開なら `/book` へ戻す | FR-C-07, 08 |
 | `/{locale}/book/info` | S-C-02b | 公開 | noindex | GET | `?step=name\|occupation\|phone`（段階計測用、任意） | ステップ 3。段階は `history.state` が正。クエリは計測と再読込時の復元補助。メニュー・日時が下書きに無ければ `/book` または `/book/time` へ戻す | FR-C-01, 03〜06, FR-S-14 |
-| `/{locale}/book/confirm` | S-C-04 | 公開 | noindex | GET（確定は Server Action POST） | — | ステップ 4。下書きが無ければ `/book` へ、日時・お客様情報が欠けていれば該当ステップへ戻す | FR-C-09, 10 |
+| `/{locale}/book/confirm` | S-C-04 | 公開 | noindex | GET（確定は Server Action POST） | — | ステップ 4。下書きが無ければ `/book?expired=1` へ、日時・お客様情報が欠けていれば該当ステップへ戻す | FR-C-09, 10 |
 | `/{locale}/book/done/{token}` | S-C-05 | トークン保持者 | noindex | GET | — | トークンは 43 文字 base64url | FR-C-11 |
 | `/{locale}/cancel/{token}` | S-C-06 | トークン保持者 | noindex | GET（副作用なし）／キャンセルは Server Action POST | — | IP 10 回/分（proxy.ts＋WAF） | FR-C-12, FR-S-04 |
 | `/api/ics/{token}` | S-C-07 | トークン保持者 | noindex | GET | — | `text/calendar`。キャンセル URL と同じレート制限 | FR-C-11 |
 | `/{locale}/privacy` | S-C-08 | 公開 | index | GET | — | — | FR-C-15 |
-| `/{locale}/policy` | S-C-09 | 公開 | index | GET | — | キャンセルポリシー＋利用条件＋特定商取引法に基づく表記（`#tokushoho` アンカー） | FR-C-15 |
-| `/{locale}/*`（未定義） | S-C-10 | 公開 | noindex | GET | — | 予約 CTA と Instagram リンク（電話リンクなし） | FR-C-16 |
+| `/{locale}/policy` | S-C-09 | 公開 | index | GET | — | キャンセルポリシー＋利用条件 | FR-C-15 |
+| `/{locale}/tokusho` | S-C-09（特商法表記） | 公開 | index | GET | — | 特定商取引法に基づく表記を別ページにした（電話番号は「請求があれば遅滞なく開示」、請求先は Instagram DM。決定事項 G3） | FR-C-15 |
+| `/{locale}/*`（未定義） | S-C-10 | 公開 | noindex | GET | — | キャッチオール `[locale]/[...rest]/page.tsx` が `notFound()` を呼び、ロケール別の `not-found.tsx` を表示。予約 CTA と Instagram リンク（電話リンクなし） | FR-C-16 |
+| ロケール外の未定義パス | S-C-10 | 公開 | noindex | GET | — | `app/global-not-found.tsx`（`experimental.globalNotFound`）。日英併記、「予約する / Book」は `/ja/book`・`/en/book` へ | FR-C-16 |
 | `/admin/login` | S-A-01 | 公開 | noindex | GET | `?next=/admin/...` | 同一オリジンの相対パスのみ許可 | FR-A-01 |
-| `/admin/install` | S-A-12 | 公開 | noindex | GET | — | standalone でない場合の誘導先 | FR-A-09, 15 |
+| `/admin/install` | S-A-12 | 公開 | noindex | GET | — | iPhone で standalone でない場合の誘導先（`AdminBoot` が遷移。「閲覧だけ」を選ぶと以後は出さない） | FR-A-09, 15 |
 | `/admin` | S-A-02 | 管理者 | noindex | GET | `?date=YYYY-MM-DD` | `start_url` | FR-A-02, 11 |
 | `/admin/week` | S-A-03 | 管理者 | noindex | GET | `?start=YYYY-MM-DD`（週の月曜） | — | FR-A-03 |
 | `/admin/inbox` | S-A-07 | 管理者 | noindex | GET | — | — | FR-A-11 |
 | `/admin/bookings/{id}` | S-A-04 | 管理者 | noindex | GET | — | 通知の `navigate` 先。開いた時点で既読化 | FR-A-04, 10 |
-| `/admin/bookings/new` | S-A-05 | 管理者 | noindex | GET | `?start=ISO8601` | タイムラインの空き区間タップから時刻を引き継ぐ | FR-A-05 |
-| `/admin/blocks/new` | S-A-06 | 管理者 | noindex | GET | `?start=ISO8601` | 期間指定用。プリセットは FAB から直接保存 | FR-A-06 |
+| `/admin/bookings/new` | S-A-05 | 管理者 | noindex | GET | `?date=YYYY-MM-DD&start=HH:MM` | タイムラインの空き区間タップから日付・時刻を引き継ぐ（未指定は今日） | FR-A-05 |
+| `/admin/blocks/new` | S-A-06 | 管理者 | noindex | GET | `?date=YYYY-MM-DD` | 期間指定用（未指定は今日）。プリセットは FAB のシートから直接保存 | FR-A-06 |
+| `/admin/settings` | — | 管理者 | noindex | GET | — | `/admin/settings/hours` へリダイレクト（タブ「設定」の遷移先） | FR-A-07 |
 | `/admin/settings/hours` | S-A-08 | 管理者 | noindex | GET | — | — | FR-A-07 |
 | `/admin/settings/menus` | S-A-09 | 管理者 | noindex | GET | — | — | FR-A-08 |
 | `/admin/settings/notifications` | S-A-10 | 管理者 | noindex | GET | — | — | FR-A-09, 16 |
-| `/admin/customers`・`/admin/customers/{id}` | S-A-11 | 管理者 | noindex | GET | `?q=` | Should | FR-A-13, 14 |
+| `/admin/customers` | S-A-11 | 管理者 | noindex | GET | `?q=`（2 文字以上で検索、最大 50 件） | Should | FR-A-13 |
+| `/admin/customers/{id}` | S-A-11 | 管理者 | noindex | GET | — | 顧客詳細（予約制限・エクスポート・匿名化）。Should | FR-A-13, 14 |
 
 ---
 
@@ -138,21 +146,17 @@ export const routing = defineRouting({
 
 ```ts
 // src/lib/i18n/request.ts（要点）
-export default getRequestConfig(async ({ requestLocale }) => {
-  const locale = hasLocale(routing.locales, await requestLocale) ? await requestLocale : routing.defaultLocale
+export default getRequestConfig(async ({ locale: explicit }) => {
+  // Route Handler・管理側は getTranslations({ locale }) で明示。ページは [locale] のルートパラメータ
+  // （next/root-params。Cache Components と両立する setRequestLocale の代替）
+  let requested = explicit
+  if (!requested) requested = await (await import('next/root-params')).locale()
+  const locale = hasLocale(routing.locales, requested) ? requested : routing.defaultLocale
   return {
     locale,
-    timeZone: 'Asia/Tokyo',
-    now: new Date(),
+    timeZone: TIME_ZONE,                    // 'Asia/Tokyo'（domain/time.ts）
+    formats: formatsFor(locale),            // lib/i18n/formats.ts: slotDate / slotTime（en は 12 時間制）/ full / monthTitle、jpy
     messages: (await import(`../../../messages/${locale}.json`)).default,
-    formats: {
-      dateTime: {
-        slotDate: { month: 'numeric', day: 'numeric', weekday: 'short' },
-        slotTime: { hour: 'numeric', minute: '2-digit', hour12: locale === 'en' },
-        full:     { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' },
-      },
-      number: { jpy: { style: 'currency', currency: 'JPY' } },
-    },
   }
 })
 ```
@@ -161,10 +165,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
 ```mermaid
 flowchart TD
-  IN["リクエスト"] --> M{"matcher に一致?<br/>api, _next, _vercel, 拡張子付き, sw.js を除外"}
+  IN["リクエスト"] --> M{"matcher に一致?<br/>api, _next, _vercel, monitoring,<br/>sw.js, manifest.webmanifest, 拡張子付きを除外"}
   M -- "いいえ" --> PASS["素通り"]
   M -- "はい" --> AD{"/admin で始まる?"}
-  AD -- "はい" --> PUBADM{"/admin/login または<br/>/admin/install ?"}
+  AD -- "はい" --> PUBADM{"/admin/login または<br/>/admin/install または<br/>Server Action の POST ?"}
   PUBADM -- "はい" --> NONCE["CSP nonce 生成<br/>ヘッダー付与して next"]
   PUBADM -- "いいえ" --> CK{"セッション Cookie あり?"}
   CK -- "いいえ" --> RL["307 /admin/login?next=元のパス"]
@@ -183,7 +187,7 @@ flowchart TD
 | 判定順 | パス → `NEXT_LOCALE` Cookie → `Accept-Language` → `ja` | FR-C-13 |
 | 自動リダイレクト | `/` のみ検出結果へ 307。`/ja`・`/en` を開いた人を別言語へ飛ばすことはしない | FR-C-13 |
 | 言語切替 | ヘッダー右上「EN」/「日本語」（相手言語名をネイティブ表記、国旗なし）。同じページの他ロケール URL へ遷移し、next-intl が `NEXT_LOCALE` を更新。予約フロー中は下書きを保持（`BookingDraftProvider` が `/book` 配下のレイアウトに居るため、ロケール切替でアンマウントされる → `sessionStorage` から復元） | FR-C-13 |
-| `/admin` | next-intl を通さない。`<html lang="ja">` 固定。認証の本体は各 Server Action と DAL の `requireAdmin()`（proxy は楽観チェック） | FR-A-01, NFR-SC-02 |
+| `/admin` | next-intl を通さない。`<html lang="ja">` 固定。認証の本体は各 Server Action と DAL の `requireAdmin()`（proxy は楽観チェック）。Server Action の POST（`Next-Action` ヘッダー付き）はリダイレクトせず、Cookie が無ければアクションが `unauthorized` を返す。Cookie 名は `__Host-bb.session_token`（HTTP のローカルは `bb.session_token`） | FR-A-01, NFR-SC-02 |
 | `/api/ics/*` | matcher 外のため、Route Handler 内で同じレート制限関数を呼ぶ | FR-S-04 |
 | レート制限の DB 呼び出し | proxy は Node ランタイムなので `lib/rate-limit.ts` を直接使える。対象パスはキャンセルのみに限定し、他ページの遅延を増やさない | FR-S-04 |
 
@@ -209,9 +213,9 @@ flowchart TD
 | 項目 | 仕様 |
 |---|---|
 | `metadataBase` | `new URL(SITE_URL)` |
-| タイトル | 各ページ一意（Next.js のルートアナウンサーが `document.title` を読むため）。形式「{ページ名} ｜ {スタイリスト名} @ Neuer Barber」【要確認: OI-08 ブランド表記】 |
+| タイトル | 各ページ一意（Next.js のルートアナウンサーが `document.title` を読むため）。`meta` 名前空間で、トップは「Neuer Barber 長田｜夜 24 時まで予約できるバーバー（大阪・阿倍野）」、ほかは「{ページ名} ｜ Neuer Barber」（例「予約完了 ｜ Neuer Barber」）【要確認: OI-08 ブランド表記】 |
 | `alternates` | `canonical: /{locale}/…`、`languages: { ja: '/ja/…', en: '/en/…', 'x-default': '/ja/…' }` |
-| OGP | トップ・予約・ポリシーのみ。`og:locale` は `ja_JP` / `en_US`。画像は `opengraph-image.tsx` で静的生成 |
+| OGP | トップ・`/book`・`/policy`・`/privacy`（`app/(public)/_lib/seo.ts` の `openGraph()`）。`og:locale` は `ja_JP` / `en_US`（`alternateLocale` に相手側）。OG 画像（`opengraph-image.tsx`）は未作成 |
 | `theme-color` | 顧客サイトはライト固定（`--paper-98` 相当） |
 
 ### 5.2 構造化データ（JSON-LD、トップのみ）
@@ -224,7 +228,7 @@ flowchart TD
 | `telephone` | 出力しない | 電話番号は非掲載（OI-10 決定済み、2026-10-12）。連絡先は `sameAs` の Instagram URL |
 | `openingHoursSpecification` | `business_hours`（cache） | 定休日は出力しない |
 | `availableLanguage` | `["ja", "en"]` | — |
-| `url` / `sameAs` | `absoluteUrl('/ja')`、Instagram URL | — |
+| `url` / `sameAs` | `absoluteUrl('/{locale}')`（表示中のロケール）、Instagram URL | `image` はエンブレム画像の絶対 URL |
 | `makesOffer` | 出力しない | 価格は `menus` 確定後に検討（価格の推測値を構造化データに載せない） |
 
 ### 5.3 robots / sitemap / ヘッダー
@@ -241,7 +245,7 @@ export default function robots(): MetadataRoute.Robots {
 
 | 対象 | robots.txt | `X-Robots-Tag` | `<meta name="robots">` | sitemap.xml |
 |---|---|---|---|---|
-| `/{locale}`、`/book`、`/privacy`、`/policy` | allow | なし | index | 掲載（hreflang 付き） |
+| `/{locale}`、`/book`、`/privacy`、`/policy`、`/tokusho` | allow | なし | index | 掲載（hreflang＋`x-default`＝ja 付き。`app/sitemap.ts`） |
 | `/{locale}/book/time`・`/info`・`/confirm` | allow | `noindex` | noindex | 非掲載 |
 | `/{locale}/book/done/*`・`/cancel/*`・`/api/ics/*` | allow（未知の URL のためクロールされない前提） | `noindex, nofollow` | noindex | 非掲載 |
 | `/admin/**` | disallow | `noindex, nofollow` | noindex | 非掲載 |
