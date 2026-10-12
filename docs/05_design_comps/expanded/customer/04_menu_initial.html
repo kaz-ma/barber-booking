@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>メニューを選ぶ（1/4）｜ご予約｜Neuer Barber 長田</title>
+<!-- Expanded comp S-C-02 予約 ① メニューを選ぶ /ja/book (a) 初期表示（未選択・固定 CTA なし） — DG-001 v0.3 / WF-C v0.4 customer_02_book_menu 2026-10-12 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+/* ---- page-local token（DG-001 §9.1: --danger は tokens.css に未定義。えんじ（色相 0°）と別の朱 19°、紙の最暗部で 5.22:1） ---- */
+:root{--danger:#a33b0b;--danger-pressed:#862f08}
+/* ---- base（base/*.html と同じ） ---- */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-bottom:160px}
+body{margin:0;font-family:var(--font-sans);font-size:var(--text-16);line-height:var(--leading-body);letter-spacing:var(--tracking-body);color:var(--fg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,dl,dd,ol,ul,figure,address,fieldset,legend{margin:0;padding:0}
+fieldset{border:0;min-width:0}
+[hidden]{display:none!important}
+li{list-style:none}
+address{font-style:normal}
+a{color:inherit}
+button,input,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums}
+.caps{font:700 var(--text-12)/var(--text-12--lh) var(--font-lato);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--fg-muted)}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.nw{display:inline-block;white-space:nowrap}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:100%;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+/* ---- buttons（§5.1） ---- */
+.btn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:48px;padding:0 var(--space-6);border:0;border-radius:var(--radius-sm);font:700 var(--text-16)/1.25 var(--font-sans);letter-spacing:.06em;text-decoration:none;text-align:center;cursor:pointer;transition:background-color var(--duration-short2) var(--ease-standard),transform var(--duration-short2) var(--ease-standard)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{width:100%;min-height:var(--target-cta);background:var(--accent);color:var(--on-accent);box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 4px rgb(244 236 221 / .4)}
+.btn-primary:hover{background:var(--accent-pressed);box-shadow:inset 0 0 0 3px var(--accent-pressed),inset 0 0 0 4px rgb(244 236 221 / .4)}
+/* 無効（aria-disabled）: 色を薄くせず「破線 = できない」の言語（§5.1 icon の無効と同じ）。押せる（押すとエラー文） */
+.btn-primary[aria-disabled="true"]{background:transparent;color:var(--fg-subtle);box-shadow:none;border:1px dashed var(--fg-subtle);cursor:not-allowed}
+.btn-primary[aria-disabled="true"]:active{transform:none}
+.btn-secondary{width:100%;background:var(--bg-card);color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg-sunken)}
+.btn-sm{width:auto;min-height:var(--target-min);padding:0 var(--space-4);font-size:var(--text-14);letter-spacing:.04em}
+.btn-ghost{display:inline-flex;width:auto;min-height:var(--target-min);padding:0 var(--space-2);background:none;font-size:var(--text-14);letter-spacing:.04em;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.btn-ghost:hover{text-decoration-thickness:2px}
+/* 破壊的操作（S-C-06）: 枠線 2px の --danger。塗りは確認シートの「予約を取り消す」だけ */
+.btn-danger{width:100%;background:var(--bg-card);color:var(--danger);border:2px solid var(--danger)}
+.btn-danger:hover{background:var(--bg-sunken)}
+.btn-danger-fill{width:100%;background:var(--danger);color:var(--on-accent)}
+.btn-danger-fill:hover{background:var(--danger-pressed)}
+.two{display:grid;text-align:left;line-height:1.25}
+.two small{font:400 var(--text-12)/16px var(--font-num);letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
+/* ---- flow header（§5.3 予約フロー） ---- */
+.flow-head{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+.flow-head .in{display:flex;align-items:center;gap:var(--space-1);height:56px;max-width:640px;margin:0 auto;padding:0 var(--space-2)}
+.flow-head h1{flex:1;font-size:var(--text-16);line-height:1;font-weight:700;letter-spacing:.08em}
+.back{display:grid;place-items:center;width:var(--target-min);height:var(--target-min);border-radius:var(--radius-sm)}
+.lang{display:grid;place-items:center;min-width:var(--target-min);height:var(--target-min);padding:0 var(--space-1);font:700 var(--text-14)/1 var(--font-lato);letter-spacing:.08em;text-decoration:none}
+.lang[lang="ja"]{font-family:var(--font-sans);letter-spacing:.02em}
+.flow-head .btn-sm{padding:0 var(--space-3)}
+.flow-head .btn-sm .ic{width:18px;height:18px}
+/* ---- site header（トップ・ポリシー・404） ---- */
+.site-head{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+.site-head .in{display:flex;align-items:center;gap:var(--space-2);height:64px;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+.brand{display:flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);margin-right:auto;text-decoration:none}
+.brand img{height:48px;width:auto;filter:brightness(.32)}
+.wm{display:grid}
+.wm b{font:700 13px/16px var(--font-lato);letter-spacing:.2em}
+.wm small{font-size:var(--text-12);line-height:16px;color:var(--fg-muted);letter-spacing:.08em}
+.site-head .btn-primary{width:auto;min-height:var(--target-min);padding:0 var(--space-4);font-size:var(--text-14)}
+/* mini header（完了・キャンセル: エンブレム 40px＋ワードマーク、EN だけ） */
+.mini-head{border-bottom:1px solid var(--border)}
+.mini-head .in{display:flex;align-items:center;gap:var(--space-2);height:56px;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+.mini-head .brand img{height:40px}
+@media (max-width:359px){.wm{display:none}}
+/* ---- stepper（§5.4） ---- */
+.stepper{display:grid;grid-template-columns:repeat(4,1fr);padding:var(--space-4) 0 var(--space-2)}
+.stepper li{position:relative;display:grid;justify-items:center;align-content:start;gap:var(--space-1);text-align:center;font-size:var(--text-12);line-height:16px;color:var(--fg-muted)}
+.stepper li+li::before{content:"";position:absolute;top:11px;right:calc(50% + 16px);width:calc(100% - 32px);border-top:1px solid var(--fg-subtle)}
+.stepper li.done+li::before{border-top-color:var(--fg)}
+.dot{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1px solid var(--fg-subtle);font:700 var(--text-12)/1 var(--font-lato);color:var(--fg-subtle);background:var(--bg-card)}
+.done .dot{border-color:var(--fg);color:var(--fg)}
+.done .dot .ic{width:14px;height:14px;stroke-width:2.5}
+.cur .dot{background:var(--fg);border-color:var(--fg);color:var(--bg-card)}
+.cur{color:var(--fg)!important;font-weight:700}
+/* ---- page heading ---- */
+.page-h{margin-top:var(--space-6);font-size:var(--text-20);line-height:var(--text-20--lh);font-weight:700;letter-spacing:.04em;font-feature-settings:"palt"}
+.page-h:focus{outline:none}
+.lead{margin-top:var(--space-1);font-size:var(--text-14);line-height:1.6;color:var(--fg-muted)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);box-shadow:var(--shadow-1)}
+.tag{display:inline-block;margin-left:var(--space-2);padding:0 var(--space-2);border:1px solid var(--fg-muted);border-radius:var(--radius-full);font:700 var(--text-12)/18px var(--font-sans);letter-spacing:.04em;color:var(--fg-muted);white-space:nowrap;vertical-align:2px}
+.req{display:inline-block;padding:0 6px;border:1px solid var(--fg-muted);border-radius:2px;font:700 11px/16px var(--font-sans);letter-spacing:.04em;color:var(--fg-muted);white-space:nowrap}
+.req.opt{border-style:dashed}
+/* ---- sticky CTA bar（safe-area 対応） ---- */
+.sticky{position:sticky;bottom:0;z-index:4;margin-top:var(--space-8);border-top:1px solid var(--border);box-shadow:0 -6px 16px rgb(60 40 20 / .10);padding:var(--space-3) 0 max(var(--space-4),env(safe-area-inset-bottom))}
+.sticky .in{display:grid;gap:var(--space-2);max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+.sticky .sum{display:flex;flex-wrap:wrap;gap:0 var(--space-2);font-size:var(--text-14);line-height:var(--text-14--lh)}
+.sticky .sum b{font-weight:700}
+.sticky .sum span{white-space:nowrap}
+.sticky .hint{font-size:var(--text-12);line-height:16px;color:var(--fg-muted);text-align:center}
+/* ---- footer（§5.3） ---- */
+.site-foot{margin-top:var(--space-16);background:var(--bg-sunken);border-top:1px solid var(--border);box-shadow:inset 0 3px 0 var(--bg-sunken),inset 0 4px 0 var(--border);padding:var(--space-8) 0 var(--space-6)}
+.site-foot nav{display:grid;margin:var(--space-4) 0}
+.site-foot nav a{display:flex;align-items:center;justify-content:space-between;min-height:var(--target-min);font-size:var(--text-14);text-decoration:none;border-bottom:1px solid var(--border-subtle)}
+.site-foot nav a .ic{width:16px;height:16px;color:var(--fg-muted)}
+.site-foot small{display:block;font-size:var(--text-12);line-height:16px;color:var(--fg-muted);letter-spacing:.08em}
+@media (min-width:768px){:root{--gutter:var(--space-6)}}
+
+/* ---- RadioCard（S-C-02 だけ。§9.1: <label>＋ネイティブラジオ、選択中は --accent の 2px 枠＋右上の ✓） ---- */
+.rcards{display:grid;gap:var(--space-2);margin-top:var(--space-4)}
+.rcards legend{margin-bottom:0}
+.rcard{position:relative;display:grid;grid-template-columns:22px 1fr;column-gap:var(--space-3);padding:var(--space-3) var(--space-4) var(--space-3) var(--space-3);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-1);cursor:pointer;transition:background-color var(--duration-short3) var(--ease-standard)}
+.rcard:hover{background:var(--bg-sunken)}
+.rcard input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.rcard:has(input:focus-visible){outline:2px solid var(--ring);outline-offset:2px}
+.rdot{display:grid;place-items:center;width:22px;height:22px;margin-top:3px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg-card)}
+.rdot::after{content:"";width:10px;height:10px;border-radius:50%;background:transparent}
+.rcard .mname{display:block;padding-right:84px;font-size:var(--text-18);line-height:var(--text-18--lh);font-weight:700;font-feature-settings:"palt"}
+.rcard .mname .caps{display:block;font-size:11px;line-height:16px}
+.prices{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--space-3);margin-top:var(--space-1)}
+.prices i{font-style:normal;font-size:var(--text-12);line-height:16px;font-weight:700;color:var(--fg-muted);margin-right:4px}
+.prices .g b{font:700 var(--text-30)/var(--text-30--lh) var(--font-num)}
+.prices .g b small{font-size:var(--text-18);margin-right:1px}
+.prices .s b{font:700 var(--text-18)/var(--text-18--lh) var(--font-num)}
+.prices .s b small{font-size:var(--text-14);margin-right:1px}
+.prices .dur{margin-left:auto;font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted);white-space:nowrap}
+.rcard .desc{margin-top:2px;font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
+.badge{position:absolute;top:-2px;right:-2px;display:none;align-items:center;gap:4px;padding:2px var(--space-2) 2px 6px;border-radius:0 var(--radius-sm) 0 var(--radius-sm);background:var(--accent);color:var(--on-accent);font:700 var(--text-12)/18px var(--font-sans);letter-spacing:.04em}
+.badge .ic{width:14px;height:14px;stroke-width:2.5}
+/* 選択中: 2px の --accent 枠（padding を 1px 詰めて位置を揺らさない）、ラジオの点、太字の ✓ 選択中 */
+.rcard:has(input:checked){border:2px solid var(--accent);padding:11px 15px 11px 11px;background:var(--bg-card)}
+.rcard:has(input:checked) .rdot{border-color:var(--accent)}
+.rcard:has(input:checked) .rdot::after{background:var(--accent)}
+.rcard:has(input:checked) .badge{display:flex}
+/* ---- 次の段の予告・ポリシー要点 ---- */
+.next{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-6);padding:var(--space-3) var(--space-4);border:1px dashed var(--fg-subtle);border-radius:var(--radius-sm);font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-subtle)}
+.next b{font-weight:700}
+.acc{margin-top:var(--space-3);border-top:1px solid var(--border);border-bottom:1px solid var(--border-subtle)}
+.acc summary{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:48px;font-size:var(--text-16);font-weight:700;cursor:pointer;list-style:none}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary .ic{color:var(--fg-muted);transition:transform var(--duration-short3) var(--ease-standard)}
+.acc[open] summary .ic{transform:rotate(180deg)}
+</style>
+</head>
+<body class="paper">
+<header class="flow-head paper">
+  <div class="in">
+    <a class="back" href="/ja" aria-label="トップに戻る"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+    <h1>ご予約</h1>
+    <a class="lang" href="/en/book" hreflang="en" lang="en" aria-label="English">EN</a>
+    <a class="btn btn-secondary btn-sm" href="https://ig.me/m/neuer.kento" rel="noopener noreferrer" aria-label="Instagram の DM で問い合わせる（@neuer.kento）"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>Instagram</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <ol class="stepper" aria-label="予約の手順">
+    <li class="cur" aria-current="step"><span class="dot">1</span>メニューを選ぶ</li>
+    <li><span class="dot">2</span>日時を選ぶ</li>
+    <li><span class="dot">3</span>お客様情報</li>
+    <li><span class="dot">4</span>確認</li>
+  </ol>
+
+  <h2 class="page-h" id="menu-h" tabindex="-1">メニューを選ぶ</h2>
+  <p class="lead">料金は税込。すべて <span class="num">60</span> 分です。学生料金は次の「お客様情報」でご職業に学生を選ぶと適用されます。</p>
+
+  <fieldset class="rcards" aria-labelledby="menu-h">
+    <label class="rcard">
+      <input type="radio" name="menu" value="cut" aria-labelledby="m-cut" aria-describedby="m-cut-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-cut">カット<span class="caps" lang="en">Cut</span></span>
+        <span id="m-cut-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">シャンプー・眉カット込み。フェードも可</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="cut-perm" aria-labelledby="m-cut-perm" aria-describedby="m-cut-perm-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-cut-perm">カットパーマ<span class="caps" lang="en">Cut &amp; Perm</span></span>
+        <span id="m-cut-perm-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">カットとパーマのセット。波巻きも可</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="cut-color" aria-labelledby="m-cut-color" aria-describedby="m-cut-color-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-cut-color">カットカラー<span class="caps" lang="en">Cut &amp; Color</span></span>
+        <span id="m-cut-color-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">カット＋全体カラー。白髪ぼかしにも対応</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="special-perm" aria-labelledby="m-special-perm" aria-describedby="m-special-perm-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-special-perm">特殊パーマ<span class="caps" lang="en">Special Perm</span></span>
+        <span id="m-special-perm-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">スパイラル・ツイストスパイラルなど</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="bleach" aria-labelledby="m-bleach" aria-describedby="m-bleach-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-bleach">ブリーチ<span class="caps" lang="en">Bleach</span></span>
+        <span id="m-bleach-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block"><span class="num">1</span> 回分。ハイトーンやデザインカラーの下地に</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="retouch" aria-labelledby="m-retouch" aria-describedby="m-retouch-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-retouch">リタッチ<span class="caps" lang="en">Root Retouch</span></span>
+        <span id="m-retouch-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">根元の伸びた部分だけのブリーチ・カラー</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="bleach-2nd" aria-labelledby="m-bleach-2nd" aria-describedby="m-bleach-2nd-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-bleach-2nd">ブリーチ <span class="num">2</span> 回目以上<span class="caps" lang="en">Additional Bleach (2nd+)</span></span>
+        <span id="m-bleach-2nd-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block"><span class="num">2</span> 回目以降のブリーチ <span class="num">1</span> 回分（追加）</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="braids" aria-labelledby="m-braids" aria-describedby="m-braids-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-braids">編み込み・特殊ヘア<span class="caps" lang="en">Braids &amp; Special Styling</span></span>
+        <span id="m-braids-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">コーンロウ・編み込み。長さにより要相談</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+    <label class="rcard">
+      <input type="radio" name="menu" value="iron-perm" aria-labelledby="m-iron-perm" aria-describedby="m-iron-perm-d">
+      <span class="rdot" aria-hidden="true"></span>
+      <span>
+        <span class="mname" id="m-iron-perm">アイロンパーマ<span class="caps" lang="en">Iron Perm</span></span>
+        <span id="m-iron-perm-d">
+          <span class="prices"><span class="g"><i>一般</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="s"><i>学生</i><b class="num"><small>¥</small>—<span class="vh">（未定）</span></b></span><span class="dur"><span class="num">60</span>分</span></span>
+          <span class="desc" style="display:block">濡れパン。濡れたような質感の短髪パーマ</span>
+        </span>
+      </span>
+      <span class="badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span>
+    </label>
+  </fieldset>
+
+  <p class="next"><span class="dot" aria-hidden="true" style="border-color:var(--fg-subtle);color:var(--fg-subtle);background:transparent">2</span><span><b>次: 日時を選ぶ</b>　月カレンダーで空き時間を見て選べます</span></p>
+
+  <details class="acc">
+    <summary>キャンセルポリシー（要点）<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+    <p style="padding:0 0 var(--space-3);font-size:var(--text-14);line-height:1.6">ご来店の <span class="num">2</span> 時間前までは予約完了画面のリンクからキャンセルできます。それ以降は Instagram の DM（@neuer.kento）でご連絡ください。</p>
+  </details>
+</main>
+
+</body>
+</html>
