@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "timezone": "Asia/Tokyo",
+  "schedule": ["before 9am on monday"],
+  "labels": ["deps"],
+  "rangeStrategy": "pin",
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "prConcurrentLimit": 5,
+  "vulnerabilityAlerts": {
+    "labels": ["deps", "security"]
+  },
+  "packageRules": [
+    {
+      "description": "devDependencies: automerge patch/minor once CI is green (NFR-OP-04)",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "description": "GitHub Actions and CI service images: pin by digest (AGENTS.md rule 8)",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true
+    },
+    {
+      "description": "Next.js and its ESLint config move together; never automerge",
+      "matchPackageNames": ["next", "eslint-config-next"],
+      "groupName": "next",
+      "automerge": false
+    },
+    {
+      "description": "React and its types move together",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "react",
+      "automerge": false
+    },
+    {
+      "description": "Drizzle ORM and drizzle-kit must stay compatible (migrations)",
+      "matchPackageNames": ["drizzle-orm", "drizzle-kit"],
+      "groupName": "drizzle",
+      "automerge": false
+    },
+    {
+      "description": "Better Auth packages share a version",
+      "matchPackageNames": ["better-auth", "@better-auth/{/,}**"],
+      "groupName": "better-auth",
+      "automerge": false
+    },
+    {
+      "description": "Tailwind CSS packages share a version",
+      "matchPackageNames": ["tailwindcss", "@tailwindcss/{/,}**"],
+      "groupName": "tailwind"
+    },
+    {
+      "description": "Test toolchain",
+      "matchPackageNames": ["vitest", "vite", "@vitejs/{/,}**"],
+      "groupName": "vitest"
+    },
+    {
+      "description": "Major updates wait for approval on the Dependency Dashboard (reviewed quarterly)",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}

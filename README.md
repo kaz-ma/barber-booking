@@ -41,6 +41,17 @@ npm run build       # needs DATABASE_URL reachable: menus/settings are baked int
 
 CI (`.github/workflows/ci.yml`) runs the same steps against a Postgres 16 service.
 
+## Deploy
+
+Production runs on Vercel Hobby + Neon Free (via the Vercel Marketplace); see ADR-0001.
+Follow [`docs/07_release/01_deploy_guide.md`](docs/07_release/01_deploy_guide.md) (REL-001): env vars,
+migrations, seed, cron, Turnstile, WAF, staging, custom domain and the Pro/Cloudflare path.
+
+- Migrate before deploying, from a local shell with the Neon direct URL: `npm run db:migrate`. Never `drizzle-kit push`.
+- Production seed: `npm run db:seed` and `npm run db:seed-admin`, **without** `--activate-menus`; publish menus in the admin once prices are set (OI-01).
+- Daily encrypted backups: `.github/workflows/backup.yml` (restore steps in REL-001 §9). Dependency updates: `renovate.json`.
+- Before go-live: [`02_prelaunch_checklist.md`](docs/07_release/02_prelaunch_checklist.md); incidents and rollback: [`03_rollback_and_incident.md`](docs/07_release/03_rollback_and_incident.md).
+
 ## Booking flow
 
 `/{locale}/book` (menu) → `/book/time?menu=` (month calendar + slots, never cached) →

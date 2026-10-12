@@ -13,7 +13,7 @@ Neuer Barber 長田健豊 様向け「予約サイト（JP/EN）＋管理 PWA」
 | `04_wireframes/` | ワイヤーフレーム（グレースケール 390×844 の HTML 原本と書き出し画像、コンタクトシート、共通キット `wf.css`、描画・検証スクリプト `tools/`）。顧客サイト 8 ファイル 27 状態、管理 PWA 10 ファイル 39 状態 | WF v0.1（M3 承認待ち） | `04_wireframes/README.md`、`customer_flow.md`（WF-C）、`admin_flow.md`（WF-A）、`screens/` |
 | `05_design_comps/` | デザイン提案書（スタイルタイル 2〜3 案）、ベースデザイン 3 画面、全画面カンプ、管理 PWA 主要画面、デザインガイド（トークン・タイポグラフィ・カラー・モーション） | 予定（第 2 回打ち合わせ〜） | — |
 | `06_test/` | 評価レポート（WF の認知的ウォークスルー＋簡易ヒューリスティック評価を作成済み。5 秒テスト・カンプのヒューリスティック評価・ユーザビリティテストを追加予定）。テスト仕様書・結果、Lighthouse / axe レポート、不具合一覧は実装〜検収で追加 | 評価 EVAL-001 v0.1。テスト仕様は予定（実装〜検収） | `06_test/README.md`、`evaluation/cognitive_walkthrough_wf.md` |
-| `07_release/` | 公開手順書、公開前チェックリスト、ロールバック手順、運用マニュアル（日英）、運用設計書、保守契約案、バックアップ復元手順 | 予定（公開前〜引継ぎ） | `operations/` |
+| `07_release/` | 公開手順書（環境変数一覧・バックアップ復元・独自ドメイン／Pro 移行を含む）、公開前チェックリスト、ロールバック・障害対応手順、運用マニュアル（店主向け、日本語版）、受入テスト計画（AT-01〜31）。運用設計書・保守契約案・運用マニュアル英語版は追加予定。関連: `.github/workflows/backup.yml`、`renovate.json` | REL-001〜005 v0.1（2026-10-12） | `07_release/README.md`、`01_deploy_guide.md`、`02_prelaunch_checklist.md`、`03_rollback_and_incident.md`、`04_operations_manual.md`、`05_acceptance_test_plan.md` |
 
 ## 読む順序
 

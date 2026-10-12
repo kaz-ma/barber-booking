@@ -1,0 +1,128 @@
+name: Backup
+
+# Daily encrypted pg_dump of the production database (FR-S-08, NFR-OP-01, 08_security.md §10).
+# Restore steps: docs/07_release/01_deploy_guide.md §9 and 03_rollback_and_incident.md §3.
+#
+# Secrets (put them on the `backup` environment, deployment branches limited to `main`;
+# do NOT add required reviewers there, or every scheduled run waits for an approval):
+#   PROD_DATABASE_URL     Neon DIRECT (unpooled, no "-pooler") URL, ideally of a read-only role
+#                         (backup_ro, pg_read_all_data), with sslmode=require.
+#   BACKUP_AGE_RECIPIENT  age public key (age1...). Preferred: CI can encrypt but never decrypt.
+#   BACKUP_PASSPHRASE     fallback when BACKUP_AGE_RECIPIENT is unset: gpg --symmetric (AES256).
+#
+# Artifacts are kept 30 days (= 30 generations). The job refuses to run in a public repository:
+# artifacts of public repositories can be downloaded by any signed-in GitHub user.
+
+on:
+  schedule:
+    # 03:17 JST. 08_security.md §10 says 18:00 UTC; moved off :00 because GitHub delays
+    # top-of-hour schedules the most. Scheduled runs use the default branch only.
+    - cron: '17 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: backup
+    env:
+      # Must be >= the Neon server major (pg_dump cannot dump a newer server). The dump step
+      # checks it. Neon's default for new projects is 17 at the time of writing (verify in the
+      # Neon console > Settings, and bump this when the project is upgraded).
+      PG_MAJOR: '17'
+    steps:
+      - name: Refuse to run in a public repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          visibility="$(gh api "repos/${GITHUB_REPOSITORY}" --jq .visibility)"
+          if [ "$visibility" = "public" ]; then
+            echo "::error::Repository is public: encrypted dumps must not be published as artifacts. Use private storage (08_security.md §10)."
+            exit 1
+          fi
+
+      - name: Check secrets
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$PROD_DATABASE_URL" ]; then echo "::error::PROD_DATABASE_URL is not set"; exit 1; fi
+          if [ -z "$BACKUP_AGE_RECIPIENT" ] && [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Set BACKUP_AGE_RECIPIENT (preferred) or BACKUP_PASSPHRASE"; exit 1
+          fi
+          case "$PROD_DATABASE_URL" in
+            *-pooler.*) echo "::warning::PROD_DATABASE_URL points at the Neon pooler; use the direct endpoint for pg_dump" ;;
+          esac
+
+      - name: Install PostgreSQL client and age
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common age
+          # PGDG repository, so the client major can match Neon's server major.
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq "postgresql-client-${PG_MAJOR}"
+          "/usr/lib/postgresql/${PG_MAJOR}/bin/pg_dump" --version
+          age --version
+
+      - name: Dump, verify and encrypt
+        id: dump
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          BIN="/usr/lib/postgresql/${PG_MAJOR}/bin"
+          OUT="${RUNNER_TEMP}/backup"
+          mkdir -p "$OUT"
+
+          server_major="$("$BIN/psql" "$PROD_DATABASE_URL" -XtAc "SELECT current_setting('server_version_num')::int / 10000")"
+          echo "server major: ${server_major}, client major: ${PG_MAJOR}"
+          if [ "$server_major" -gt "$PG_MAJOR" ]; then
+            echo "::error::Neon server is PostgreSQL ${server_major}; raise PG_MAJOR in backup.yml"; exit 1
+          fi
+          if [ "$server_major" -ne "$PG_MAJOR" ]; then
+            echo "::warning::Client ${PG_MAJOR} != server ${server_major}; set PG_MAJOR to ${server_major}"
+          fi
+
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          dump="${OUT}/barber-${stamp}.dump"
+          "$BIN/pg_dump" --format=custom --no-owner --no-privileges --file "$dump" "$PROD_DATABASE_URL"
+
+          # The archive must be readable and contain the double-booking constraint (AGENTS.md rule 1).
+          "$BIN/pg_restore" --list "$dump" > "${OUT}/toc.txt"
+          grep -q 'bookings_no_overlap' "${OUT}/toc.txt" || { echo "::error::bookings_no_overlap missing from the dump"; exit 1; }
+          rm -f "${OUT}/toc.txt"
+          echo "dump size: $(stat -c %s "$dump") bytes"
+
+          if [ -n "${BACKUP_AGE_RECIPIENT:-}" ]; then
+            enc="${dump}.age"
+            age --encrypt --recipient "$BACKUP_AGE_RECIPIENT" --output "$enc" "$dump"
+          else
+            enc="${dump}.gpg"
+            printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --quiet --pinentry-mode loopback \
+              --passphrase-fd 0 --symmetric --cipher-algo AES256 --output "$enc" "$dump"
+          fi
+          rm -f "$dump"
+
+          (cd "$OUT" && sha256sum "$(basename "$enc")" > "$(basename "$enc").sha256")
+          echo "stamp=${stamp}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload encrypted dump (30 days)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: db-backup-${{ steps.dump.outputs.stamp }}
+          path: ${{ runner.temp }}/backup/
+          retention-days: 30
+          # Encrypted data does not compress.
+          compression-level: 0
+          if-no-files-found: error
