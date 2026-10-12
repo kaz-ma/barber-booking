@@ -1,11 +1,11 @@
 import 'server-only'
 import { randomUUID } from 'node:crypto'
 import { and, eq, inArray, sql } from 'drizzle-orm'
+import { POLICY_VERSION } from '@/config/shop'
 import { ACTIVE_STATUSES } from '@/domain/booking-status'
 import { phoneTail } from '@/domain/phone'
 import { applicablePrice } from '@/domain/pricing'
 import { jstDate } from '@/domain/time'
-import { POLICY_VERSION } from '@/config/shop'
 import type { ActionResult } from '@/lib/action-result'
 import { invalid } from '@/lib/action-result'
 import { audit } from '@/lib/audit'
@@ -190,7 +190,15 @@ async function insertBooking(
     // One checkbox records two consents (12.3). The FKs are DEFERRABLE (checked at COMMIT).
     const userAgent = ctx.userAgent?.slice(0, 512) ?? null
     await tx.insert(consents).values([
-      { id: consentId, customerId: customer.id, bookingId, kind: 'booking_policy', policyVersion: POLICY_VERSION, ip: ctx.ip, userAgent },
+      {
+        id: consentId,
+        customerId: customer.id,
+        bookingId,
+        kind: 'booking_policy',
+        policyVersion: POLICY_VERSION,
+        ip: ctx.ip,
+        userAgent,
+      },
       { customerId: customer.id, bookingId, kind: 'privacy', policyVersion: POLICY_VERSION, ip: ctx.ip, userAgent },
     ])
 
@@ -238,7 +246,11 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
   if (!phoneLimit.ok) return { result: { status: 'rate_limited', retryAfterSec: phoneLimit.retryAfterSec } }
 
   // (4) Turnstile (external I/O, after everything cheap)
-  const human = await verifyTurnstile({ token: input.turnstileToken, ip: ctx.ip, idempotencyKey: input.submissionNonce })
+  const human = await verifyTurnstile({
+    token: input.turnstileToken,
+    ip: ctx.ip,
+    idempotencyKey: input.submissionNonce,
+  })
   if (!human) return { result: { status: 'bot_check_failed' } }
 
   // (5) Transaction; retry once only for the (practically impossible) random-value collisions
@@ -288,7 +300,10 @@ export const VIEW_GRACE_MS = 24 * 60 * 60 * 1000
  * constant-time compare -> deadline check -> cancelled_by_customer, token invalidated.
  * "Not found" never reveals why (enumeration resistance).
  */
-export async function cancelByToken(raw: unknown, context: Omit<RequestContext, 'ip' | 'userAgent'>): Promise<CancelBookingResult> {
+export async function cancelByToken(
+  raw: unknown,
+  context: Omit<RequestContext, 'ip' | 'userAgent'>,
+): Promise<CancelBookingResult> {
   const now = context.now ?? new Date()
   const parsed = cancelBookingSchema.safeParse(raw)
   if (!parsed.success || !isCancelTokenFormat(parsed.data.token)) return { result: { status: 'not_found' } }

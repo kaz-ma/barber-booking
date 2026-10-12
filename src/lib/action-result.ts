@@ -19,7 +19,9 @@ export function invalid(error: z.ZodError): Extract<ActionResult<never>, { statu
   const fieldErrors: Record<string, string[]> = {}
   for (const issue of error.issues) {
     const key = issue.path.join('.') || '_form'
-    ;(fieldErrors[key] ??= []).push(issue.message)
+    const list = fieldErrors[key] ?? []
+    list.push(issue.message)
+    fieldErrors[key] = list
   }
   return { status: 'invalid', fieldErrors }
 }

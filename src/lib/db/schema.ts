@@ -49,14 +49,7 @@ export const bookingStatus = pgEnum('booking_status', [
 /** Statuses covered by the EXCLUDE constraint and the availability SQL. */
 export const ACTIVE_STATUSES = ['confirmed', 'arrived', 'in_progress'] as const
 
-export const bookingSource = pgEnum('booking_source', [
-  'web',
-  'phone',
-  'walk_in',
-  'instagram',
-  'line',
-  'manual',
-])
+export const bookingSource = pgEnum('booking_source', ['web', 'phone', 'walk_in', 'instagram', 'line', 'manual'])
 export const occupation = pgEnum('occupation', ['student', 'worker'])
 export const localeCode = pgEnum('locale_code', ['ja', 'en'])
 export const bookingRestriction = pgEnum('booking_restriction', ['none', 'dm_only', 'blocked'])
@@ -89,9 +82,7 @@ export const customers = pgTable(
     noShowCount: integer('no_show_count').notNull().default(0),
     lateCancelCount: integer('late_cancel_count').notNull().default(0),
     bookingRestriction: bookingRestriction('booking_restriction').notNull().default('none'),
-    mergedIntoCustomerId: uuid('merged_into_customer_id').references(
-      (): AnyPgColumn => customers.id,
-    ),
+    mergedIntoCustomerId: uuid('merged_into_customer_id').references((): AnyPgColumn => customers.id),
     lineUserId: text('line_user_id').unique(),
     instagramUserId: text('instagram_user_id').unique(),
     lastVisitAt: tz('last_visit_at'),
@@ -103,14 +94,8 @@ export const customers = pgTable(
   () => [
     check('customers_name_len', sql`name IS NULL OR char_length(name) BETWEEN 1 AND 50`),
     check('customers_name_kana_len', sql`name_kana IS NULL OR char_length(name_kana) <= 50`),
-    check(
-      'customers_phone_e164_format',
-      sql`phone_e164 IS NULL OR phone_e164 ~ '^\\+[1-9][0-9]{7,14}$'`,
-    ),
-    check(
-      'customers_phone_display_len',
-      sql`phone_display IS NULL OR char_length(phone_display) <= 32`,
-    ),
+    check('customers_phone_e164_format', sql`phone_e164 IS NULL OR phone_e164 ~ '^\\+[1-9][0-9]{7,14}$'`),
+    check('customers_phone_display_len', sql`phone_display IS NULL OR char_length(phone_display) <= 32`),
     check('customers_no_show_count_nonneg', sql`no_show_count >= 0`),
     check('customers_late_cancel_count_nonneg', sql`late_cancel_count >= 0`),
     check('customers_name_present', sql`anonymized_at IS NOT NULL OR name IS NOT NULL`),
@@ -118,15 +103,10 @@ export const customers = pgTable(
       'customers_anonymized_clean',
       sql`anonymized_at IS NULL OR (name IS NULL AND name_kana IS NULL AND phone_e164 IS NULL AND phone_display IS NULL AND line_user_id IS NULL AND instagram_user_id IS NULL)`,
     ),
-    check(
-      'customers_not_self_merged',
-      sql`merged_into_customer_id IS DISTINCT FROM id`,
-    ),
+    check('customers_not_self_merged', sql`merged_into_customer_id IS DISTINCT FROM id`),
     uniqueIndex('customers_phone_e164_uidx')
       .on(sql`phone_e164`)
-      .where(
-        sql`phone_e164 IS NOT NULL AND deleted_at IS NULL AND merged_into_customer_id IS NULL`,
-      ),
+      .where(sql`phone_e164 IS NOT NULL AND deleted_at IS NULL AND merged_into_customer_id IS NULL`),
     index('customers_name_kana_trgm_idx').using('gin', sql`name_kana gin_trgm_ops`),
     index('customers_retention_idx').on(sql`last_visit_at`).where(sql`anonymized_at IS NULL`),
   ],
@@ -160,18 +140,9 @@ export const menus = pgTable(
     check('menus_description_ja_len', sql`char_length(description_ja) <= 120`),
     check('menus_description_en_len', sql`char_length(description_en) <= 200`),
     check('menus_price_nonneg', sql`price_jpy >= 0`),
-    check(
-      'menus_price_student_range',
-      sql`price_student_jpy IS NULL OR price_student_jpy BETWEEN 0 AND price_jpy`,
-    ),
-    check(
-      'menus_duration_valid',
-      sql`duration_min BETWEEN 15 AND 480 AND duration_min % 5 = 0`,
-    ),
-    check(
-      'menus_buffer_valid',
-      sql`buffer_after_min BETWEEN 0 AND 120 AND buffer_after_min % 5 = 0`,
-    ),
+    check('menus_price_student_range', sql`price_student_jpy IS NULL OR price_student_jpy BETWEEN 0 AND price_jpy`),
+    check('menus_duration_valid', sql`duration_min BETWEEN 15 AND 480 AND duration_min % 5 = 0`),
+    check('menus_buffer_valid', sql`buffer_after_min BETWEEN 0 AND 120 AND buffer_after_min % 5 = 0`),
   ],
 )
 
@@ -269,9 +240,7 @@ export const consents = pgTable(
     check('consents_policy_version_len', sql`char_length(policy_version) <= 32`),
     check('consents_user_agent_len', sql`char_length(user_agent) <= 512`),
     index('consents_customer_idx').on(sql`customer_id`, sql`accepted_at DESC`),
-    index('consents_pii_purge_idx')
-      .on(sql`accepted_at`)
-      .where(sql`ip IS NOT NULL OR user_agent IS NOT NULL`),
+    index('consents_pii_purge_idx').on(sql`accepted_at`).where(sql`ip IS NOT NULL OR user_agent IS NOT NULL`),
   ],
 )
 
@@ -323,14 +292,8 @@ export const bookings = pgTable(
     check('bookings_buffer_nonneg', sql`buffer_min >= 0`),
     check('bookings_note_len', sql`char_length(note) <= 500`),
     check('bookings_owner_note_len', sql`char_length(owner_note) <= 500`),
-    check(
-      'bookings_idempotency_key_format',
-      sql`idempotency_key IS NULL OR idempotency_key ~ '^[0-9a-f]{64}$'`,
-    ),
-    check(
-      'bookings_cancel_token_hash_len',
-      sql`cancel_token_hash IS NULL OR octet_length(cancel_token_hash) = 32`,
-    ),
+    check('bookings_idempotency_key_format', sql`idempotency_key IS NULL OR idempotency_key ~ '^[0-9a-f]{64}$'`),
+    check('bookings_cancel_token_hash_len', sql`cancel_token_hash IS NULL OR octet_length(cancel_token_hash) = 32`),
     check('bookings_cancel_reason_len', sql`char_length(cancel_reason) <= 200`),
     check('bookings_late_minutes_nonneg', sql`late_minutes >= 0`),
     // Half-open [start, end): a booking ending 19:00 and one starting 19:00 do not overlap.
@@ -351,9 +314,7 @@ export const bookings = pgTable(
     // Unique among *active* bookings only, so a cancelled slot can be re-booked (G-03).
     uniqueIndex('bookings_idempotency_active_uidx')
       .on(sql`idempotency_key`)
-      .where(
-        sql`idempotency_key IS NOT NULL AND status IN ('confirmed', 'arrived', 'in_progress')`,
-      ),
+      .where(sql`idempotency_key IS NOT NULL AND status IN ('confirmed', 'arrived', 'in_progress')`),
     index('bookings_start_idx').on(sql`lower(during)`),
     index('bookings_customer_idx').on(sql`customer_id`, sql`lower(during) DESC`),
     index('bookings_unack_idx').on(sql`created_at DESC`).where(sql`acknowledged_at IS NULL`),
@@ -380,9 +341,7 @@ export const timeBlocks = pgTable(
       sql`lower_inc(during) AND NOT upper_inc(during) AND NOT isempty(during) AND NOT lower_inf(during) AND NOT upper_inf(during)`,
     ),
     check('time_blocks_max_span', sql`upper(during) - lower(during) <= interval '60 days'`),
-    index('time_blocks_during_gist')
-      .using('gist', sql`resource_id`, sql`during`)
-      .where(sql`deleted_at IS NULL`),
+    index('time_blocks_during_gist').using('gist', sql`resource_id`, sql`during`).where(sql`deleted_at IS NULL`),
   ],
 )
 

@@ -115,10 +115,7 @@ type DayRow = {
 }
 
 /** §6: each day with every candidate slot and its status (used for the slot list). */
-export async function queryAvailabilityDays(
-  db: DbOrTx,
-  params: AvailabilityParams,
-): Promise<RawDay[]> {
+export async function queryAvailabilityDays(db: DbOrTx, params: AvailabilityParams): Promise<RawDay[]> {
   const res = await db.execute<DayRow>(sql`
     ${availabilityCtes(params)}
     SELECT hr.d::text AS date,
@@ -142,10 +139,7 @@ export async function queryAvailabilityDays(
 }
 
 /** §6.1: per-day summary for the month calendar (past days are out_of_range). */
-export async function queryAvailabilityMonth(
-  db: DbOrTx,
-  params: AvailabilityParams,
-): Promise<Omit<RawDay, 'slots'>[]> {
+export async function queryAvailabilityMonth(db: DbOrTx, params: AvailabilityParams): Promise<Omit<RawDay, 'slots'>[]> {
   const res = await db.execute<DayRow>(sql`
     ${availabilityCtes(params)}
     SELECT hr.d::text AS date,

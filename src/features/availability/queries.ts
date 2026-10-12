@@ -46,20 +46,20 @@ async function maxAdvanceDays(): Promise<number> {
 
 /** Every candidate slot (incl. full / deadline) per day; `null` when the menu is unknown/inactive. */
 export async function getAvailability(
-    input: { menuSlug: string; from: string; to: string },
-    now: Date = new Date(),
-  ): Promise<DayAvailabilityDTO[] | null> {
-    const { menuSlug, from, to } = input
-    if (!isDateString(from) || !isDateString(to) || from > to) return null
-    if (addDays(from, MAX_RANGE_DAYS - 1) < to) return null
-    if (!(await isActiveMenu(menuSlug))) return null
-    const days = await queryAvailabilityDays(db, { menuSlug, from, to, now })
-    return days.map((d) => ({
-      date: d.date,
-      status: d.status,
-      ...(d.closedReason ? { closedReason: d.closedReason } : {}),
-      slots: d.slots.map((s) => ({ startsAt: toJstIso(s.startsAt), status: s.status })),
-    }))
+  input: { menuSlug: string; from: string; to: string },
+  now: Date = new Date(),
+): Promise<DayAvailabilityDTO[] | null> {
+  const { menuSlug, from, to } = input
+  if (!isDateString(from) || !isDateString(to) || from > to) return null
+  if (addDays(from, MAX_RANGE_DAYS - 1) < to) return null
+  if (!(await isActiveMenu(menuSlug))) return null
+  const days = await queryAvailabilityDays(db, { menuSlug, from, to, now })
+  return days.map((d) => ({
+    date: d.date,
+    status: d.status,
+    ...(d.closedReason ? { closedReason: d.closedReason } : {}),
+    slots: d.slots.map((s) => ({ startsAt: toJstIso(s.startsAt), status: s.status })),
+  }))
 }
 
 /** Slot list for one JST date (S-C-03 after the v0.3 month calendar change). */
@@ -73,33 +73,33 @@ export async function getDayAvailability(
 
 /** Month calendar summary (§6.1). `null` = invalid month (outside today .. today + max advance). */
 export async function getMonthAvailability(
-    input: { menuSlug: string; month: string },
-    now: Date = new Date(),
-  ): Promise<MonthAvailabilityDTO | null> {
-    const { menuSlug, month } = input
-    if (!isMonthString(month)) return null
-    const today = jstDate(now)
-    const firstMonth = monthOf(today)
-    const lastMonth = monthOf(addDays(today, await maxAdvanceDays()))
-    if (month < firstMonth || month > lastMonth) return null
-    if (!(await isActiveMenu(menuSlug))) return null
+  input: { menuSlug: string; month: string },
+  now: Date = new Date(),
+): Promise<MonthAvailabilityDTO | null> {
+  const { menuSlug, month } = input
+  if (!isMonthString(month)) return null
+  const today = jstDate(now)
+  const firstMonth = monthOf(today)
+  const lastMonth = monthOf(addDays(today, await maxAdvanceDays()))
+  if (month < firstMonth || month > lastMonth) return null
+  if (!(await isActiveMenu(menuSlug))) return null
 
-    const { first, last } = monthBounds(month)
-    const days = await queryAvailabilityMonth(db, { menuSlug, from: first, to: last, now })
-    const prev = addMonths(month, -1)
-    const next = addMonths(month, 1)
-    return {
-      month,
-      days: days.map((d) => ({
-        date: d.date,
-        status: d.status,
-        ...(d.closedReason ? { closedReason: d.closedReason } : {}),
-      })),
-      ...(prev >= firstMonth ? { prevMonth: prev } : {}),
-      ...(next <= lastMonth ? { nextMonth: next } : {}),
-      ...(() => {
-        const firstAvailable = days.find((d) => d.status === 'available')?.date
-        return firstAvailable ? { firstAvailableDate: firstAvailable } : {}
-      })(),
-    }
+  const { first, last } = monthBounds(month)
+  const days = await queryAvailabilityMonth(db, { menuSlug, from: first, to: last, now })
+  const prev = addMonths(month, -1)
+  const next = addMonths(month, 1)
+  return {
+    month,
+    days: days.map((d) => ({
+      date: d.date,
+      status: d.status,
+      ...(d.closedReason ? { closedReason: d.closedReason } : {}),
+    })),
+    ...(prev >= firstMonth ? { prevMonth: prev } : {}),
+    ...(next <= lastMonth ? { nextMonth: next } : {}),
+    ...(() => {
+      const firstAvailable = days.find((d) => d.status === 'available')?.date
+      return firstAvailable ? { firstAvailableDate: firstAvailable } : {}
+    })(),
+  }
 }

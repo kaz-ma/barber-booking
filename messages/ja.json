@@ -1,0 +1,165 @@
+{
+  "common": {
+    "next": "次へ",
+    "back": "戻る",
+    "change": "変更",
+    "copy": "コピー",
+    "copied": "コピーしました"
+  },
+  "meta": {
+    "siteName": "Neuer Barber",
+    "topTitle": "Neuer Barber ｜ ご予約",
+    "bookTitle": "メニューを選ぶ ｜ Neuer Barber",
+    "timeTitle": "日時を選ぶ ｜ Neuer Barber",
+    "infoTitle": "お客様情報 ｜ Neuer Barber",
+    "confirmTitle": "ご予約内容の確認 ｜ Neuer Barber",
+    "doneTitle": "予約完了 ｜ Neuer Barber",
+    "cancelTitle": "ご予約のキャンセル ｜ Neuer Barber",
+    "notFoundTitle": "ページが見つかりません ｜ Neuer Barber"
+  },
+  "nav": {
+    "book": "予約する",
+    "switchLocale": "EN",
+    "switchLocaleLabel": "English",
+    "instagram": "Instagram @{handle}"
+  },
+  "contact": {
+    "dmPrompt": "お問い合わせは Instagram の DM でお願いします",
+    "pastDeadline": "キャンセル締切を過ぎています。Instagram の DM でご連絡ください",
+    "restricted": "お手数ですが、ご予約は Instagram の DM で承ります"
+  },
+  "home": {
+    "heading": "Neuer Barber",
+    "hours": "受付 18:00〜24:00 ／ 定休日 月曜",
+    "languages": "日本語・English に対応しています",
+    "cta": "予約する"
+  },
+  "menu": {
+    "duration": "{minutes}分",
+    "price": "{price}（税込）",
+    "studentPrice": "学生 {price}",
+    "priceTbd": "料金は準備中です",
+    "empty": "現在オンライン予約を受け付けていません。Instagram の DM でお問い合わせください"
+  },
+  "booking": {
+    "steps": {
+      "menu": "1. メニューを選ぶ",
+      "time": "2. 日時を選ぶ",
+      "info": "3. お客様情報",
+      "confirm": "4. 確認",
+      "toTime": "空き時間を見て予約する"
+    },
+    "form": {
+      "selection": "ご予約内容",
+      "name": "お名前",
+      "nameHint": "例: 山田 太郎",
+      "kana": "ふりがな",
+      "kanaHint": "例: やまだ たろう",
+      "occupation": "ご職業",
+      "student": "学生",
+      "worker": "社会人",
+      "phone": "電話番号",
+      "phoneHint": "例: 09012345678",
+      "note": "ご要望（任意）",
+      "noteCount": "残り {count} 文字",
+      "toConfirm": "確認へ"
+    },
+    "errors": {
+      "menuRequired": "メニューを選んでください",
+      "nameRequired": "お名前を入力してください（例: 山田 太郎）",
+      "nameTooLong": "お名前は 50 文字以内で入力してください",
+      "nameInvalid": "お名前に使えない文字が含まれています",
+      "kanaRequired": "ふりがなを入力してください（例: やまだ たろう）",
+      "kanaHiragana": "ふりがなはひらがなで入力してください（例: やまだ たろう）",
+      "kanaTooLong": "ふりがなは 50 文字以内で入力してください",
+      "occupationRequired": "「学生」か「社会人」を選んでください",
+      "phoneRequired": "電話番号を入力してください（例: 09012345678）",
+      "phoneInvalid": "電話番号を正しい形式で入力してください（例: 09012345678）",
+      "noteTooLong": "備考は 500 文字以内で入力してください",
+      "consentRequired": "ポリシーへの同意が必要です",
+      "startsAtInvalid": "日時を選び直してください",
+      "invalid": "入力内容をご確認ください",
+      "botCheckFailed": "確認に失敗しました。もう一度お試しください",
+      "notBookable": "その時間は予約できません。日時を選び直してください",
+      "slotTaken": "申し訳ありません。その枠はたった今埋まりました",
+      "duplicate": "同じ内容のご予約がすでにあります",
+      "rateLimited": "短時間に操作が集中しました。しばらくしてからお試しください",
+      "restricted": "お手数ですが、ご予約は Instagram の DM で承ります",
+      "error": "処理できませんでした。時間をおいてお試しいただくか、Instagram の DM でご連絡ください"
+    }
+  },
+  "availability": {
+    "legendOpen": "◎ 予約できます",
+    "legendClosed": "× 予約できません",
+    "available": "◎",
+    "full": "満席",
+    "deadline": "締切",
+    "closed": "定休日",
+    "closedOverride": "休業",
+    "outOfRange": "受付期間外",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "noSlots": "この日は予約できる時間がありません",
+    "jstNote": "",
+    "leadTime": "ご予約は開始 {minutes} 分前まで受け付けています",
+    "selectedDate": "{date} の空き時間",
+    "weekdays": {
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    }
+  },
+  "confirm": {
+    "heading": "ご予約内容の確認",
+    "date": "日時",
+    "menu": "メニュー",
+    "price": "料金",
+    "consent": "ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。プライバシーポリシーとキャンセルポリシーに同意します",
+    "submit": "予約を確定する",
+    "submitting": "送信しています…",
+    "honeypot": "このフィールドは空のままにしてください",
+    "turnstileDev": "（開発環境: Bot 確認は無効です）",
+    "missingDraft": "ご予約内容が見つかりません。メニューから選び直してください"
+  },
+  "done": {
+    "heading": "ご予約が確定しました",
+    "screenshot": "この画面をスクリーンショットで保存してください（確認メールは送信されません）",
+    "publicCode": "予約番号",
+    "date": "日時",
+    "menu": "メニュー",
+    "price": "料金",
+    "student": "学生料金",
+    "shop": "店舗",
+    "addToCalendar": "カレンダーに追加（.ics）",
+    "cancelLink": "キャンセル・変更用リンク",
+    "cancelHelp": "ご来店の {hours} 時間前までキャンセルできます。カレンダーの予定からもキャンセルできます",
+    "notFound": "この予約は見つかりません"
+  },
+  "cancel": {
+    "heading": "ご予約のキャンセル",
+    "deadline": "キャンセルは {deadline} まで",
+    "button": "この予約をキャンセルする",
+    "confirmQuestion": "本当にキャンセルしますか？ この操作は取り消せません。",
+    "confirmButton": "キャンセルする",
+    "back": "戻る",
+    "done": "キャンセルしました",
+    "bookAgain": "もう一度予約する",
+    "changeHint": "日時の変更は、キャンセル後にもう一度ご予約ください",
+    "notFound": "この予約は見つかりません"
+  },
+  "ics": {
+    "summary": "{menu}｜{shop}",
+    "description": "予約番号: {code}\nキャンセル・変更: {url}",
+    "alarm": "ご予約の時間が近づいています"
+  },
+  "errors": {
+    "notFound": "ページが見つかりません",
+    "generic": "問題が発生しました",
+    "retry": "もう一度試す",
+    "toTop": "トップへ戻る"
+  }
+}

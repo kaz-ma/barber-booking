@@ -2,9 +2,9 @@ import 'server-only'
 import { env } from '@/lib/env'
 import { logger } from '@/lib/logger'
 import { siteUrl } from '@/lib/site'
+import { TURNSTILE_ACTION } from '@/lib/turnstile-action'
 
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
-export const TURNSTILE_ACTION = 'create_booking'
 
 type SiteverifyResponse = {
   success: boolean
@@ -18,11 +18,7 @@ type SiteverifyResponse = {
  * When TURNSTILE_SECRET_KEY is unset (local dev / tests only; env.ts requires it when
  * deployed) verification is skipped with a log line.
  */
-export async function verifyTurnstile(input: {
-  token: string
-  ip: string
-  idempotencyKey: string
-}): Promise<boolean> {
+export async function verifyTurnstile(input: { token: string; ip: string; idempotencyKey: string }): Promise<boolean> {
   const secret = env.TURNSTILE_SECRET_KEY
   if (!secret) {
     logger.info('turnstile.skipped', { reason: 'TURNSTILE_SECRET_KEY unset' })

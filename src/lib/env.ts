@@ -14,8 +14,7 @@ const vercelEnv = process.env.VERCEL_ENV
 const isDeployed = vercelEnv === 'production' || vercelEnv === 'preview'
 
 const secret = (min = 32) => z.string().min(min)
-const requiredWhenDeployed = <T extends z.ZodType>(schema: T) =>
-  isDeployed ? schema : schema.optional()
+const requiredWhenDeployed = <T extends z.ZodType>(schema: T) => (isDeployed ? schema : schema.optional())
 
 export const env = createEnv({
   server: {
@@ -25,11 +24,7 @@ export const env = createEnv({
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
 
     /** Absolute origin without trailing slash, e.g. https://xxxx.vercel.app (FR-S-10). */
-    SITE_URL: requiredWhenDeployed(
-      z
-        .url()
-        .refine((v) => !v.endsWith('/'), 'SITE_URL must not end with a slash'),
-    ),
+    SITE_URL: requiredWhenDeployed(z.url().refine((v) => !v.endsWith('/'), 'SITE_URL must not end with a slash')),
     /** Pooled connection string (Neon `-pooler`) or the local cluster from scripts/db-local.sh. */
     DATABASE_URL: z.url(),
     /** Direct (unpooled) connection for migrations and pg_dump. Falls back to DATABASE_URL. */

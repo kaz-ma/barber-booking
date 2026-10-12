@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { authUser, businessHours, menus, settings } from './schema'
 import type * as schema from './schema'
+import { authUser, businessHours, menus, settings } from './schema'
 
 /*
  * Initial data (04_data_model.md §5). Idempotent: existing rows are left untouched so admin

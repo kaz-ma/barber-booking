@@ -1,7 +1,7 @@
+import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
-import { existsSync } from 'node:fs'
 
 // Same as scripts/load-env.ts (inlined: the native config loader wants explicit extensions).
 for (const file of ['.env.local', '.env']) if (existsSync(file)) process.loadEnvFile(file)

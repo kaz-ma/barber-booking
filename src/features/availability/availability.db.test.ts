@@ -20,7 +20,17 @@ describe('getDayAvailability', () => {
     const day = await getDayAvailability({ menuSlug: 'cut', date: '2026-11-04' }, NOON)
     expect(day?.status).toBe('available')
     expect(startsOf(day)).toEqual([
-      '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00',
+      '18:00',
+      '18:30',
+      '19:00',
+      '19:30',
+      '20:00',
+      '20:30',
+      '21:00',
+      '21:30',
+      '22:00',
+      '22:30',
+      '23:00',
     ])
     expect(startsOf(day, 'available')).toHaveLength(11)
     expect(day?.slots[0]?.startsAt).toBe('2026-11-04T18:00:00+09:00')

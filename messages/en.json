@@ -1,0 +1,165 @@
+{
+  "common": {
+    "next": "Next",
+    "back": "Back",
+    "change": "Change",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "meta": {
+    "siteName": "Neuer Barber",
+    "topTitle": "Neuer Barber | Booking",
+    "bookTitle": "Choose a menu | Neuer Barber",
+    "timeTitle": "Choose a time | Neuer Barber",
+    "infoTitle": "Your details | Neuer Barber",
+    "confirmTitle": "Review your booking | Neuer Barber",
+    "doneTitle": "Booking confirmed | Neuer Barber",
+    "cancelTitle": "Cancel your booking | Neuer Barber",
+    "notFoundTitle": "Page not found | Neuer Barber"
+  },
+  "nav": {
+    "book": "Book",
+    "switchLocale": "日本語",
+    "switchLocaleLabel": "日本語",
+    "instagram": "Instagram @{handle}"
+  },
+  "contact": {
+    "dmPrompt": "For questions, please message us on Instagram.",
+    "pastDeadline": "The cancellation deadline has passed. Please contact us via Instagram DM.",
+    "restricted": "Please book via Instagram DM."
+  },
+  "home": {
+    "heading": "Neuer Barber",
+    "hours": "Open 6:00 PM – midnight / Closed on Mondays",
+    "languages": "We speak Japanese and English",
+    "cta": "Book"
+  },
+  "menu": {
+    "duration": "{minutes} min",
+    "price": "{price} (tax incl.)",
+    "studentPrice": "Student {price}",
+    "priceTbd": "Price coming soon",
+    "empty": "Online booking is currently unavailable. Please message us on Instagram."
+  },
+  "booking": {
+    "steps": {
+      "menu": "1. Choose a menu",
+      "time": "2. Choose a time",
+      "info": "3. Your details",
+      "confirm": "4. Review",
+      "toTime": "See available times"
+    },
+    "form": {
+      "selection": "Your booking",
+      "name": "Full name",
+      "nameHint": "e.g. Alex Smith",
+      "kana": "Furigana",
+      "kanaHint": "",
+      "occupation": "Occupation",
+      "student": "Student",
+      "worker": "Working adult",
+      "phone": "Phone number",
+      "phoneHint": "e.g. 090 1234 5678 or +44 7700 900123",
+      "note": "Requests (optional)",
+      "noteCount": "{count} characters left",
+      "toConfirm": "Review"
+    },
+    "errors": {
+      "menuRequired": "Select a menu",
+      "nameRequired": "Enter your full name",
+      "nameTooLong": "Name must be 50 characters or fewer",
+      "nameInvalid": "Name contains characters that can't be used",
+      "kanaRequired": "Enter furigana",
+      "kanaHiragana": "Enter furigana in hiragana",
+      "kanaTooLong": "Furigana must be 50 characters or fewer",
+      "occupationRequired": "Select Student or Working adult",
+      "phoneRequired": "Enter your phone number, like 090 1234 5678 or +44 7700 900123",
+      "phoneInvalid": "Enter a phone number in the correct format, like 090 1234 5678 or +44 7700 900123",
+      "noteTooLong": "Notes must be 500 characters or fewer",
+      "consentRequired": "Please agree to the policies",
+      "startsAtInvalid": "Please choose the time again",
+      "invalid": "Please check your entries",
+      "botCheckFailed": "Verification failed. Please try again.",
+      "notBookable": "That time can't be booked. Please choose another time.",
+      "slotTaken": "Sorry, that time was just booked.",
+      "duplicate": "You already have a booking for this time.",
+      "rateLimited": "Too many attempts. Please try again later.",
+      "restricted": "Please book via Instagram DM.",
+      "error": "Something went wrong. Please try again or message us on Instagram."
+    }
+  },
+  "availability": {
+    "legendOpen": "◎ Available",
+    "legendClosed": "× Not available",
+    "available": "◎",
+    "full": "Booked",
+    "deadline": "Closed for booking",
+    "closed": "Closed",
+    "closedOverride": "Closed",
+    "outOfRange": "Not open for booking",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "noSlots": "No times available on this day",
+    "jstNote": "All times are Japan Standard Time (JST)",
+    "leadTime": "Bookings close {minutes} minutes before the start time",
+    "selectedDate": "Available times on {date}",
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
+  },
+  "confirm": {
+    "heading": "Review your booking",
+    "date": "Date & time",
+    "menu": "Menu",
+    "price": "Price",
+    "consent": "I agree to the Privacy Policy and Cancellation Policy",
+    "submit": "Confirm booking",
+    "submitting": "Sending…",
+    "honeypot": "Leave this field empty",
+    "turnstileDev": "(development: bot check disabled)",
+    "missingDraft": "We couldn't find your booking details. Please start again from the menu."
+  },
+  "done": {
+    "heading": "Your booking is confirmed",
+    "screenshot": "Please take a screenshot of this page (no confirmation email is sent).",
+    "publicCode": "Booking number",
+    "date": "Date & time",
+    "menu": "Menu",
+    "price": "Price",
+    "student": "Student price",
+    "shop": "Shop",
+    "addToCalendar": "Add to calendar (.ics)",
+    "cancelLink": "Link to cancel or change",
+    "cancelHelp": "You can cancel up to {hours} hours before your visit. The calendar event also contains this link.",
+    "notFound": "We couldn't find this booking."
+  },
+  "cancel": {
+    "heading": "Cancel your booking",
+    "deadline": "Cancel by {deadline}",
+    "button": "Cancel this booking",
+    "confirmQuestion": "Are you sure? This can't be undone.",
+    "confirmButton": "Cancel booking",
+    "back": "Back",
+    "done": "Your booking has been cancelled.",
+    "bookAgain": "Book again",
+    "changeHint": "To change the time, cancel and book again.",
+    "notFound": "We couldn't find this booking."
+  },
+  "ics": {
+    "summary": "{menu} | {shop}",
+    "description": "Booking number: {code}\nCancel or change: {url}",
+    "alarm": "Your appointment is coming up"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "generic": "Something went wrong",
+    "retry": "Try again",
+    "toTop": "Back to top"
+  }
+}

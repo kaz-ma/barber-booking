@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* next/font injects --font-*-next on <html>; fall back to the family names from tokens.css. */
+:root {
+  --font-lato: var(--font-lato-next, "Lato");
+  --font-noto: var(--font-noto-next, "Noto Sans JP");
+}
+
+/* Dark is admin-only (Phase 1 customer site is light only). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Layer 3: semantic tokens -> Tailwind utilities (07_components.md §5.3, tokens.css §3). */
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-bg-card: var(--bg-card);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-pressed: var(--accent-pressed);
+  --color-on-accent: var(--on-accent);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-ring: var(--ring);
+  --color-status-open: var(--status-open);
+  --color-status-full: var(--status-full);
+  --color-status-closed: var(--status-closed);
+
+  --font-sans: var(--font-lato), var(--font-noto), system-ui, sans-serif;
+  --font-num: var(--font-lato), system-ui, sans-serif;
+
+  --text-base--line-height: var(--leading-body);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
+  --ease-standard: var(--ease-standard);
+  --ease-emph-decel: var(--ease-emph-decel);
+  --ease-emph-accel: var(--ease-emph-accel);
+}
+
+@utility paper {
+  background-color: var(--bg);
+  background-image: var(--paper-texture);
+  background-blend-mode: multiply;
+}
+
+@layer base {
+  html {
+    color: var(--fg);
+    background-color: var(--bg);
+    letter-spacing: var(--tracking-body);
+  }
+  body {
+    font-family: var(--font-sans);
+    line-height: var(--leading-body);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}

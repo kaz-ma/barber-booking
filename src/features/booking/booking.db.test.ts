@@ -138,7 +138,10 @@ describe('createBooking', () => {
     ]) {
       expect((await submitBooking(payload({ startsAt }), ctx())).result).toEqual(notBookable)
     }
-    const late = await submitBooking(payload({ startsAt: '2026-11-03T19:30:00+09:00' }), ctx({ now: jst('2026-11-03 19:00') }))
+    const late = await submitBooking(
+      payload({ startsAt: '2026-11-03T19:30:00+09:00' }),
+      ctx({ now: jst('2026-11-03 19:00') }),
+    )
     expect(late.result).toEqual(notBookable)
     expect(await count('bookings')).toBe(0)
   })
@@ -199,14 +202,21 @@ describe('cancelBooking', () => {
 
   it('before the deadline: cancels, invalidates the token, frees the slot', async () => {
     const token = await book()
-    const { result, cancelledBookingId } = await cancelByToken({ locale: 'ja', token }, { now: jst('2026-11-04 16:59') })
+    const { result, cancelledBookingId } = await cancelByToken(
+      { locale: 'ja', token },
+      { now: jst('2026-11-04 16:59') },
+    )
     expect(result).toEqual({ status: 'ok', data: null })
     expect(cancelledBookingId).toBeDefined()
 
     const res = await db.execute<Record<string, unknown>>(
       sql`SELECT status, cancelled_at, cancel_token_hash, acknowledged_at FROM bookings`,
     )
-    expect(res.rows[0]).toMatchObject({ status: 'cancelled_by_customer', cancel_token_hash: null, acknowledged_at: null })
+    expect(res.rows[0]).toMatchObject({
+      status: 'cancelled_by_customer',
+      cancel_token_hash: null,
+      acknowledged_at: null,
+    })
     expect(res.rows[0]?.cancelled_at).not.toBeNull()
     // single use: the same URL is now "not found"
     expect((await cancelByToken({ locale: 'ja', token }, { now: jst('2026-11-04 16:59') })).result).toEqual({
