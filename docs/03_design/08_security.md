@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-08 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
-| 変更履歴 | v0.2（2026-10-10）: ログインのフォールバックをアプリ内ワンタイムコード（`emailOTP()`）に確定（OI-12 決定済み、ADR-0006 改訂） |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
+| 変更履歴 | v0.3（2026-10-12）: 顧客向けの代替受付を電話から Instagram DM に変更（要件定義書 v0.5 FR-C-16、F3）。T-19 の切替先と Turnstile 障害時の案内。v0.2（2026-10-10）: ログインのフォールバックをアプリ内ワンタイムコード（`emailOTP()`）に確定（OI-12 決定済み、ADR-0006 改訂） |
 | 関連要件 | NFR-SC-01〜10, FR-A-01, FR-A-16, FR-C-10, FR-C-12, FR-S-04〜08, FR-S-11, NFR-AV-04, NFR-OP-01, NFR-OP-04, 10.3, 12 章, AT-07, AT-08, AT-19, AT-26〜28 |
 | 関連 ADR | ADR-0001, ADR-0004, ADR-0006, ADR-0007 |
 
@@ -51,7 +51,7 @@ S=なりすまし、T=改ざん、R=否認、I=情報漏えい、D=サービス�
 | T-16 | 他人の電話番号で予約し、既存顧客の氏名を上書き | T | 低 | 低 | `audit_log` に変更の事実を記録、管理画面で確認可能、`phone_unverified` 表示 | 許容（顧客名は自己申告） | ADR-0008 |
 | T-17 | Push ペイロードの盗聴・偽装 | I, S | 低 | 中 | Web Push の `aes128gcm` 暗号化、VAPID 署名（秘密鍵は不変・サーバー専用） | — | FR-S-03 |
 | T-18 | Cron エンドポイントの不正呼び出し | T, D | 低 | 低 | `CRON_SECRET` を `timingSafeEqual` で照合、`daily_digests` による冪等性 | — | FR-A-12 |
-| T-19 | Vercel Hobby の規約による警告・停止 | D | 中 | 高 | ADR-0001 の移行手順（Pro／Cloudflare）、電話受付への切替、バックアップから任意環境へ復元可能 | 停止から移行完了まで数時間の予約停止 | ADR-0001 |
+| T-19 | Vercel Hobby の規約による警告・停止 | D | 中 | 高 | ADR-0001 の移行手順（Pro／Cloudflare）、Instagram DM 受付への切替、バックアップから任意環境へ復元可能 | 停止から移行完了まで数時間の予約停止 | ADR-0001 |
 
 ---
 
@@ -196,7 +196,7 @@ WHERE key = $1 AND window_start = ((now() AT TIME ZONE 'Asia/Tokyo')::date)::tim
 | トークン | 300 秒有効・単回使用。`expired-callback` で `reset()`。送信失敗後も `reset()` | FR-S-05 |
 | siteverify | `POST https://challenges.cloudflare.com/turnstile/v0/siteverify`、本文 `secret`, `response`, `remoteip`, `idempotency_key`（= submissionNonce）。タイムアウト 5 秒 | FR-S-05 |
 | 判定 | `success === true` かつ `hostname` が `SITE_URL` のホストと一致かつ `action === 'create_booking'` | FR-S-05 |
-| 障害時 | siteverify がタイムアウト・5xx の場合は **fail closed**（`bot_check_failed`）とし、画面に電話案内を出す。Sentry に記録 | — |
+| 障害時 | siteverify がタイムアウト・5xx の場合は **fail closed**（`bot_check_failed`）とし、画面に Instagram DM の案内（`InstagramLink`）を出す。Sentry に記録 | — |
 | CSP | `script-src`・`frame-src` に `https://challenges.cloudflare.com` | NFR-SC-06 |
 | アクセシビリティ | 画像 CAPTCHA を出さない（WCAG 3.3.8） | NFR-SC-01 |
 

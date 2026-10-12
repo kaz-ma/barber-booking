@@ -5,10 +5,10 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-06 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
-| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。ログインのフォールバック `requestAdminOtp`・`verifyAdminOtp`（OI-12）、`getAvailability` が × の枠も理由付きで返す（FR-C-07）、`createTimeBlock` のプリセット変更（FR-A-06）、`createManualBooking` に重なり上書きがないことを明記（OI-11） |
-| 関連要件 | FR-C-07〜12, FR-A-01〜16, FR-S-02〜08, FR-S-10〜12, NFR-SC-02〜05, AT-03, AT-07, AT-08, AT-27 |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
+| 変更履歴 | v0.3（2026-10-12）: 要件定義書 v0.5 の反映。月カレンダー用の `getMonthAvailability(month)` を追加し、週ストリップの廃止に伴い `getAvailability` は選択日の時間枠の取得に用途を限定（FR-C-07、F2）。`updateCustomerRestriction` の値を `phone_only` → `dm_only` に変更（FR-A-13）。5 章のエラー文言の電話案内を Instagram DM 案内に置換（FR-C-16、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。ログインのフォールバック `requestAdminOtp`・`verifyAdminOtp`（OI-12）、`getAvailability` が × の枠も理由付きで返す（FR-C-07）、`createTimeBlock` のプリセット変更（FR-A-06）、`createManualBooking` に重なり上書きがないことを明記（OI-11） |
+| 関連要件 | FR-C-07〜12, FR-C-14, FR-C-16, FR-A-01〜16, FR-S-02〜08, FR-S-10〜12, NFR-SC-02〜05, AT-03, AT-07, AT-08, AT-27 |
 | 関連 ADR | ADR-0004（公開 REST なし）、ADR-0006（認証）、ADR-0007（Push） |
 
 ---
@@ -81,7 +81,9 @@ export const Uuid = z.uuid()
 | `getActiveMenus(locale)` | `Locale` | `MenuDTO[]`（`slug, name, description, priceJpy, priceStudentJpy, durationMin`） | `"use cache"` `cacheTag('menus')` `cacheLife('days')` | S-C-01, 02, 02b, 04 | FR-C-02, FR-S-12 |
 | `getBusinessCalendar()` | — | 曜日テンプレート＋今後 60 日のオーバーライド | `cacheTag('hours')` | S-C-01、JSON-LD | FR-C-14 |
 | `getPublicSettings()` | — | `{ leadTimeMin, cancelDeadlineMin, maxAdvanceDays }` | `cacheTag('settings')` | S-C-03, 09 | FR-C-07 |
-| `getAvailability({ menuSlug, from, to })` | `MenuSlug`, JST 暦日 ×2（最大 14 日） | `{ days: { date, status: 'available'\|'full'\|'deadline'\|'closed'\|'out_of_range', closedReason?: 'regular'\|'override', slots: { startsAt: string, status: 'available'\|'full'\|'deadline' }[] }[], nextAvailableDate?: string }`。`slots` は営業時間内の候補時刻すべて（閉店をまたぐ時刻は含めない）で、`available` 以外は UI で × の非活性行（理由ラベル 満席 / 締切）になる | **なし**（Suspense 配下） | S-C-03 | FR-C-07, 08, FR-S-02 |
+| `getAvailability({ menuSlug, from, to })` | `MenuSlug`, JST 暦日 ×2（最大 14 日） | `{ days: { date, status: 'available'\|'full'\|'deadline'\|'closed'\|'out_of_range', closedReason?: 'regular'\|'override', slots: { startsAt: string, status: 'available'\|'full'\|'deadline' }[] }[], nextAvailableDate?: string }`。`slots` は営業時間内の候補時刻すべて（閉店をまたぐ時刻は含めない）で、`available` 以外は UI で × の非活性行（理由ラベル 満席 / 締切）になる。v0.3 で週ストリップを廃止したため、S-C-03 は選択日 1 日分（`from = to = date`）で呼び、日ごとの状態は `getMonthAvailability` を使う（2 週間分の一括取得はしない） | **なし**（Suspense 配下） | S-C-03（時間枠リスト） | FR-C-07, 08, FR-S-02 |
+| `getMonthAvailability({ menuSlug, month })` | `MenuSlug`, `month: string.regex(/^\d{4}-(0[1-9]\|1[0-2])$/)`（JST の暦月。今月〜 `today + maxAdvanceDays` を含む月の範囲外は `invalid`） | `{ month, days: { date, status: 'available'\|'full'\|'deadline'\|'closed'\|'out_of_range', closedReason?: 'regular'\|'override' }[] }`（その月の全日。`out_of_range` は過去日と 61 日以降で UI は非活性）、`prevMonth?: string`, `nextMonth?: string`（範囲内のときのみ）, `firstAvailableDate?: string` | **なし**（リクエスト内のみ React `cache()` で重複排除。Suspense 配下） | S-C-03（月カレンダー） | FR-C-07, 08, FR-S-02 |
+
 | `getBookingByToken(token)` | `CancelToken` | `{ publicCode, menuName, start, end, priceJpy, isStudent, locale, canCancel, deadline } \| null` | なし（`connection()`） | S-C-05, 06, ICS | FR-C-11, 12 |
 
 ---
@@ -128,7 +130,7 @@ OI-12 で「アプリ内で入力する 6 桁のワンタイムコード」に�
 | `logoutOtherDevices` | `{}` | `ok: { revokedSessions: number, removedSubscriptions: number }` | 他セッションに紐づく `push_subscriptions` を削除 → Better Auth `revokeOtherSessions`、`audit_log session.revoke_others` | — | FR-A-16, AT-19 |
 | `exportCustomer`（Should） | `{ customerId: uuid }` | `ok: { filename, json: string }`（顧客・予約・同意履歴。IP・UA は含めない） | `audit_log customer.export` | `not_found` | FR-A-14 |
 | `anonymizeCustomer`（Should） | `{ customerId: uuid, confirmPhoneLast4: string(4) }` | `ok` | 未来の有効予約を `cancelled_by_owner`、04_data_model.md 8 章の匿名化、`audit_log customer.anonymize` | `not_found`、`invalid`（下 4 桁不一致） | FR-A-14, AT-30 |
-| `updateCustomerRestriction`（Should） | `{ customerId: uuid, restriction: 'none'\|'phone_only'\|'blocked' }` | `ok` | `customers.booking_restriction`、`audit_log` | `not_found` | FR-A-13 |
+| `updateCustomerRestriction`（Should） | `{ customerId: uuid, restriction: 'none'\|'dm_only'\|'blocked' }`（`dm_only` = Instagram DM のみ受付。v0.2 の `phone_only` を置換） | `ok` | `customers.booking_restriction`、`audit_log` | `not_found` | FR-A-13 |
 | `mergeCustomers`（Should） | `{ sourceId: uuid, targetId: uuid }` | `ok` | `bookings.customer_id`・`consents.customer_id` を付け替え、カウンタ合算、`source.merged_into_customer_id = target`、`audit_log` | `invalid`（同一 ID） | FR-A-13 |
 
 パスキーのログインとログアウトは Better Auth のクライアント（`authClient.signIn.passkey()`、`signOut()`）経由で `/api/auth/*` を使う（Server Action ではない）。フォールバックのコードログインは 3.0 の Server Action を使う。
@@ -165,11 +167,11 @@ manifest は顧客サイトのページには `<link rel="manifest">` を出さ�
 | `conflict.slot_taken` | 23P01 | 申し訳ありません。その枠はたった今埋まりました | Sorry, that time was just booked. | S-C-03 へ戻り枠再取得 |
 | `conflict.overlap` | 23P01／ブロック判定 | ○○様の予約と重なります | — | OverlapAlert |
 | `conflict.undo_blocked` | 23P01 | この枠は別の予約で埋まったため元に戻せません | — | トースト |
-| `duplicate` | 23505 | 同じ内容のご予約がすでにあります | You already have a booking for this time. | 電話案内 |
+| `duplicate` | 23505 | 同じ内容のご予約がすでにあります | You already have a booking for this time. | Instagram DM 案内（`InstagramLink`） |
 | `rate_limited` | rate_limits／WAF | 短時間に操作が集中しました。しばらくしてからお試しください | Too many attempts. Please try again later. | `retryAfterSec` 表示 |
 | `bot_check_failed` | Turnstile | 確認に失敗しました。もう一度お試しください | Verification failed. Please try again. | Turnstile reset |
-| `restricted` | customers | お手数ですが、お電話でご予約ください | Please call us to book. | `tel:` |
-| `past_deadline` | 締切 | キャンセル締切を過ぎています。お電話ください | The cancellation deadline has passed. Please call us. | `tel:` |
+| `restricted` | customers（`dm_only` / `blocked`） | お手数ですが、ご予約は Instagram の DM で承ります | Please book via Instagram DM. | `InstagramLink` |
+| `past_deadline` | 締切 | キャンセル締切を過ぎています。Instagram の DM でご連絡ください | The cancellation deadline has passed. Please contact us via Instagram DM. | `InstagramLink` |
 | `not_found` | トークン・ID | この予約は見つかりません | We couldn't find this booking. | 予約 CTA |
 | `unauthorized` | requireAdmin | ログインしてください | — | `/admin/login` |
-| `error` | 例外 | 処理できませんでした。時間をおいてお試しいただくか、お電話ください | Something went wrong. Please try again or call us. | `digest` を Sentry と突合 |
+| `error` | 例外 | 処理できませんでした。時間をおいてお試しいただくか、Instagram の DM でご連絡ください | Something went wrong. Please try again or message us on Instagram. | `digest` を Sentry と突合 |

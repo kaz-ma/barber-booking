@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-05 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
-| 変更履歴 | v0.2（2026-10-10）: 手動予約の重なりに上書き保存を置かないことを確定（OI-11 決定済み、要件定義書 v0.4） |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
+| 変更履歴 | v0.3（2026-10-12）: 締切後の顧客連絡を電話から Instagram DM に変更（要件定義書 v0.5 FR-C-12・6.3、F3）。1 章の状態遷移ラベルと 3 章のキャンセル締切後の表示。v0.2（2026-10-10）: 手動予約の重なりに上書き保存を置かないことを確定（OI-11 決定済み、要件定義書 v0.4） |
 | 関連要件 | 6.3, FR-C-10, FR-C-12, FR-A-04〜06, FR-A-09〜12, FR-A-16, FR-S-01〜07, NFR-AV-03, AT-03, AT-07, AT-13〜17, AT-20, AT-21, AT-23 |
 | 関連 ADR | ADR-0003, ADR-0004, ADR-0007 |
 
@@ -21,7 +21,7 @@
 stateDiagram-v2
   [*] --> confirmed: 顧客が確定 または 管理者が手動登録
   confirmed --> cancelled_by_customer: キャンセルリンク 締切前
-  confirmed --> cancelled_late: 締切後に電話 管理者が記録
+  confirmed --> cancelled_late: 締切後に Instagram DM 管理者が記録
   confirmed --> cancelled_by_owner: 管理者都合 または 誤登録の削除
   confirmed --> arrived: 来店
   confirmed --> no_show: 連絡なし 30 分経過 管理者が記録
@@ -157,7 +157,7 @@ sequenceDiagram
   alt 見つからない キャンセル済み 完了済み 閲覧期限切れ
     PG-->>U: この予約は見つかりません
   else 締切後
-    PG-->>U: 予約内容とお電話くださいの案内
+    PG-->>U: 予約内容と Instagram の DM でご連絡くださいの案内
   else 締切前
     PG-->>U: 予約内容とキャンセルボタン 副作用なし
   end
@@ -179,7 +179,7 @@ sequenceDiagram
 |---|---|---|---|
 | 閲覧可 | ハッシュ一致かつ `status = confirmed` かつ `now < upper(during) + 24h` | 予約内容 | FR-C-12 |
 | キャンセル可 | 上記かつ `now < cancel_token_expires_at` | ボタン | FR-S-06 |
-| 締切後 | 閲覧可かつ `now >= cancel_token_expires_at` | 電話案内（`tel:`） | FR-C-12 |
+| 締切後 | 閲覧可かつ `now >= cancel_token_expires_at` | Instagram DM 案内（`InstagramLink`。`tel:` は置かない） | FR-C-12, 16 |
 | 無効 | 上記以外 | 「この予約は見つかりません」（理由を区別しない） | FR-S-06 |
 
 ---

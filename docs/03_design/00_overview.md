@@ -5,11 +5,11 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-00 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
 | 作成者 | 開発者（フリーランス） |
 | 関連要件 | FR-S-01〜14、NFR-AV-01〜05、NFR-PF-01〜06、NFR-OP-01〜08、NFR-MG-01〜05、NFR-SC-01〜10、NFR-EN-01〜07、PRE-01〜08、CON-01〜08 |
-| 上位文書 | `docs/02_requirements/requirements.md`（REQ-001 v0.4）、`docs/01_plan/project_plan.md`（PLAN-001 v0.4） |
+| 上位文書 | `docs/02_requirements/requirements.md`（REQ-001 v0.5）、`docs/01_plan/project_plan.md`（PLAN-001 v0.5） |
 | 凡例 | 【要確認】＝要件定義書 14 章の未決事項（OI-xx）に対応。ID は要件定義書の FR-/NFR-/S-/AT- をそのまま参照する |
 
 ### 変更履歴
@@ -18,6 +18,7 @@
 |---|---|---|
 | v0.1 | 2026-10-10 | 初版（WF 工程前の設計ドラフト。M3 で承認予定） |
 | v0.2 | 2026-10-10 | 要件定義書 v0.4 の反映: 予約ルートに `/book/info`（S-C-02b）を追加（OI-19）、`RESEND_API_KEY` の用途をワンタイムコード送信に（OI-12） |
+| v0.3 | 2026-10-12 | 要件定義書 v0.5 の反映: `/{locale}/book/time` の動的ホールを月カレンダーの日状態＋選択日の時間枠に（F2）、トップの静的シェルからヒーロー文言を外し写真のみに（F1）、`config/shop.ts` の電話を Instagram アカウントに置換（F3、OI-10 決定済み） |
 
 ---
 
@@ -145,9 +146,9 @@ flowchart LR
 
 | ルート | 種別 | 静的シェル | 動的ホール | 関連画面 |
 |---|---|---|---|---|
-| `/{locale}` | 静的（`generateStaticParams` で ja/en） | ヘッダー、ヒーロー、メニュー概要、アクセス | なし | S-C-01 |
+| `/{locale}` | 静的（`generateStaticParams` で ja/en） | ヘッダー、写真（ヒーロー）、メニュー概要、アクセス（受付時間・定休・予約締切を含む）、対応言語、Instagram | なし | S-C-01 |
 | `/{locale}/book` | 静的シェル＋クライアント | ステッパー、メニューカード（cache） | なし（選択はクライアント状態） | S-C-02 |
-| `/{locale}/book/time` | PPR | ステッパー、凡例、締切文言 | 週ストリップの日状態・時間枠（Suspense） | S-C-03 |
+| `/{locale}/book/time` | PPR | ステッパー、凡例、締切文言 | 月カレンダーの日状態（`getMonthAvailability`）・選択日の時間枠（`getAvailability`）（Suspense） | S-C-03 |
 | `/{locale}/book/info` | 静的シェル＋クライアントフォーム | ステッパー、フォームの枠 | なし（要約と入力はクライアント状態） | S-C-02b |
 | `/{locale}/book/confirm` | 静的シェル＋クライアント | 同意文言、ポリシーリンク | なし（下書きから描画） | S-C-04 |
 | `/{locale}/book/done/[token]` | 動的 | 最小ヘッダー | 予約カード | S-C-05 |
@@ -269,7 +270,7 @@ barber-booking/
     │   │   ├── ics.ts
     │   │   ├── components/        # BookingForm 各ステップ、CheckAnswers、DoneCard …
     │   │   └── __tests__/
-    │   ├── availability/          # 空き枠取得（SQL）と WeekStrip/SlotList
+    │   ├── availability/          # 空き枠取得（SQL）と MonthCalendar/SlotList
     │   ├── admin-calendar/        # 今日・週・受信箱・予約詳細・状態変更・手動予約
     │   ├── blocks/                # 時間ブロック
     │   ├── settings/              # 営業時間・休業日・メニュー・枠ルール
@@ -297,7 +298,7 @@ barber-booking/
     │   ├── audit.ts
     │   ├── pg-errors.ts           # 23P01 / 23505 の判別（制約名で区別）
     │   └── logger.ts              # PII マスキング付きロガー
-    ├── config/shop.ts             # 店名・住所・電話・地図 URL・担当者名【要確認: OI-08/09/10】
+    ├── config/shop.ts             # 店名・住所・地図 URL・Instagram アカウント・担当者名（電話番号は持たない: OI-10 決定済み）【要確認: OI-08/23】
     └── styles/globals.css         # デザイントークン 3 層（07_components.md 5 章）
 ```
 

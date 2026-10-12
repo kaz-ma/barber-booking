@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-04 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
-| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
+| 変更履歴 | v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`booking_restriction` の値 `phone_only` を `dm_only`（Instagram DM のみ受付）に変更（FR-A-13、F3）、月カレンダー用の日単位要約クエリ `getMonthAvailability(month)` を 6.1 に追加（FR-C-07、F2）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
 | 関連要件 | 10 章（10.1〜10.3）、FR-S-01, FR-S-02, FR-S-06, FR-S-07, FR-S-09, FR-C-08, FR-C-10, FR-C-11, FR-A-04〜08, FR-A-11〜14, NFR-PF-05, NFR-MG-02, NFR-SC-05, NFR-SC-07, NFR-EN-07 |
 | 関連 ADR | ADR-0002（Neon）、ADR-0003（EXCLUDE を生 SQL で）、ADR-0006（Better Auth テーブル）、ADR-0008（顧客スナップショットを持たない） |
 
@@ -234,7 +234,7 @@ CREATE TYPE booking_status AS ENUM (
 CREATE TYPE booking_source AS ENUM ('web', 'phone', 'walk_in', 'instagram', 'line', 'manual');
 CREATE TYPE occupation AS ENUM ('student', 'worker');
 CREATE TYPE locale_code AS ENUM ('ja', 'en');
-CREATE TYPE booking_restriction AS ENUM ('none', 'phone_only', 'blocked');
+CREATE TYPE booking_restriction AS ENUM ('none', 'dm_only', 'blocked');   -- v0.3: phone_only → dm_only（未リリースのため初期マイグレーションを直接修正）
 CREATE TYPE block_kind AS ENUM ('break', 'private', 'closed', 'holiday');
 CREATE TYPE consent_kind AS ENUM (
   'booking_policy', 'privacy', 'health_notes', 'photo_karte', 'photo_sns', 'marketing');
@@ -502,7 +502,7 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 | `booking_status` | `confirmed` / `arrived` / `in_progress` / `completed` / `cancelled_by_customer` / `cancelled_by_owner` / `cancelled_late` / `no_show` | 05_state_and_flows.md 1 章。排他対象は前 3 つ | 6.3 |
 | `booking_source` | `web` / `phone` / `walk_in` / `instagram` / `line` / `manual` | `web` のみ同意・冪等性キー必須 | FR-A-05 |
 | `occupation` | `student` / `worker` | 学割判定 | FR-C-04 |
-| `booking_restriction` | `none` / `phone_only` / `blocked` | web 予約時に判定（Should）【要確認: OI-16】 | FR-A-13 |
+| `booking_restriction` | `none` / `dm_only`（Instagram DM のみ受付。v0.2 の `phone_only` を置換）/ `blocked` | web 予約時に判定し、`dm_only`・`blocked` は `restricted` を返して Instagram DM へ案内（Should）【要確認: OI-16】 | FR-A-13 |
 | `block_kind` | `break`（休憩）/ `private`（私用）/ `closed`（臨時休業）/ `holiday`（将来の祝日休業） | UI は前 3 つ | FR-A-06 |
 | `consent_kind` | Phase 1: `booking_policy`, `privacy`。Phase 3: `health_notes`, `photo_karte`, `photo_sns`。任意: `marketing` | Phase 1 は 1 チェックで 2 行作成 | 12.3 |
 | `push_platform` | `ios` / `android` / `desktop` / `other` | UA から推定 | FR-A-09 |
@@ -620,7 +620,37 @@ ORDER BY hr.d;
 | 時間ブロック（`deleted_at` あり） | 影響しない | FR-A-06 |
 | JST 0:00 前後（UTC 15:00） | 日付の帰属が JST 暦日 | NFR-EN-07 |
 
-同じ規則を `src/domain/availability.ts`（純粋関数）にも実装し、契約テストで SQL の結果と突き合わせる（テストのオラクル兼、管理画面の重なり表示に使う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に `status = 'available'` で含まれることを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。
+同じ規則を `src/domain/availability.ts`（純粋関数）にも実装し、契約テストで SQL の結果と突き合わせる（テストのオラクル兼、管理画面の重なり表示に使う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に `status = 'available'` で含まれることを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。v0.3 で週ストリップを廃止したため、S-C-03 の時間枠リストも `$2 = $3 = 選択日` で呼ぶ。
+
+### 6.1 月カレンダー用の日単位要約（`getMonthAvailability`）
+
+月カレンダー（S-C-03、FR-C-07）の各日の ◎ / × と理由ラベルは、上の SQL と**同じ CTE（`s`〜`classified`）**を `$2 = 月初`、`$3 = 月末`（JST 暦日）で実行し、最後の SELECT だけを日単位の要約に差し替えて求める。規則を二重に持たないため、日の状態と時間枠の状態は必ず一致する。
+
+```sql
+-- getMonthAvailability: $1 menu_slug text, $2 month_start date (JST), $3 month_end date (JST), $4 now timestamptz
+-- WITH s AS (...), m AS (...), p AS (...), days AS (...), hours AS (...), cand AS (...), slots AS (...), classified AS (...)  ← 6 章と同一
+SELECT hr.d AS date,
+       CASE WHEN hr.d < ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date   THEN 'out_of_range'  -- 過去日
+            WHEN hr.d > (SELECT last_date FROM p)                         THEN 'out_of_range'  -- 61 日以降
+            WHEN hr.is_closed                                             THEN 'closed'
+            WHEN count(*) FILTER (WHERE c.slot_status = 'available') > 0 THEN 'available'
+            WHEN count(*) FILTER (WHERE c.slot_status = 'full') > 0      THEN 'full'
+            WHEN count(c.start_at) > 0                                    THEN 'deadline'
+            ELSE 'full' END                                               AS day_status,
+       CASE WHEN hr.override_closed THEN 'override'
+            WHEN hr.is_closed       THEN 'regular' END                    AS closed_reason
+FROM hours hr
+LEFT JOIN classified c ON c.d = hr.d
+GROUP BY hr.d, hr.is_closed, hr.override_closed
+ORDER BY hr.d;
+```
+
+| 項目 | 内容 |
+|---|---|
+| コスト | 月表示 1 回につき 1 クエリ（最大 31 日 × 候補 11〜13 枠 ≒ 400 行の `&&` 判定。`bookings` / `time_blocks` の GiST 索引を使う）。週ストリップ時代の 14 日 × 1 クエリと同程度で、NFR-PF-03（p95 500 ms）の範囲内を想定。時間枠リスト用の 1 日分クエリと合わせて S-C-03 の表示は 2 クエリ |
+| キャッシュ | 空き状況のためリクエスト間キャッシュはしない（FR-S-12）。同一リクエスト内で `getMonthAvailability` と `nextAvailableDate` の算出が同じ月を参照する場合に備え、DAL 関数を React `cache()` で包み 1 リクエスト 1 回に抑える |
+| 範囲 | 今月から `today + max_advance_days` を含む月まで。範囲外の `month` は DAL で `invalid`（06_api.md 2.2） |
+| 契約テスト | 6 章の表に加え「月の途中で 61 日目を迎える月は以降が `out_of_range`」「今日より前の日は `out_of_range`」「同じ日の `day_status` が `getAvailability` の結果の集約と一致」 |
 
 ---
 

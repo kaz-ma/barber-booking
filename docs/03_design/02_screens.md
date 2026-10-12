@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-02 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
-| 変更履歴 | v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（お客様情報）、完了画面の共有・コピー、ログインのワンタイムコード、ブロックのプリセット変更、手動予約の「それでも保存」削除 |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
+| 変更履歴 | v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-01 の構成簡素化（`HoursSection` を廃止し `AccessSection` に統合、`InstagramLink` 追加。F1）、S-C-03 の `WeekStrip` を `MonthCalendar` に置換（F2）、顧客向けの `tel:`／`PhoneFallback` を `InstagramLink` に置換し遷移図の電話アプリを Instagram DM に変更（F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（お客様情報）、完了画面の共有・コピー、ログインのワンタイムコード、ブロックのプリセット変更、手動予約の「それでも保存」削除 |
 | 関連要件 | 8 章 S-C-01〜10・S-C-02b / S-A-01〜12、FR-C-01〜17、FR-A-01〜19、FR-S-14、AT-01〜23 |
 | 関連文書 | `03_screen_specs.md`（主要画面の詳細）、`06_api.md`（アクション）、`07_components.md`（コンポーネント） |
 
@@ -19,17 +19,17 @@
 
 | 画面ID | 名称 | ルート | 認証 | 主要コンポーネント | データ取得 | Server Actions | 関連 FR |
 |---|---|---|---|---|---|---|---|
-| S-C-01 | トップ | `/{locale}` | なし | `SiteHeader`（言語切替・`tel:`）、`Hero`、`BookCta`、`MenuSummary`、`AccessSection`、`HoursSection`、`SiteFooter`、JSON-LD | `getActiveMenus()`・`getBusinessCalendar()`（`"use cache"`） | なし | FR-C-13, 14, 16, 17 |
+| S-C-01 | トップ | `/{locale}` | なし | 上から `SiteHeader`（言語切替・予約 CTA）、`Hero`（写真のみ）、`MenuSummary`、`BookCta`、`AccessSection`（受付時間・定休・予約締切の 2〜3 行を含む）、`LanguagesNote`、`InstagramLink`、`SiteFooter`、JSON-LD（`telephone` なし） | `getActiveMenus()`・`getBusinessCalendar()`・`getPublicSettings()`（`"use cache"`） | なし | FR-C-13, 14, 16, 17 |
 | S-C-02 | 予約（メニュー）ステップ 1 | `/{locale}/book` | なし | `BookingStepper`、`MenuStep`（`MenuCard`: 一般・学生の両価格）、`StickyCta`（「空き時間を見て予約する」） | `getActiveMenus()`（cache）。選択はクライアント状態（`BookingDraftProvider`＋`sessionStorage`） | なし | FR-C-01, 02 |
-| S-C-03 | 予約（日時選択）ステップ 2 | `/{locale}/book/time` | なし | `BookingStepper`、`WeekStrip`、`SlotList`（◎ のみ `SlotButton`、× は非活性の `SlotRow`）、`SlotLegend`、`DeadlineNotice`、`PhoneFallback`、`SlotListSkeleton`、`StickyCta`（選択済みで戻ってきたときのみ） | `getAvailability({ menuSlug, from, to })`（RSC、非キャッシュ、Suspense） | なし（選択はクライアント状態） | FR-C-07, 08 |
+| S-C-03 | 予約（日時選択）ステップ 2 | `/{locale}/book/time` | なし | `BookingStepper`、`MonthCalendar`（`DayCell`。◎ の日のみリンク、× と非活性の日は理由付きの非活性セル）、`SlotList`（◎ のみ `SlotButton`、× は非活性の `SlotRow`）、`SlotLegend`、`DeadlineNotice`、`MonthCalendarSkeleton`、`SlotListSkeleton`、`StickyCta`（選択済みで戻ってきたときのみ） | `getMonthAvailability({ menuSlug, month })`（日ごとの状態）＋`getAvailability({ menuSlug, from: date, to: date })`（選択日の時間枠）。いずれも RSC、非キャッシュ、Suspense | なし（選択はクライアント状態） | FR-C-07, 08 |
 | S-C-02b | 予約（お客様情報）ステップ 3 | `/{locale}/book/info` | なし | `BookingStepper`、`SelectionSummary`（メニュー・日時の要約と「変更」）、`BookingForm`（`NameStep`、`KanaField`（ja のみ）、`OccupationStep`、`PhoneStep`（＋ご要望 `NoteField`））、`StepSummary`、`StickyCta` | 下書き（クライアント）。表示用に `getActiveMenus()`（cache）。入力値は `BookingDraftProvider`＋`history.state`＋`sessionStorage` | なし（検証はクライアントで共有 Zod スキーマ） | FR-C-01, 03〜06 |
 | S-C-04 | 予約（確認）ステップ 4 | `/{locale}/book/confirm` | なし | `CheckAnswers`（職業に応じた料金を再計算）、`PolicyDigest`、`ConsentCheckbox`、`TurnstileWidget`、`Honeypot`、`SubmitButton`、`ErrorSummary` | 下書き（クライアント）。料金表示用に `getActiveMenus()`（cache） | `createBooking` | FR-C-09, 10, 15, FR-S-05 |
-| S-C-05 | 予約完了 | `/{locale}/book/done/{token}` | トークン | `DoneCard`（店名・住所）、`CopyButton`（予約番号）、`ShareCopyButton`（キャンセルリンク）、`AddToCalendar`（ICS / Google）、`ScreenshotNotice`、`MapLink` | `getBookingByToken(token)`（非キャッシュ） | なし | FR-C-11 |
-| S-C-06 | キャンセル | `/{locale}/cancel/{token}` | トークン | `BookingSummary`、`CancelPanel`、`ConfirmDialog`、`PhoneFallback`、`NotFoundPanel` | `getBookingByToken(token)`（締切判定込み） | `cancelBooking` | FR-C-12 |
+| S-C-05 | 予約完了 | `/{locale}/book/done/{token}` | トークン | `DoneCard`（店名・住所）、`CopyButton`（予約番号）、`ShareCopyButton`（キャンセルリンク）、`AddToCalendar`（ICS / Google）、`ScreenshotNotice`、`MapLink`、`InstagramLink` | `getBookingByToken(token)`（非キャッシュ） | なし | FR-C-11, 16 |
+| S-C-06 | キャンセル | `/{locale}/cancel/{token}` | トークン | `BookingSummary`、`CancelPanel`、`ConfirmDialog`、`InstagramLink`（締切後）、`NotFoundPanel` | `getBookingByToken(token)`（締切判定込み） | `cancelBooking` | FR-C-12, 16 |
 | S-C-07 | ICS ダウンロード | `/api/ics/{token}` | トークン | —（Route Handler） | `getBookingByToken(token)` | — | FR-C-11 |
 | S-C-08 | プライバシーポリシー | `/{locale}/privacy` | なし | `PolicyArticle`、`TableOfContents` | 静的（MDX または messages） | なし | FR-C-15 |
 | S-C-09 | キャンセルポリシー（特商法表記・利用条件を兼ねる） | `/{locale}/policy` | なし | `PolicyArticle`、`TokushohoTable` | 静的＋`getPublicSettings()`（締切分数の差し込み） | なし | FR-C-15 |
-| S-C-10 | 404 / エラー | `not-found.tsx`、`error.tsx`、`global-not-found.tsx` | なし | `ErrorPanel`、`BookCta`、`PhoneFallback` | なし | なし | FR-C-16, FR-S-11 |
+| S-C-10 | 404 / エラー | `not-found.tsx`、`error.tsx`、`global-not-found.tsx` | なし | `ErrorPanel`、`BookCta`、`InstagramLink` | なし | なし | FR-C-16, FR-S-11 |
 
 ### 1.1 予約順序（OI-19 決定済み）
 
@@ -67,12 +67,11 @@ flowchart TD
   IG["Instagram プロフィールのリンク<br/>または DM 定型文の URL"] --> T
   T["S-C-01 トップ"] -->|"空き時間を見て予約する"| B["S-C-02 メニュー"]
   T -->|"EN または 日本語"| T
-  T -->|"電話する tel"| TEL["電話アプリ"]
+  T -->|"Instagram の DM でお問い合わせ"| DM["Instagram DM<br/>（電話番号は掲載しない）"]
   B -->|"メニューカードを選ぶ"| B
   B -->|"空き時間を見て予約する"| TM["S-C-03 日時"]
-  TM -->|"日を 1 タップ"| TM
+  TM -->|"月カレンダーで ◎ の日を 1 タップ<br/>または 前月 / 翌月"| TM
   TM -->|"◎ の時間枠を 1 タップ"| F["S-C-02b お客様情報"]
-  TM -->|"本日の残り枠はお電話で"| TEL
   TM -->|"戻る"| B
   F -->|"変更 メニュー"| B
   F -->|"変更 日時"| TM
@@ -87,7 +86,8 @@ flowchart TD
   D -->|"キャンセル用リンク"| X["S-C-06 キャンセル"]
   D -->|"共有・コピー"| SH["共有シート / クリップボード"]
   X -->|"この予約をキャンセルする<br/>確認ダイアログで確定"| XD["S-C-06 キャンセル完了"]
-  X -->|"締切後 お電話ください"| TEL
+  X -->|"締切後 Instagram の DM でご連絡ください"| DM
+  D -->|"Instagram の DM でお問い合わせ"| DM
   XD -->|"もう一度予約する"| B
   ANY["存在しない URL や例外"] --> E["S-C-10 404 / エラー"]
   E -->|"空き時間を見て予約する"| B
