@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuer Barber 長田｜夜 24 時まで予約できるバーバー（大阪・阿倍野）</title>
+<!-- Base design S-C-01 トップ /ja — DG-001 v0.1（方向 A ヘリテージ・ペーパー）2026-10-12 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+/* ---- base ---- */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-sans);font-size:var(--text-16);line-height:var(--leading-body);letter-spacing:var(--tracking-body);color:var(--fg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,dl,dd,figure,address{margin:0}
+address{font-style:normal}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums}
+.caps{font:700 var(--text-12)/var(--text-12--lh) var(--font-lato);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--fg-muted)}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.wrap{width:100%;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+/* ---- buttons ---- */
+.btn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:48px;padding:0 var(--space-6);border-radius:var(--radius-sm);font:700 var(--text-16)/1.25 var(--font-sans);letter-spacing:.06em;text-decoration:none;cursor:pointer;transition:background-color var(--duration-short2) var(--ease-standard),transform var(--duration-short2) var(--ease-standard)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{min-height:var(--target-cta);background:var(--accent);color:var(--on-accent);box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 4px rgb(244 236 221 / .4)}
+.btn-primary:hover{background:var(--accent-pressed);box-shadow:inset 0 0 0 3px var(--accent-pressed),inset 0 0 0 4px rgb(244 236 221 / .4)}
+.btn-secondary{background:var(--bg-card);color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg-sunken)}
+.btn-sm{min-height:var(--target-min);padding:0 var(--space-4);font-size:var(--text-14)}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
+/* ---- header ---- */
+.site-head{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+.site-head .in{display:flex;align-items:center;gap:var(--space-2);height:64px;max-width:1008px;margin:0 auto;padding:0 var(--gutter)}
+.brand{display:flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);margin-right:auto;text-decoration:none}
+.brand img{height:48px;width:auto;filter:brightness(.32)}
+.wm{display:grid}
+.wm b{font:700 13px/16px var(--font-lato);letter-spacing:.2em}
+.wm small{font-size:var(--text-12);line-height:16px;color:var(--fg-muted);letter-spacing:.08em}
+.lang{display:grid;place-items:center;min-width:var(--target-min);height:var(--target-min);font:700 var(--text-14)/1 var(--font-lato);letter-spacing:.08em;text-decoration:none}
+@media (max-width:359px){.wm{display:none}}
+/* ---- hero ---- */
+.hero{padding-top:var(--space-6)}
+.photo{position:relative;aspect-ratio:3/2;border-radius:var(--radius-sm);overflow:hidden;margin:5px;box-shadow:0 0 0 4px var(--bg),0 0 0 5px var(--border);
+  background:
+    radial-gradient(ellipse 110% 85% at 50% 45%,transparent 50%,rgb(20 12 8 / .65) 100%),
+    radial-gradient(circle at 18% 22%,rgb(255 214 150 / .85) 0 2.5%,rgb(255 190 110 / .25) 6%,transparent 11%),
+    radial-gradient(circle at 47% 15%,rgb(255 214 150 / .8) 0 2%,rgb(255 190 110 / .22) 5%,transparent 10%),
+    radial-gradient(circle at 76% 21%,rgb(255 214 150 / .85) 0 2.5%,rgb(255 190 110 / .25) 6%,transparent 11%),
+    radial-gradient(circle at 63% 48%,rgb(255 230 190 / .35),transparent 7%),
+    radial-gradient(circle at 30% 55%,rgb(255 230 190 / .25),transparent 6%),
+    radial-gradient(circle at 88% 60%,rgb(255 230 190 / .3),transparent 8%),
+    radial-gradient(ellipse 30% 22% at 40% 82%,rgb(15 10 8 / .75),transparent 70%),
+    radial-gradient(ellipse 26% 20% at 72% 80%,rgb(15 10 8 / .7),transparent 70%),
+    linear-gradient(180deg,rgb(60 30 20 / 0) 0 38%,rgb(74 35 24 / .55) 42% 60%,rgb(40 22 14 / 0) 64%),
+    linear-gradient(178deg,#d8b484 0%,#b07c4c 34%,#7a4b2c 62%,#4a2c1a 82%,#2c1a10 100%)}
+.photo::after{content:"";position:absolute;inset:0;background:var(--paper-texture);mix-blend-mode:multiply;opacity:.9}
+.photo figcaption{position:absolute;left:var(--space-3);bottom:var(--space-3);z-index:1;padding:2px var(--space-2);border-radius:var(--radius-sm);background:var(--bg-card);font:700 11px/16px var(--font-lato);letter-spacing:.14em;color:var(--fg-muted)}
+.photo figcaption span{font:400 var(--text-12)/16px var(--font-sans);letter-spacing:.02em;margin-left:4px}
+.hero-copy{display:grid;gap:var(--space-4);padding-top:var(--space-8)}
+.hero h1{font-size:var(--text-30);line-height:var(--leading-heading);font-weight:700;font-feature-settings:"palt";letter-spacing:.02em}
+.hero h1 span{display:inline-block}
+.lead{color:var(--fg-muted)}
+.hero .btn-primary{margin-top:var(--space-2)}
+.cta-note{text-align:center;font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
+/* ---- hours ---- */
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);box-shadow:var(--shadow-1)}
+.hours{margin-top:var(--space-12);padding:var(--space-6)}
+.big{margin-top:var(--space-2);font:700 var(--text-36)/var(--text-36--lh) var(--font-num);letter-spacing:.01em}
+.big span{font-weight:400;color:var(--fg-muted);margin:0 2px}
+.rule2{height:4px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:var(--space-4) 0}
+.kv{display:grid;gap:var(--space-2)}
+.kv div{display:grid;grid-template-columns:5.5em 1fr;gap:var(--space-3);align-items:baseline}
+.kv dt{font-size:var(--text-14);color:var(--fg-muted)}
+.kv dd{font-weight:500}
+/* ---- sections ---- */
+.sec{padding-top:var(--section-gap)}
+.sec-head{display:grid;gap:var(--space-1);margin-bottom:var(--space-6)}
+.sec-head .caps{display:flex;align-items:center;gap:var(--space-3)}
+.sec-head .caps::after{content:"";flex:1;height:3px;border-top:1px solid var(--border);border-bottom:1px solid var(--border-subtle)}
+.sec h2{font-size:var(--text-24);line-height:var(--text-24--lh);font-weight:700;font-feature-settings:"palt"}
+.menus{display:grid;gap:var(--space-3);margin-bottom:var(--space-4)}
+.menu{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:var(--space-4);row-gap:2px;padding:var(--space-4) var(--space-4) var(--space-4) var(--space-6);position:relative}
+.menu::before{content:"";position:absolute;left:var(--space-3);top:var(--space-4);bottom:var(--space-4);border-left:1px solid var(--border-subtle)}
+.menu h3{font-size:var(--text-18);line-height:var(--text-18--lh);font-weight:700;font-feature-settings:"palt"}
+.menu h3 .caps{font-size:11px;margin-left:var(--space-2)}
+.menu .price{color:var(--fg);font:700 var(--text-30)/var(--text-30--lh) var(--font-num);text-align:right}
+.menu .price small{font-size:var(--text-18);margin-right:1px}
+.menu p{font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
+.menu .dur{text-align:right;white-space:nowrap}
+/* ---- access ---- */
+.map{position:relative;aspect-ratio:16/9;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-subtle);
+  background:
+    linear-gradient(90deg,transparent 0 58%,#fbf7ef 58% 62%,transparent 62%),
+    linear-gradient(0deg,transparent 0 30%,#fbf7ef 30% 33%,transparent 33%),
+    repeating-linear-gradient(90deg,transparent 0 13px,rgb(25 25 25 / .5) 13px 14px) 0 76%/100% 6px no-repeat,
+    linear-gradient(0deg,transparent 0 74%,#c9b99a 74% 79%,transparent 79%),
+    repeating-linear-gradient(32deg,transparent 0 46px,rgb(251 247 239 / .9) 46px 49px),
+    repeating-linear-gradient(-58deg,transparent 0 38px,rgb(251 247 239 / .9) 38px 40px),
+    var(--paper-90)}
+.pin{position:absolute;left:60%;top:52%;transform:translate(-50%,-100%);display:grid;justify-items:center;gap:2px}
+.pin b{padding:2px var(--space-2);border-radius:var(--radius-sm);background:var(--fg);color:var(--bg-card);font:700 var(--text-12)/16px var(--font-lato);letter-spacing:.08em;white-space:nowrap}
+.pin i{width:12px;height:12px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 3px var(--bg-card)}
+.map .st{position:absolute;left:var(--space-3);top:18%;font-size:var(--text-12);line-height:16px;color:var(--fg);background:var(--bg-card);padding:0 4px;border-radius:2px}
+.addr{display:grid;gap:var(--space-1);margin:var(--space-4) 0}
+.addr b{font:700 var(--text-18)/var(--text-18--lh) var(--font-lato);letter-spacing:.08em}
+.walk{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-4);font-weight:500}
+.walk .ic{color:var(--fg-muted)}
+.ig{margin-top:var(--section-gap)}
+/* ---- footer ---- */
+.site-foot{margin-top:var(--space-16);background:var(--bg-sunken);border-top:1px solid var(--border);box-shadow:inset 0 3px 0 var(--bg-sunken),inset 0 4px 0 var(--border);padding:var(--space-8) 0 var(--space-6)}
+.site-foot nav{display:grid;margin:var(--space-4) 0}
+.site-foot nav a{display:flex;align-items:center;justify-content:space-between;min-height:var(--target-min);font-size:var(--text-14);text-decoration:none;border-bottom:1px solid var(--border-subtle)}
+.site-foot nav a .ic{width:16px;height:16px;color:var(--fg-muted)}
+.site-foot small{display:block;font-size:var(--text-12);line-height:16px;color:var(--fg-muted);letter-spacing:.08em}
+/* ---- desktop ---- */
+@media (min-width:768px){:root{--gutter:var(--space-6)}.site-head .in{height:72px}.map{aspect-ratio:2/1}}
+@media (min-width:1024px){
+  .hero.wrap{max-width:1008px;display:grid;grid-template-columns:1.15fr 1fr;gap:var(--space-12);align-items:center;padding-top:var(--space-12)}
+  .hero-copy{padding-top:0}.hero h1{font-size:var(--text-36);line-height:1.35}
+}
+</style>
+</head>
+<body class="paper">
+<header class="site-head paper">
+  <div class="in">
+    <a class="brand" href="/ja" aria-label="Neuer Barber 長田 トップへ">
+      <img src="../../research/reference/neuer_logo.png" alt="" width="62" height="48">
+      <span class="wm"><b>NEUER BARBER</b><small>長田 健豊</small></span>
+    </a>
+    <a class="lang" href="/en" hreflang="en" lang="en" aria-label="English">EN</a>
+    <a class="btn btn-primary btn-sm" href="/ja/book">予約する</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap" aria-labelledby="hero-h">
+    <figure class="photo" role="img" aria-label="店内の写真（撮影予定）">
+      <figcaption>PHOTO<span>店内・施術風景（撮影予定）</span></figcaption>
+    </figure>
+    <div class="hero-copy">
+      <p class="caps">By appointment · Abeno, Osaka</p>
+      <h1 id="hero-h"><span>仕事帰りに、</span><span>夜 <span class="num">24</span> 時まで。</span></h1>
+      <p class="lead">Neuer BARBERSHOP 内、長田 健豊のカット・パーマ・カラー。空いている時間を見て、その場で予約が確定します。</p>
+      <a class="btn btn-primary" href="/ja/book">空き時間を見て予約する
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <p class="cta-note">会員登録は不要です</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section class="hours card" aria-labelledby="hours-h">
+      <h2 class="caps" id="hours-h">Open hours · 受付時間</h2>
+      <p class="big num">18:00<span>–</span>24:00</p>
+      <div class="rule2" aria-hidden="true"></div>
+      <dl class="kv">
+        <div><dt>定休日</dt><dd>月曜日</dd></div>
+        <div><dt>最終受付</dt><dd><span class="num">23:00</span> 開始</dd></div>
+        <div><dt>予約締切</dt><dd>開始 <span class="num">60</span> 分前まで</dd></div>
+      </dl>
+    </section>
+
+    <section class="sec" aria-labelledby="menu-h">
+      <div class="sec-head"><p class="caps" lang="en">Menu</p><h2 id="menu-h">メニュー</h2></div>
+      <div class="menus">
+        <article class="menu card"><h3>カット<span class="caps" lang="en">Cut</span></h3><p class="price num" aria-label="料金 未定"><small>¥</small>—</p>
+          <p>シャンプー・眉カット込み</p><p class="dur"><span class="num">60</span>分</p></article>
+        <article class="menu card"><h3>カットカラー<span class="caps" lang="en">Cut &amp; Color</span></h3><p class="price num" aria-label="料金 未定"><small>¥</small>—</p>
+          <p>カット＋全体カラー</p><p class="dur"><span class="num">60</span>分</p></article>
+        <article class="menu card"><h3>アイロンパーマ</h3><p class="price num" aria-label="料金 未定"><small>¥</small>—</p>
+          <p>濡れパン。濡れたような質感の短髪パーマ</p><p class="dur"><span class="num">60</span>分</p></article>
+      </div>
+      <a class="btn btn-secondary" href="/ja/book">全 <span class="num">9</span> メニューと料金を見る</a>
+    </section>
+
+    <section class="sec" aria-labelledby="access-h">
+      <div class="sec-head"><p class="caps" lang="en">Access</p><h2 id="access-h">アクセス</h2></div>
+      <div class="map" role="img" aria-label="地図: 天王寺駅の南、あべの筋沿い">
+        <span class="st">天王寺駅</span>
+        <span class="pin" aria-hidden="true"><b>NEUER BARBER</b><i></i></span>
+      </div>
+      <address class="addr"><b>Neuer Barber</b><span>大阪市阿倍野区阿倍野筋<span class="num">2-4-48</span><br>金村ビル<span class="num">3</span>階南（<span class="num">B</span>）</span></address>
+      <p class="walk"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="13" rx="3"/><path d="M6 10h12M9 19l-2 2M15 19l2 2M9.5 13h.01M14.5 13h.01"/></svg>天王寺駅から徒歩 <span class="num">5</span> 分</p>
+      <a class="btn btn-secondary" href="https://maps.google.com/?q=" rel="noopener noreferrer">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>地図を開く</a>
+    </section>
+
+    <section class="sec" aria-labelledby="lang-h">
+      <div class="sec-head"><p class="caps" lang="en">Languages</p><h2 id="lang-h">対応言語・お支払い</h2></div>
+      <dl class="kv">
+        <div><dt>対応言語</dt><dd>日本語 ／ <span lang="en">English</span></dd></div>
+        <div><dt>お支払い</dt><dd>ご来店時（方法は確認中）</dd></div>
+      </dl>
+    </section>
+
+    <a class="btn btn-secondary ig" href="https://www.instagram.com/" rel="noopener noreferrer">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>Instagram で施術写真を見る</a>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <a class="btn btn-secondary" href="tel:+8160000000">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>電話する <span class="num">06-xxxx-xxxx</span></a>
+    <nav aria-label="ポリシー">
+      <a href="/ja/privacy">プライバシーポリシー<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a href="/ja/policy">キャンセルポリシー<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a href="/ja/policy#tokushoho">特定商取引法に基づく表記<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+    </nav>
+    <small>© Neuer Barber 長田</small>
+  </div>
+</footer>
+</body>
+</html>

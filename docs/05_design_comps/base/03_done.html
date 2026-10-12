@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>予約完了｜Neuer Barber 長田</title>
+<!-- Base design S-C-05 予約完了 /ja（390×844 に縦スクロールなしで収める）— DG-001 v0.1（方向 A）2026-10-12 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>
+/* ---- base ---- */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-sans);font-size:var(--text-16);line-height:var(--leading-body);letter-spacing:var(--tracking-body);color:var(--fg);-webkit-font-smoothing:antialiased}
+h1,p,dl,dd,address{margin:0}
+address{font-style:normal}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums}
+.caps{font:700 var(--text-12)/var(--text-12--lh) var(--font-lato);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--fg-muted)}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:100%;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+/* ---- buttons ---- */
+.btn{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:48px;padding:0 var(--space-4);border-radius:var(--radius-sm);font:700 var(--text-16)/1.25 var(--font-sans);letter-spacing:.04em;text-decoration:none;white-space:nowrap;cursor:pointer;transition:background-color var(--duration-short2) var(--ease-standard),transform var(--duration-short2) var(--ease-standard)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{min-height:var(--target-cta);background:var(--accent);color:var(--on-accent);box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 4px rgb(244 236 221 / .4)}
+.btn-primary:hover{background:var(--accent-pressed);box-shadow:inset 0 0 0 3px var(--accent-pressed),inset 0 0 0 4px rgb(244 236 221 / .4)}
+.btn-secondary{background:var(--bg-card);color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg-sunken)}
+.btn-sm{min-height:var(--target-min);padding:0 var(--space-3);font-size:var(--text-14)}
+.btn-sm .ic{width:16px;height:16px}
+.btn-ghost{min-height:var(--target-min);padding:0 var(--space-2);font-size:var(--text-14);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
+/* ---- header (minimal) ---- */
+.site-head{border-bottom:1px solid var(--border)}
+.site-head .in{display:flex;align-items:center;gap:var(--space-2);height:56px;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+.brand{display:flex;align-items:center;gap:var(--space-2);margin-right:auto;min-height:var(--target-min);text-decoration:none}
+.brand img{height:40px;width:auto;filter:brightness(.32)}
+.wm b{display:block;font:700 13px/16px var(--font-lato);letter-spacing:.2em}
+.wm small{display:block;font-size:var(--text-12);line-height:16px;color:var(--fg-muted);letter-spacing:.08em}
+.lang{display:grid;place-items:center;min-width:var(--target-min);height:var(--target-min);font:700 var(--text-14)/1 var(--font-lato);letter-spacing:.08em;text-decoration:none}
+/* ---- title + notice ---- */
+main.wrap{position:relative;padding-top:var(--space-6)}
+.stamp{display:inline-flex;align-items:center;gap:6px;padding:2px var(--space-2) 2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font:700 var(--text-12)/16px var(--font-sans);letter-spacing:.08em}
+.stamp .ic{width:14px;height:14px;stroke-width:2.5}
+.stamp span{font-family:var(--font-lato);letter-spacing:var(--tracking-caps);color:var(--fg-muted);font-size:11px}
+h1{margin-top:var(--space-2);font-size:var(--text-24);line-height:var(--text-24--lh);font-weight:700;font-feature-settings:"palt"}
+h1:focus{outline:none}
+.notice{display:flex;gap:var(--space-2);margin-top:var(--space-3);padding:var(--space-2) var(--space-3);background:var(--bg-sunken);border-radius:var(--radius-sm);font-size:var(--text-14);line-height:1.6;font-weight:500}
+.notice .ic{margin-top:2px}
+/* ---- done card ---- */
+.done{margin-top:var(--space-3);padding:var(--space-3) var(--space-4) var(--space-4);background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);box-shadow:var(--shadow-2)}
+.code{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.code dt{display:block}
+.code dd{font:700 var(--text-20)/var(--text-20--lh) var(--font-num);letter-spacing:.12em}
+.rule2{height:4px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:var(--space-2) 0 var(--space-3)}
+.when{display:grid}
+.when .d{font-size:var(--text-16);line-height:var(--text-16--lh);font-weight:700}
+.when .t{font:700 var(--text-36)/var(--text-36--lh) var(--font-num);letter-spacing:.01em}
+.when .t span{font-weight:400;color:var(--fg-muted);margin:0 2px}
+.kv{display:grid;gap:var(--space-2);margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--border-subtle)}
+.kv>div{display:grid;grid-template-columns:4.5em 1fr;gap:var(--space-3);align-items:baseline;font-size:var(--text-14);line-height:1.6}
+.kv dt{color:var(--fg-muted)}
+.kv dd{font-weight:500}
+.menu-line{display:flex;justify-content:space-between;align-items:baseline}
+.menu-line .p{font:700 var(--text-18)/1 var(--font-num)}
+.shop{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:var(--space-2)}
+.shop address{grid-column:1/-1;margin-top:2px}
+.shop b{font-family:var(--font-lato);letter-spacing:.06em}
+.shop address{font-weight:400}
+/* ---- actions ---- */
+.cal{margin-top:var(--space-4);flex-direction:row}
+.two{display:grid;text-align:left;line-height:1.25}
+.two small{font:400 var(--text-12)/16px var(--font-sans);letter-spacing:.02em}
+.foot .two small{font-family:var(--font-num);letter-spacing:.04em}
+.cancel{margin-top:var(--space-4)}
+.cancel .lbl{font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
+.cancel .row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-1)}
+.cancel .link{flex:1;min-width:0;display:block;line-height:var(--target-min)!important;min-height:var(--target-min);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--text-14)/1 var(--font-num);text-underline-offset:4px}
+.cancel .hint{font-size:var(--text-12);line-height:16px;color:var(--fg-muted)}
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2);margin-top:var(--space-3);padding-top:var(--space-2);border-top:1px solid var(--border-subtle)}
+@media (min-width:768px){:root{--gutter:var(--space-6)}}
+</style>
+</head>
+<body class="paper">
+<header class="site-head paper">
+  <div class="in">
+    <a class="brand" href="/ja" aria-label="Neuer Barber 長田 トップへ">
+      <img src="../../research/reference/neuer_logo.png" alt="" width="52" height="40">
+      <span class="wm"><b>NEUER BARBER</b><small>長田 健豊</small></span>
+    </a>
+    <a class="lang" href="/en/book/done/token" hreflang="en" lang="en" aria-label="English">EN</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="stamp"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>予約確定<span lang="en">CONFIRMED</span></p>
+  <h1 tabindex="-1">ご予約を承りました</h1>
+  <p class="notice"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    <span>この画面をスクリーンショットで保存してください（確認メールは送信されません）</span></p>
+
+  <section class="done" aria-label="予約内容">
+    <dl class="code">
+      <div><dt class="caps">予約番号</dt><dd>K7Q2-M9XD</dd></div>
+      <button class="btn btn-secondary btn-sm" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>コピー</button>
+    </dl>
+    <div class="rule2" aria-hidden="true"></div>
+    <p class="when"><span class="d"><span class="num">10</span>月<span class="num">13</span>日（火）</span><span class="t">19:00<span>–</span>20:00</span></p>
+    <dl class="kv">
+      <div><dt>メニュー</dt><dd class="menu-line"><span>カット　<span class="num">60</span>分</span><span class="p" aria-label="料金 未定">¥—</span></dd></div>
+      <div><dt>担当</dt><dd>長田 健豊</dd></div>
+      <div><dt>店舗</dt><dd class="shop"><b>Neuer Barber</b>
+        <a class="btn btn-secondary btn-sm" href="https://maps.google.com/?q=" rel="noopener noreferrer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>地図を開く</a>
+        <address>大阪市阿倍野区阿倍野筋<span class="num">2-4-48</span><br>金村ビル<span class="num">3</span>階南（<span class="num">B</span>）</address></dd></div>
+    </dl>
+  </section>
+
+  <a class="btn btn-primary cal" href="/api/ics/token" download><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+    <span class="two">カレンダーに追加<small>iPhone・Google・Outlook（.ics）</small></span></a>
+
+  <div class="cancel">
+    <p class="lbl">キャンセル用リンク（ご来店の <span class="num">2</span> 時間前まで）</p>
+    <div class="row">
+      <a class="link" href="/ja/cancel/AbC3xK9pQ2">https://…/ja/cancel/AbC3xK9pQ2…</a>
+      <button class="btn btn-secondary btn-sm" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>共有・コピー</button>
+    </div>
+    <p class="hint">カレンダーの予定からもキャンセルできます</p>
+  </div>
+
+  <div class="foot">
+    <a class="btn btn-secondary btn-sm" href="tel:+8160000000"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span class="two">電話する<small class="num">06-xxxx-xxxx</small></span></a>
+    <a class="btn btn-ghost" href="/ja/policy">キャンセルポリシー</a>
+  </div>
+  <p aria-live="polite" class="vh"></p>
+</main>
+</body>
+</html>
