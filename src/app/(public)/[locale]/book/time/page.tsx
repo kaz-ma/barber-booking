@@ -111,6 +111,14 @@ async function AvailabilityHole({ searchParams }: Pick<PageProps<'/[locale]/book
           </h2>
           <p>{t('takenBody')}</p>
         </div>
+      ) : str('taken') === 'deadline' ? (
+        <div className="alert" role="alert">
+          <h2>
+            <Icon name="alert" />
+            {t('unavailableTitle')}
+          </h2>
+          <p>{t('unavailableBody')}</p>
+        </div>
       ) : null}
 
       <div className="picked card">

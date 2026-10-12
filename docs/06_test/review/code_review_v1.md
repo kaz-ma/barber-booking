@@ -374,3 +374,36 @@ expect(await runRetention(NOW)).toEqual({ anonymized: 1 })
 - `CRON_SECRET` の定数時間比較、`vercel.json` の 2 本の日次 cron（Hobby の 1 日 1 回制約内）、JST の「明日」の算出、`daily_digests` による同日 2 回目の抑止。
 - `proxy.ts` の matcher（`/admin` は next-intl を通さない、`/api`・静的ファイル除外）、管理 CSP の nonce、`after()` での Push（失敗が予約結果に影響しない）、`attachDatabasePool`、接続の `TimeZone=UTC`。
 - ja / en のメッセージキー一致（テストあり）、`/en` の 12 時間表記＋JST、24:00 表記、カレンダーの初期選択が JST の今日、月移動の範囲。
+
+---
+
+## 対応状況（2026-10-12 修正パス）
+
+検証: `npm run typecheck`・`npm run lint`・`npm test`（33 ファイル・206 件、修正前は 17 ファイル・118 件）・`npm run build`・`node test/e2e/run.mjs`（7/7 シナリオ）すべて成功。
+
+| ID | 状況 | 対応内容 | 回帰テスト |
+|---|---|---|---|
+| CR-01 | 済 | `errorFields()`（エラー名・SQLSTATE・制約名・`errorCode` のみ）を `lib/pg-errors.ts` に追加し、サービス・notify・OTP・housekeeping の `err.message` 記録を全廃。`lib/unexpected-error.ts` の `guardAction`/`guardRoute` で全 Server Action・Route Handler をラップ（digest のみ返す、redirect 等は再送出）。加えて `lib/db/scrub-errors.ts` で drizzle の `DrizzleQueryError` をドライバ層でパラメータなしの `DbQueryError`（原因は SQLSTATE・制約・表・列だけの `PgError`）に置換し、Next.js 自身のエラーログにも PII が出ないようにした。ロガーは大文字小文字無視・再帰の伏せ字に強化 | `booking/error-logging.db.test.ts`（customers/bookings/consents 挿入失敗・キャンセル更新失敗・ドライバ例外の inspect 出力）、`admin.db.test.ts`「CR-01: admin errors…」、`lib/unexpected-error.test.ts`、`lib/logger.test.ts` |
+| CR-02 | 済 | 空き計算 SQL の `s`/`p` に `allow_same_day` を取り、OFF のとき当日枠を `deadline`（締切）に分類。予約時の再検証も同じ SQL のため自動で `not_bookable` | `availability.db.test.ts`「allow_same_day (CR-02)」、`booking.db.test.ts`「CR-02: allow_same_day…」 |
+| CR-03 | 済 | タグ名を `lib/cache-tags.ts` の `CACHE_TAGS`（`menus`・`settings`・`business-hours`）に集約。`getWeeklyHours` は `business-hours`、営業時間・休業日の 3 アクションは `updateTag(CACHE_TAGS.businessHours)` | `lib/cache-tags.test.ts`（全 `cacheTag`/`updateTag` が定数経由であること、読み側と無効化側のタグ集合が一致すること） |
+| CR-04 | 済 | 匿名化の基準を `GREATEST(last_visit_at, 最終予約の upper(during), created_at)` に変更（SR-06 と同一） | `digest.db.test.ts`「SR-06 / CR-04: …」2 件と境界・保持ケース |
+| CR-05 | 済 | upsert の `name_kana = COALESCE(excluded.name_kana, customers.name_kana)` | `booking.db.test.ts`「CR-05: an /en booking…」 |
+| CR-06 | 済 | `domain/pricing.ts#isStudentRateApplied` を追加し、`is_student` を「学生価格を適用したか」で保存。確認画面・選択サマリーも同じ関数を使用（完了・キャンセル・管理詳細は保存値で一致） | `booking.db.test.ts`「CR-06: …」、`domain/pricing.test.ts` |
+| CR-07 | 済 | 保存期間テストの付け替えを注入時刻で行い、フィクスチャの `created_at` も固定 | `digest.db.test.ts`「runRetention」4 件 |
+| CR-08 | 済 | SR-02 と同一（ロック下で電話番号の日次上限を判定・加算） | `booking.db.test.ts`「SR-02 / CR-08: …」 |
+| CR-09 | 済 | キャンセル送信中は `onSubmit` で再送を止める。サーバー側も冪等化（顧客キャンセル後もハッシュを残し、同じリンクの再送は `ok`＋`alreadyCancelled: true`、通知・監査は 1 回） | `booking.db.test.ts`「CR-09: a double tap…」「before the deadline…」 |
+| CR-10 | 済 | `isDateString` を往復一致で厳密化（`2026-11-31` を拒否）。`?date`・`?start`（管理）・`/book/time?date` はすべてこの関数を経由 | `domain/time.test.ts`「parameter validation」、`availability.db.test.ts`「invalid dates (CR-10)」、E2E「Security…」 |
+| CR-11 | 済 | `domain/uuid.ts#isUuid`（8-4-4-4-12）で `[id]` を検査 | `admin.db.test.ts`「malformed ids (CR-11)」、`domain/time.test.ts` |
+| CR-12 | 済 | `escapeText` を RFC 5545 準拠に（`\`→`\\`、`;`→`\;`、`,`→`\,`、CRLF/LF/CR→`\n`） | `ics.test.ts`「escapeText (RFC 5545 TEXT, CR-12)」 |
+| CR-13 | 済 | `writeStep` が `menu`・`startsAt` を保持（下書き取り込みは差分がある場合のみに変更し、再描画ループを防止） | E2E「JA full flow」（戻る・段階開示） |
+| CR-14 | 済 | `not_bookable`（と `duplicate`）も確認画面から `/book/time?…&taken=deadline` へ戻し、「選んだ時間は予約できなくなりました」バナーを表示（ja/en キー追加） | `booking/messages.test.ts`（表示キー）、E2E |
+| CR-15 | 済 | `domain/hours.ts#lastStartMin`（開店時刻から枠刻みで揃える）でプレビューを計算。代表的な営業時間と `slot_step_min` をページから渡す | `domain/hours.test.ts`「lastStartMin (CR-15)」 |
+| CR-16 | 済 | オーバーライドによる休業の前日は「明日は臨時休業日です（予約 0 件）」 | `digest.db.test.ts`「runDailyDigest closures (CR-16)」 |
+| CR-17 | 済 | 完了・キャンセル画面の「◯時間前まで」を予約ごとの `start − cancel_token_expires_at` から算出（DTO に `cancelDeadlineHours`） | `booking.db.test.ts`「CR-17: …」 |
+| CR-18 | 済 | `hitWindow`・`checkPhoneDaily`・`incrementPhoneDaily` に `now` を注入可能にし、予約・キャンセル・OTP の各テストで固定時刻を使用 | `booking.db.test.ts`・`otp.db.test.ts`（既存のレート制限テストが固定窓で実行） |
+| CR-19 | 済 | Vercel プレビューでは `VERCEL_URL`・`VERCEL_BRANCH_URL` も Turnstile の hostname として許可 | `lib/turnstile.test.ts`「accepts the deployment hostnames on Vercel previews only」 |
+| CR-20 | 済 | 匿名化（保存期間ジョブ・手動）で `cancel_reason` の自由記述を NULL 化（`deleted`・`anonymized` は保持）、`cancel_token_hash` も NULL 化 | `digest.db.test.ts`「…free-text cancel reasons cleared」 |
+| CR-21 | 済 | proxy は `Next-Action` 付き POST を数えず、`cancelByToken` が同じキーで判定して `rate_limited` を返す | `proxy.db.test.ts`、`booking.db.test.ts`「SR-01: the 11th cancel…」、E2E（`/ja/cancel/x.y` への 11 回目が `rate_limited`） |
+| CR-22 | 済 | CI の `postgres:16` を digest（`sha256:ca0bd484…641d`）で固定。build 後に E2E（Playwright 1.56.1、専用 DB、本番モード）を実行し、失敗時はスクリーンショットを保存。`npm audit --omit=dev --audit-level=high` は継続 | CI 定義 |
+| CR-23 | 済 | `seed` も小文字で保存、OTP の検索は `lower(email)` と小文字化した `ADMIN_EMAIL` で照合 | `otp.db.test.ts`「CR-23: a capitalised ADMIN_EMAIL…」 |
+| CR-24 | 済 | 「直前の状態に戻す」（arrived→confirmed、in_progress→arrived、completed→in_progress）を `stepBackBookingStatus` として追加（遅刻分のクリア、`last_visit_at` を残りの完了予約から再計算、監査ログ `booking.step_back`、枠が再予約済みなら `undo_blocked`）。予約詳細にボタンを追加 | `admin.db.test.ts`「stepBackBookingStatus (CR-24)」、`domain/booking-status.test.ts` |

@@ -52,9 +52,10 @@ export async function seedReferenceData(
   }
   if (opts.adminEmail) {
     // Sign-up is disabled; the single admin is created here (FR-A-01). Login via OTP, then passkey.
+    // Stored lower-case like scripts/seed-admin.ts and looked up lower-case (CR-23).
     await db
       .insert(authUser)
-      .values({ id: randomUUID(), name: 'Owner', email: opts.adminEmail, emailVerified: true })
+      .values({ id: randomUUID(), name: 'Owner', email: opts.adminEmail.trim().toLowerCase(), emailVerified: true })
       .onConflictDoNothing({ target: authUser.email })
   }
 }

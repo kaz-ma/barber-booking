@@ -76,13 +76,19 @@ export function ConfirmForm({
       clearDraft()
       // doneUrl is already locale-prefixed: use the plain Next router.
       nextRouter.replace(state.data.doneUrl as Route)
-    } else if (state.status === 'conflict') {
-      // The slot was just taken: back to the calendar with the banner (AT-03).
+    } else if (
+      state.status === 'conflict' ||
+      state.status === 'duplicate' ||
+      (state.status === 'invalid' && state.reason === 'not_bookable')
+    ) {
+      // The slot was just taken, or is no longer offered (lead time passed, closed meanwhile):
+      // back to the calendar with a banner (AT-03, DES-06 §5 "S-C-03 へ", CR-14).
       const d = loadDraft()
       if (d) {
+        const taken = state.status === 'invalid' ? 'deadline' : '1'
         router.push({
           pathname: '/book/time',
-          query: { menu: d.menuSlug, date: d.startsAt.slice(0, 10), taken: '1', return: 'confirm' },
+          query: { menu: d.menuSlug, date: d.startsAt.slice(0, 10), taken, return: 'confirm' },
         })
       }
     } else {
@@ -95,7 +101,11 @@ export function ConfirmForm({
     return <div className="min-h-96" aria-hidden="true" />
   }
 
-  const messageKey = state?.status === 'conflict' ? null : resultMessageKey(state)
+  const navigatesAway =
+    state?.status === 'conflict' ||
+    state?.status === 'duplicate' ||
+    (state?.status === 'invalid' && state.reason === 'not_bookable')
+  const messageKey = navigatesAway ? null : resultMessageKey(state)
   const fieldErrors = state?.status === 'invalid' ? state.fieldErrors : {}
   const ready = consent && !!nonce && !!turnstileToken && !pending
 

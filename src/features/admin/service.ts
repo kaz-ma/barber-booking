@@ -1,7 +1,7 @@
 import 'server-only'
 import { randomUUID } from 'node:crypto'
 import { and, asc, desc, eq, gt, inArray, isNull, ne, or, sql } from 'drizzle-orm'
-import { type BookingStatus, canTransition } from '@/domain/booking-status'
+import { type BookingStatus, canTransition, stepBackTarget } from '@/domain/booking-status'
 import { floorToMinutes, jstInstant, minutesFromJstMidnight } from '@/domain/jst-format'
 import { phoneTail } from '@/domain/phone'
 import { jstDate, toJstIso } from '@/domain/time'
@@ -300,6 +300,50 @@ export async function updateBookingStatus(
     })
   } catch (err) {
     return errorResult(err, 'admin.status_failed')
+  }
+}
+
+/**
+ * stepBackBookingStatus (CR-24): arrived -> confirmed, in_progress -> arrived,
+ * completed -> in_progress. Undoes the side effects of the forward step: late minutes are
+ * cleared, and customers.last_visit_at is recomputed from the remaining completed bookings.
+ * Going back to an active status re-enters the EXCLUDE constraint; if the slot was re-booked
+ * meanwhile the result is `conflict: undo_blocked`.
+ */
+export async function stepBackBookingStatus(
+  bookingId: string,
+  ctx: AdminCtx = {},
+): Promise<ActionResult<StatusChangeOk>> {
+  const now = ctx.now ?? new Date()
+  try {
+    return await db.transaction(async (tx) => {
+      await lockCalendar(tx)
+      const row = await lockBooking(tx, bookingId)
+      if (!row) return { status: 'not_found' }
+      const to = stepBackTarget(row.status)
+      if (!to) return fieldError('to', 'transitionInvalid')
+      await tx
+        .update(bookings)
+        .set({ status: to, statusChangedAt: now, ...(to === 'confirmed' ? { lateMinutes: null } : {}) })
+        .where(eq(bookings.id, row.id))
+      if (row.status === 'completed') {
+        await tx.execute(sql`
+          UPDATE customers SET last_visit_at = (
+            SELECT max(upper(b.during)) FROM bookings b WHERE b.customer_id = ${row.customer_id} AND b.status = 'completed')
+          WHERE id = ${row.customer_id}`)
+      }
+      await audit(tx, {
+        actor: 'owner',
+        action: 'booking.step_back',
+        entityType: 'booking',
+        entityId: row.id,
+        diff: { from: row.status, to },
+      })
+      return { status: 'ok', data: { status: to } }
+    })
+  } catch (err) {
+    if (isExclusionViolation(err, CONSTRAINTS.noOverlap)) return { status: 'conflict', reason: 'undo_blocked' }
+    return errorResult(err, 'admin.step_back_failed')
   }
 }
 
@@ -671,7 +715,6 @@ export async function updateSettings(input: {
   maxAdvanceDays: number
   cancelDeadlineMin: number
   allowSameDay: boolean
-  digestHourJst: number
 }): Promise<ActionResult<null>> {
   await db.transaction(async (tx) => {
     await tx
@@ -1103,11 +1146,13 @@ export async function anonymizeCustomer(
 
 export const OTP_LIMITS = {
   requestIp: { windowSec: 600, limit: 3 },
+  /** All IPs together (SR-09): bounds mail volume (Resend free tier 100/day) whatever the IP. */
+  requestGlobalPerDay: { windowSec: 86_400, limit: 10 },
   verifyIp: { windowSec: 600, limit: 10 },
   verifyAccountPerHour: { windowSec: 3600, limit: 20 },
 } as const
 
-export type OtpCtx = { ip: string; headers: Headers }
+export type OtpCtx = { ip: string; headers: Headers; now?: Date }
 
 /**
  * requestAdminOtp: the address is fixed server-side (ADMIN_EMAIL), never taken from input, and
@@ -1115,14 +1160,31 @@ export type OtpCtx = { ip: string; headers: Headers }
  */
 export async function requestAdminOtp(ctx: OtpCtx): Promise<ActionResult<null>> {
   const { windowSec, limit } = OTP_LIMITS.requestIp
-  const rate = await hitWindow(`otp:ip:${piiHmac(ctx.ip)}`, windowSec, limit)
+  const rate = await hitWindow(`otp:ip:${piiHmac(ctx.ip)}`, windowSec, limit, { now: ctx.now })
   if (!rate.ok) return { status: 'rate_limited', retryAfterSec: rate.retryAfterSec }
-  const email = env.ADMIN_EMAIL
+  const global = OTP_LIMITS.requestGlobalPerDay
+  const globalRate = await hitWindow('otp:global', global.windowSec, global.limit, { now: ctx.now })
+  if (!globalRate.ok) {
+    await audit(db, {
+      actor: 'system',
+      action: 'auth.otp_global_limit',
+      entityType: 'session',
+      entityId: 'otp',
+      diff: { limit: global.limit },
+    })
+    return { status: 'rate_limited', retryAfterSec: globalRate.retryAfterSec }
+  }
+  // Lower-case everywhere (seed, lookup, Better Auth) so a capitalised ADMIN_EMAIL still works (CR-23).
+  const email = env.ADMIN_EMAIL?.trim().toLowerCase()
   if (!email) {
     logger.warn('admin_otp.no_admin_email', {})
     return { status: 'ok', data: null }
   }
-  const [user] = await db.select({ id: authUser.id }).from(authUser).where(eq(authUser.email, email)).limit(1)
+  const [user] = await db
+    .select({ id: authUser.id })
+    .from(authUser)
+    .where(sql`lower(${authUser.email}) = ${email}`)
+    .limit(1)
   if (!user) {
     logger.warn('admin_otp.admin_not_seeded', {})
     return { status: 'ok', data: null }
@@ -1145,15 +1207,19 @@ export async function verifyAdminOtp(
     `login:ip:${piiHmac(ctx.ip)}`,
     OTP_LIMITS.verifyIp.windowSec,
     OTP_LIMITS.verifyIp.limit,
+    {
+      now: ctx.now,
+    },
   )
   if (!ipRate.ok) return { status: 'rate_limited', retryAfterSec: ipRate.retryAfterSec }
   const acctRate = await hitWindow(
     'login:acct',
     OTP_LIMITS.verifyAccountPerHour.windowSec,
     OTP_LIMITS.verifyAccountPerHour.limit,
+    { now: ctx.now },
   )
   if (!acctRate.ok) return { status: 'rate_limited', retryAfterSec: acctRate.retryAfterSec }
-  const email = env.ADMIN_EMAIL
+  const email = env.ADMIN_EMAIL?.trim().toLowerCase()
   if (!email) return fieldError('code', 'otpInvalid')
   try {
     const res = await auth.api.signInEmailOTP({ body: { email, otp: input.code }, headers: ctx.headers })

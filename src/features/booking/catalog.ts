@@ -2,6 +2,7 @@ import 'server-only'
 import { asc } from 'drizzle-orm'
 import { cacheLife, cacheTag } from 'next/cache'
 import type { WeeklyHoursRow } from '@/domain/hours'
+import { CACHE_TAGS } from '@/lib/cache-tags'
 import { db } from '@/lib/db'
 import { businessHours, menus } from '@/lib/db/schema'
 
@@ -11,8 +12,8 @@ import { businessHours, menus } from '@/lib/db/schema'
  *
  * The top page lists every menu, including ones still inactive until prices are confirmed
  * (OI-01): they render as "¥—" information cards and are not bookable (the /book step only
- * offers active menus). Admin edits invalidate with updateTag('menus') / updateTag('settings')
- * — 'business-hours' is also tagged so a dedicated hours tag works too.
+ * offers active menus). Admin edits invalidate with updateTag(CACHE_TAGS.menus) /
+ * updateTag(CACHE_TAGS.businessHours) — the same constants as here (CR-03).
  */
 
 export type MenuCatalogItem = {
@@ -27,7 +28,7 @@ export type MenuCatalogItem = {
 
 export async function getMenuCatalog(): Promise<MenuCatalogItem[]> {
   'use cache'
-  cacheTag('menus')
+  cacheTag(CACHE_TAGS.menus)
   cacheLife('days')
   const rows = await db.select().from(menus).orderBy(asc(menus.sortOrder), asc(menus.slug))
   return rows.map((m) => ({
@@ -43,7 +44,7 @@ export async function getMenuCatalog(): Promise<MenuCatalogItem[]> {
 
 export async function getWeeklyHours(): Promise<WeeklyHoursRow[]> {
   'use cache'
-  cacheTag('settings', 'business-hours')
+  cacheTag(CACHE_TAGS.businessHours)
   cacheLife('days')
   const rows = await db
     .select({

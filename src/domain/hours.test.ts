@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatClock, formatRange, openingHoursSpecification, schemaTime, summarizeHours } from './hours'
+import { formatClock, formatRange, lastStartMin, openingHoursSpecification, schemaTime, summarizeHours } from './hours'
 
 const SEED = [0, 1, 2, 3, 4, 5, 6].map((weekday) =>
   weekday === 1
@@ -48,5 +48,20 @@ describe('JSON-LD helpers', () => {
         closes: '23:59',
       },
     ])
+  })
+})
+
+describe('lastStartMin (CR-15)', () => {
+  const hours = { openMin: 18 * 60, closeMin: 24 * 60 }
+  it('snaps to the slot grid from the opening time', () => {
+    expect(lastStartMin(hours, { durationMin: 60, bufferAfterMin: 15 }, 30)).toBe(22 * 60 + 30)
+    expect(lastStartMin(hours, { durationMin: 60, bufferAfterMin: 0 }, 30)).toBe(23 * 60)
+    expect(lastStartMin(hours, { durationMin: 90, bufferAfterMin: 0 }, 60)).toBe(22 * 60)
+    expect(lastStartMin({ openMin: 18 * 60 + 15, closeMin: 24 * 60 }, { durationMin: 60, bufferAfterMin: 0 }, 30)).toBe(
+      22 * 60 + 45,
+    )
+  })
+  it('null when the menu does not fit', () => {
+    expect(lastStartMin(hours, { durationMin: 400, bufferAfterMin: 0 }, 30)).toBeNull()
   })
 })

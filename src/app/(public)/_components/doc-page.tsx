@@ -1,9 +1,10 @@
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Footer } from '@/components/ui/footer'
 import { SiteHeader } from '@/components/ui/header'
 import { Icon } from '@/components/ui/icon'
 import { InstagramLink } from '@/components/ui/instagram-link'
-import { shop } from '@/config/shop'
+import { POLICY, shop } from '@/config/shop'
+import { policyDateLabel } from '@/lib/i18n/policy-date'
 
 type Section = {
   id: string
@@ -34,7 +35,7 @@ export async function DocPage({
   /** Section id after which the Instagram DM button is shown. */
   contactSection?: string
 }) {
-  const [t, tDocs] = await Promise.all([getTranslations(namespace), getTranslations('docs')])
+  const [t, tDocs, locale] = await Promise.all([getTranslations(namespace), getTranslations('docs'), getLocale()])
   const sections = t.raw('sections') as Section[]
   const all = { handle: shop.instagram.handle, ...vars }
   return (
@@ -49,7 +50,7 @@ export async function DocPage({
             <h1 id="doc-h" className="title-24" tabIndex={-1}>
               {t('title')}
             </h1>
-            <p className="ver">{tDocs('version', { version: t('version'), date: t('date') })}</p>
+            <p className="ver">{tDocs('version', { version: POLICY.version, date: policyDateLabel(locale) })}</p>
           </header>
           <p className="mt-4">{t('intro')}</p>
           <nav className="toc" aria-labelledby="toc-h">

@@ -15,12 +15,12 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
-      # Official image ships contrib extensions (btree_gist, pg_trgm).
-      # TODO: pin by digest (postgres:16@sha256:...) once resolved from a networked machine.
+      # Official image ships contrib extensions (btree_gist, pg_trgm). Pinned by digest
+      # (multi-arch index of postgres:16, resolved 2026-10-12 from registry-1.docker.io); Renovate bumps it.
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -57,3 +57,23 @@ jobs:
           npm run db:migrate
           npm run db:seed
       - run: npm run build
+      # Customer E2E against a production server (`next start`, NODE_ENV=production): the script
+      # creates its own database on the service, builds with active menus, runs with throwaway
+      # secrets and a local Turnstile siteverify stub (test/e2e/run.mjs).
+      - name: Install Playwright (Chromium) for E2E
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx --no-install playwright install --with-deps chromium
+      - name: Customer E2E
+        env:
+          E2E_PG_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright/index.mjs
+          SITE_URL: http://localhost:3100
+        run: node test/e2e/run.mjs --shots test-results/e2e
+      - name: Upload E2E screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-screenshots
+          path: test-results/e2e
+          retention-days: 7

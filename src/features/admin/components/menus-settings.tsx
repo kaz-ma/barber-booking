@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { lastStartMin } from '@/domain/hours'
 import { formatMinutes } from '@/domain/jst-format'
 import { moveMenuAction, setMenuActiveAction, upsertMenuAction } from '../actions'
 import type { AdminMenu } from '../queries'
@@ -62,7 +63,17 @@ const EMPTY: Form = {
 
 const yen = (n: number) => `¥${n.toLocaleString('ja-JP')}`
 
-export function MenusSettings({ menus, typicalCloseMin }: { menus: AdminMenu[]; typicalCloseMin: number }) {
+export function MenusSettings({
+  menus,
+  typicalHours,
+  slotStepMin,
+}: {
+  menus: AdminMenu[]
+  /** The most common opening hours: the "last start" preview uses the same grid as the SQL. */
+  typicalHours: { openMin: number; closeMin: number }
+  slotStepMin: number
+}) {
+  const typicalCloseMin = typicalHours.closeMin
   const toast = useToast()
   const [pending, startTransition] = useTransition()
   const [form, setForm] = useState<Form | null>(null)
@@ -137,7 +148,7 @@ export function MenusSettings({ menus, typicalCloseMin }: { menus: AdminMenu[]; 
     )
   }
 
-  const lastStart = form ? typicalCloseMin - form.durationMin - form.bufferAfterMin : 0
+  const lastStart = form ? (lastStartMin(typicalHours, form, slotStepMin) ?? typicalHours.openMin) : 0
 
   return (
     <>

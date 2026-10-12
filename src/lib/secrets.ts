@@ -16,14 +16,15 @@ const store = globalThis as unknown as { __bbEphemeralSecrets?: Map<string, stri
 export function secretOrEphemeral(variable: string, value: string | undefined): string {
   if (value) return value
   if (!allowDevFallbacks) throw new Error(`${variable} is required in production`)
-  const secrets = (store.__bbEphemeralSecrets ??= new Map())
+  store.__bbEphemeralSecrets ??= new Map()
+  const secrets = store.__bbEphemeralSecrets
   let ephemeral = secrets.get(variable)
   if (!ephemeral) {
     ephemeral = randomBytes(32).toString('base64url')
     secrets.set(variable, ephemeral)
     logger.warn('secret.ephemeral', {
       variable,
-      reason: 'unset; using a random per-process value (development / test only, never in production)',
+      reason: 'unset; using a random per-process value (development / test / build only, never at production runtime)',
     })
   }
   return ephemeral

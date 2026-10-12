@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 import { PHASE_PRODUCTION_BUILD } from 'next/constants'
 import createNextIntlPlugin from 'next-intl/plugin'
+import { parseServerEnv } from './src/lib/env-schema'
 
 const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts')
 
@@ -111,15 +112,14 @@ function buildConfig(env: Env): NextConfig {
   }
 }
 
-type Env = typeof import('./src/lib/env').env
+type Env = ReturnType<typeof parseServerEnv>
 
 /*
- * The environment is validated when the config loads (DES-00 §4). `next build` runs without
- * secrets (CI); env.ts relaxes only when NEXT_PHASE says so, and Next sets that variable only
- * after loading this file, so it is set here first. `next start` / `next dev` validate fully.
+ * The environment is validated when the config loads (DES-00 §4), with the phase Next passes in:
+ * `next build` runs without secrets (CI), `next start` / `next dev` validate fully (SR-05).
+ * NEXT_PHASE is exported early so src/lib/env.ts in this build process agrees.
  */
-export default async function config(phase: string): Promise<NextConfig> {
+export default function config(phase: string): NextConfig {
   if (phase === PHASE_PRODUCTION_BUILD) process.env.NEXT_PHASE = PHASE_PRODUCTION_BUILD
-  const { env } = await import('./src/lib/env')
-  return withNextIntl(buildConfig(env))
+  return withNextIntl(buildConfig(parseServerEnv(process.env)))
 }

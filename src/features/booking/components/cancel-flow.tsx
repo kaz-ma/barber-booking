@@ -127,7 +127,15 @@ export function CancelFlow({
       <Sheet open={open} onClose={close} titleId="dlg-h" descriptionId="dlg-d" initialFocus={keepRef}>
         <h2 id="dlg-h">{t('dialogTitle')}</h2>
         <p id="dlg-d">{t.rich('dialogBody', { summary, b: (c) => <b>{c}</b> })}</p>
-        <form action={formAction} className="row">
+        <form
+          action={formAction}
+          className="row"
+          // A double tap must not queue a second submission while the first is pending (CR-09);
+          // the server is idempotent as well (a repeat answers "already cancelled").
+          onSubmit={(e) => {
+            if (pending) e.preventDefault()
+          }}
+        >
           <input type="hidden" name="token" value={token} />
           <input type="hidden" name="locale" value={locale} />
           <Button ref={keepRef} variant="secondary" onClick={close}>

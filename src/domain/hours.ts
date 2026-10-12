@@ -77,3 +77,18 @@ export function openingHoursSpecification(summary: HoursSummary) {
     closes: schemaTime(r.closeMin),
   }))
 }
+
+/**
+ * Last offered start of a menu on a day (CR-15): the same grid as the availability SQL —
+ * starts are open + k × step and [start, start + duration + buffer) must end by closing time.
+ * `null` when the menu does not fit at all.
+ */
+export function lastStartMin(
+  hours: { openMin: number; closeMin: number },
+  menu: { durationMin: number; bufferAfterMin: number },
+  slotStepMin: number,
+): number | null {
+  const latest = hours.closeMin - menu.durationMin - menu.bufferAfterMin
+  if (latest < hours.openMin || slotStepMin <= 0) return null
+  return hours.openMin + Math.floor((latest - hours.openMin) / slotStepMin) * slotStepMin
+}

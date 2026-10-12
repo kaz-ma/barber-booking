@@ -147,11 +147,7 @@ async function insertBooking(
       .select({ name: customers.name, nameKana: customers.nameKana })
       .from(customers)
       .where(
-        and(
-          eq(customers.phoneE164, input.phone),
-          isNull(customers.deletedAt),
-          isNull(customers.mergedIntoCustomerId),
-        ),
+        and(eq(customers.phoneE164, input.phone), isNull(customers.deletedAt), isNull(customers.mergedIntoCustomerId)),
       )
       .for('update')
       .limit(1)
@@ -346,10 +342,7 @@ export const VIEW_GRACE_MS = 24 * 60 * 60 * 1000
  * of the same link answers `ok` with `alreadyCancelled: true` instead of "not found". The token
  * can do nothing else: token pages and the ICS only resolve `confirmed` bookings.
  */
-export async function cancelByToken(
-  raw: unknown,
-  context: { ip: string; now?: Date },
-): Promise<CancelBookingResult> {
+export async function cancelByToken(raw: unknown, context: { ip: string; now?: Date }): Promise<CancelBookingResult> {
   const now = context.now ?? new Date()
   try {
     const rate = await hitWindow(rateKeys.cancelIp(context.ip), LIMITS.cancelIp.windowSec, LIMITS.cancelIp.limit, {

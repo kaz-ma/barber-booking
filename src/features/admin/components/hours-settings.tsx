@@ -19,8 +19,8 @@ import { describeFailure } from './use-admin-action'
 
 /*
  * S-A-08 営業時間・休業日・枠ルール (FR-A-07, AT-22). One save for the weekly template and the
- * slot rules; overrides are added / removed individually. Saving calls updateTag('hours' /
- * 'settings') so the customer site reflects it immediately; availability is never cached.
+ * slot rules; overrides are added / removed individually. Saving calls updateTag(CACHE_TAGS.businessHours /
+ * CACHE_TAGS.settings) so the customer site reflects it immediately; availability is never cached.
  */
 
 type Day = AdminHours['week'][number]
@@ -467,6 +467,14 @@ export function HoursSettings({
             />
             <span className="track" aria-hidden="true" />
           </label>
+        </div>
+        {/* Read-only: the cron schedule is fixed on Vercel Hobby (vercel.json, once a day). */}
+        <div className="sw-row">
+          <span className="t">
+            <b>{S.settings.digestHour}</b>
+            <span className="help">{S.settings.digestHourNote}</span>
+          </span>
+          <span>{S.settings.digestHourValue}</span>
         </div>
       </div>
 

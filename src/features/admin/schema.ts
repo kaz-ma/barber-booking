@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { BOOKING_STATUSES } from '@/domain/booking-status'
 import { HIRAGANA_RE, toHiragana } from '@/domain/kana'
 import { isValidE164, normalizePhone } from '@/domain/phone'
+import { isAllowedPushEndpoint } from '@/domain/push-endpoint'
 
 /*
  * Admin Server Action inputs (06_api.md §3). Messages are keys resolved by
@@ -139,7 +140,8 @@ export const settingsSchema = z.object({
   maxAdvanceDays: z.coerce.number().int().min(1).max(365),
   cancelDeadlineMin: z.coerce.number().int().min(0).max(10080),
   allowSameDay: z.boolean(),
-  digestHourJst: z.coerce.number().int().min(0).max(23),
+  // digestHourJst is not editable: Vercel Hobby runs the digest cron once a day at a fixed
+  // time (12:00 UTC = 21:00 JST window). Unknown keys are stripped, so a posted value is ignored.
 })
 
 const Step5 = (min: number, max: number) =>
@@ -179,7 +181,10 @@ export const moveMenuSchema = z.object({ menuId: Uuid, direction: z.enum(['up', 
 
 export const pushSubscriptionSchema = z.object({
   subscription: z.object({
-    endpoint: z.url({ protocol: /^https$/, error: 'invalid' }).max(2048),
+    endpoint: z
+      .url({ protocol: /^https$/, error: 'invalid' })
+      .max(2048)
+      .refine(isAllowedPushEndpoint, { error: 'invalid' }),
     keys: z.object({ p256dh: z.string().min(16).max(256), auth: z.string().min(8).max(64) }),
   }),
   platform: z.enum(['ios', 'android', 'desktop', 'other']).default('other'),

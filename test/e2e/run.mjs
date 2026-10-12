@@ -14,7 +14,9 @@
  *    ≥ 44px targets. Exits 1 on the first failed assertion (screenshot saved next to the shots).
  */
 import { execFileSync, spawn } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { randomBytes } from 'node:crypto'
+import { mkdirSync, readFileSync } from 'node:fs'
+import { createServer } from 'node:http'
 import { join, resolve } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
@@ -61,12 +63,61 @@ const DATABASE_URL = adminUrl.replace(/\/postgres$/, `/${E2E_DB}`)
   await pool.end()
   run('npx', ['tsx', 'scripts/seed.ts', '--activate-menus'], { DATABASE_URL, DATABASE_URL_UNPOOLED: DATABASE_URL })
 }
+// ---------------------------------------------------------------- Turnstile stub
+// `next start` runs with NODE_ENV=production, where secrets are mandatory and Turnstile fails
+// closed (SR-05). The browser gets a fake api.js (Playwright route, below) whose tokens are
+// `e2e.<n>.<cData>`; the server verifies them against this local siteverify stub
+// (TURNSTILE_VERIFY_URL), which enforces single use and echoes cData like Cloudflare (SR-03).
+const usedTokens = new Set()
+const siteverify = createServer((req, res) => {
+  let raw = ''
+  req.on('data', (c) => {
+    raw += c
+  })
+  req.on('end', () => {
+    const token = new URLSearchParams(raw).get('response') ?? ''
+    const m = /^e2e\.\d+\.(.*)$/.exec(token)
+    const body =
+      m && !usedTokens.has(token)
+        ? { success: true, hostname: 'localhost', action: 'create_booking', cdata: m[1] }
+        : { success: false, 'error-codes': [m ? 'timeout-or-duplicate' : 'invalid-input-response'] }
+    if (m) usedTokens.add(token)
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(body))
+  })
+})
+await new Promise((r) => siteverify.listen(0, '127.0.0.1', r))
+const SITEVERIFY_URL = `http://127.0.0.1:${siteverify.address().port}/siteverify`
+const FAKE_TURNSTILE_JS = `(() => {
+  let n = 0
+  const widgets = {}
+  const issue = (o) => setTimeout(() => o.callback('e2e.' + ++n + '.' + (o.cData || '')), 30)
+  window.turnstile = {
+    render(el, o) { const id = 'w' + Object.keys(widgets).length; widgets[id] = o; issue(o); return id },
+    reset(id) { if (widgets[id]) issue(widgets[id]) },
+    remove(id) { delete widgets[id] },
+  }
+})()`
+
+const secret = () => randomBytes(32).toString('base64url')
+const { default: webPush } = await import('web-push')
+const vapid = webPush.generateVAPIDKeys()
 const appEnv = {
   DATABASE_URL,
   DATABASE_URL_UNPOOLED: DATABASE_URL,
   SITE_URL: BASE,
-  TURNSTILE_SITE_KEY: '',
-  TURNSTILE_SECRET_KEY: '',
+  // Production mode requires every secret (SR-05); throwaway values for this run only.
+  BETTER_AUTH_SECRET: secret(),
+  PII_HASH_SECRET: secret(),
+  CRON_SECRET: secret(),
+  VAPID_PUBLIC_KEY: vapid.publicKey,
+  VAPID_PRIVATE_KEY: vapid.privateKey,
+  VAPID_SUBJECT: 'mailto:e2e@example.com',
+  ADMIN_EMAIL: 'e2e@example.com',
+  RESEND_API_KEY: 're_e2e_unused',
+  RESEND_FROM: 'E2E <e2e@example.com>',
+  TURNSTILE_SITE_KEY: '1x00000000000000000000AA',
+  TURNSTILE_SECRET_KEY: 'e2e-secret',
+  TURNSTILE_VERIFY_URL: SITEVERIFY_URL,
 }
 
 // ---------------------------------------------------------------- build + start
@@ -92,6 +143,7 @@ const stopServer = () => {
   try {
     process.kill(-server.pid, 'SIGTERM')
   } catch {}
+  siteverify.close()
 }
 process.on('exit', stopServer)
 for (let i = 0; ; i++) {
@@ -135,6 +187,9 @@ async function newPage(viewport = { width: 390, height: 844 }, locale = 'ja-JP')
     timezoneId: 'America/Los_Angeles', // JST rendering must not depend on the device zone
   })
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE })
+  await ctx.route('https://challenges.cloudflare.com/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/javascript', body: FAKE_TURNSTILE_JS }),
+  )
   const page = await ctx.newPage()
   page.setDefaultTimeout(15_000)
   page.on('pageerror', (e) => console.error(`    [pageerror] ${e.message}`))
@@ -512,6 +567,65 @@ try {
     await shot(page, '06_confirm_en_320')
     await page.context().close()
   })
+
+  await step(
+    'Security: cancel action on a dotted path is rate limited; admin dotted paths go through the proxy',
+    async () => {
+      // SR-01: a Server Action can be posted to any URL; the limit lives in the service.
+      const manifest = JSON.parse(readFileSync(join(ROOT, '.next/server/server-reference-manifest.json'), 'utf8'))
+      const cancelId = Object.entries(manifest.node).find(
+        ([, v]) => v.exportedName === 'cancelBooking' && v.filename?.endsWith('features/booking/actions.ts'),
+      )?.[0]
+      assert(cancelId, 'cancelBooking action id found')
+      const statuses = []
+      for (let i = 0; i < 11; i++) {
+        const form = new FormData()
+        form.set('_1_locale', 'ja')
+        form.set('_1_token', 'C'.repeat(43))
+        form.set('0', JSON.stringify(['$undefined', '$K1']))
+        const res = await fetch(`${BASE}/ja/cancel/x.y`, {
+          method: 'POST',
+          body: form,
+          headers: {
+            'Next-Action': cancelId,
+            Accept: 'text/x-component',
+            Origin: BASE,
+            'X-Forwarded-For': '203.0.113.211',
+          },
+        })
+        const text = await res.text()
+        statuses.push(`${res.status}:${text.match(/"status":"(\w+)"/)?.[1] ?? '?'}`)
+      }
+      assert(
+        statuses.slice(0, 10).every((s) => s === '200:not_found'),
+        `first 10 answered not_found: ${statuses.join(' ')}`,
+      )
+      assert(statuses[10] === '200:rate_limited', `11th is rate_limited (not an HTML 429): ${statuses[10]}`)
+
+      // SR-10: dotted admin paths are redirected by the proxy; admin pages carry the nonce CSP.
+      const dotted = await fetch(`${BASE}/admin/bookings/a.b`, { redirect: 'manual' })
+      assert(dotted.status === 307, `dotted admin path redirected (${dotted.status})`)
+      assert(dotted.headers.get('location')?.includes('/admin/login'), 'redirect target is the login page')
+      const login = await fetch(`${BASE}/admin/login`)
+      assert(/'nonce-[^']+'/.test(login.headers.get('content-security-policy') ?? ''), 'admin login has a nonce CSP')
+      assert(
+        (login.headers.get('content-security-policy') ?? '').includes('report-uri /api/csp-report'),
+        'admin CSP reports to /api/csp-report',
+      )
+      // SR-11: the report endpoint accepts reports.
+      const report = await fetch(`${BASE}/api/csp-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/csp-report' },
+        body: JSON.stringify({
+          'csp-report': { 'effective-directive': 'img-src', 'blocked-uri': 'https://x.example/a' },
+        }),
+      })
+      assert(report.status === 204, `csp-report answers 204 (${report.status})`)
+      // CR-10: an impossible date is not a server error.
+      const bad = await fetch(`${BASE}/ja/book/time?menu=cut&date=2026-11-31`)
+      assert(bad.status === 200, `invalid date handled (${bad.status})`)
+    },
+  )
 
   await step('Screenshots: policy pages and 404 at 390', async () => {
     const page = await newPage()

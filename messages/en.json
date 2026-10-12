@@ -219,6 +219,8 @@
     "slotUnavailableSr": "not available ({reason})",
     "takenTitle": "That time was just booked",
     "takenBody": "Sorry, that time was just booked. Please choose another time.",
+    "unavailableTitle": "That time can no longer be booked",
+    "unavailableBody": "The booking window for that time has closed. Please choose another time.",
     "loading": "Loading availability",
     "weekdays": {
       "sun": "Sun",
@@ -343,8 +345,6 @@
   "privacy": {
     "caps": "Privacy Policy",
     "title": "Privacy Policy",
-    "version": "1.0",
-    "date": "November 1, 2026",
     "intro": "Neuer Barber (Kento Osada, \"we\") handles the personal information you give us when booking as follows.",
     "sections": [
       {
@@ -433,7 +433,9 @@
       {
         "id": "retention",
         "title": "Retention",
-        "body": ["Information is made non-identifiable 3 years after your last visit."],
+        "body": [
+          "Three years after your last visit (or, if you have not visited, your last booking date or the date your details were first recorded), we make your information no longer identifiable."
+        ],
         "items": [],
         "after": [],
         "aside": "",
@@ -486,8 +488,6 @@
   "policy": {
     "caps": "Cancellation Policy",
     "title": "Cancellation Policy",
-    "version": "1.0",
-    "date": "November 1, 2026",
     "intro": "How to cancel or change a booking, and a few requests for your visit. You agree to this policy when you confirm a booking.",
     "sections": [
       {
@@ -540,8 +540,6 @@
   "tokusho": {
     "caps": "Legal Notice",
     "title": "Legal Notice (Specified Commercial Transactions Act)",
-    "version": "1.0",
-    "date": "November 1, 2026",
     "intro": "Disclosures for online booking at Neuer Barber.",
     "rows": [
       {

@@ -212,3 +212,10 @@ describe('JIT is disabled for availability queries (SR-04)', () => {
     expect(jit).toBe('off')
   })
 })
+
+describe('invalid dates (CR-10)', () => {
+  it('a non-existent calendar date yields null, not a database error', async () => {
+    expect(await getDayAvailability({ menuSlug: 'cut', date: '2026-11-31' }, NOON)).toBeNull()
+    expect(await getDayAvailability({ menuSlug: 'cut', date: '2026-02-30' }, NOON)).toBeNull()
+  })
+})

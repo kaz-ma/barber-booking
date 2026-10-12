@@ -39,9 +39,10 @@ export function resultMessageKey(result: ActionResult<unknown> | null): BookingE
     case 'invalid':
       return result.reason === 'not_bookable' ? 'notBookable' : 'invalid'
     case 'conflict':
-      return 'slotTaken'
     case 'duplicate':
-      return 'duplicate'
+      // One customer-facing message for both (SR-12): "duplicate" would reveal that this phone
+      // number already holds the slot. The service answers `conflict: slot_taken` for both.
+      return 'slotTaken'
     case 'rate_limited':
       return 'rateLimited'
     case 'bot_check_failed':

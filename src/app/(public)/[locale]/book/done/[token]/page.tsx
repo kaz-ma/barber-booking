@@ -11,7 +11,6 @@ import { InstagramLink } from '@/components/ui/instagram-link'
 import { shop } from '@/config/shop'
 import { BookingPrice, BookingWhen } from '@/features/booking/components/booking-card'
 import { getBookingByToken } from '@/features/booking/queries'
-import { getPublicSettings } from '@/features/settings/queries'
 import { Link } from '@/lib/i18n/navigation'
 import { absoluteUrl } from '@/lib/site'
 
@@ -40,14 +39,13 @@ export default function DonePage({ params }: PageProps<'/[locale]/book/done/[tok
 async function DoneContent({ params }: Pick<PageProps<'/[locale]/book/done/[token]'>, 'params'>) {
   await connection()
   const { token } = await params
-  const [booking, t, tMenu, tNav, tc, locale, settings] = await Promise.all([
+  const [booking, t, tMenu, tNav, tc, locale] = await Promise.all([
     getBookingByToken(token),
     getTranslations('done'),
     getTranslations('menu'),
     getTranslations('nav'),
     getTranslations('common'),
     getLocale(),
-    getPublicSettings(),
   ])
   const lang = locale === 'en' ? 'en' : 'ja'
 
@@ -145,7 +143,7 @@ async function DoneContent({ params }: Pick<PageProps<'/[locale]/book/done/[toke
       </a>
 
       <div className="cancel-link">
-        <p className="lbl">{t('cancelLabel', { hours: settings.cancelDeadlineMin / 60 })}</p>
+        <p className="lbl">{t('cancelLabel', { hours: booking.cancelDeadlineHours })}</p>
         <div className="row">
           <a className="link" id="cancel-url" href={`/${locale}/cancel/${token}`}>
             {cancelUrl}

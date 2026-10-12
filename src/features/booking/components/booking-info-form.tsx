@@ -31,7 +31,14 @@ type HistoryState = Record<string, unknown> & { bookingStep?: InfoStage }
 /** history.pushState / replaceState with ?step= (Next.js keeps useSearchParams in sync). */
 function writeStep(stage: InfoStage, mode: 'push' | 'replace') {
   const url = new URL(window.location.href)
-  url.search = `?step=${stage}`
+  // Keep menu / startsAt: without sessionStorage they are the only copy of the selection (CR-13).
+  const next = new URLSearchParams()
+  for (const key of ['menu', 'startsAt']) {
+    const value = url.searchParams.get(key)
+    if (value) next.set(key, value)
+  }
+  next.set('step', stage)
+  url.search = `?${next}`
   const state: HistoryState = { ...(window.history.state ?? {}), bookingStep: stage }
   if (mode === 'push') window.history.pushState(state, '', url)
   else window.history.replaceState(state, '', url)
@@ -69,7 +76,10 @@ export function BookingInfoForm({ menus }: { menus: BookingMenu[] }) {
       return
     }
     if (qMenu || qStartsAt) {
-      const next = updateDraft({ menuSlug: menu.slug, startsAt })
+      // Adopt once: the query stays in the URL (CR-13), so only write when the draft differs —
+      // otherwise every draft update would re-trigger this effect.
+      const adopted = draft?.menuSlug === menu.slug && draft?.startsAt === startsAt
+      const next = adopted && draft ? draft : updateDraft({ menuSlug: menu.slug, startsAt })
       // Coming back from "日時を変更" on the review step with everything filled in: go straight back.
       if (returnToConfirm && firstIncompleteStage(next, locale) === null) {
         router.replace('/book/confirm')

@@ -3,8 +3,9 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { Footer } from '@/components/ui/footer'
 import { SiteHeader } from '@/components/ui/header'
 import { InstagramLink } from '@/components/ui/instagram-link'
-import { shop } from '@/config/shop'
+import { POLICY, shop } from '@/config/shop'
 import { getPublicSettings } from '@/features/settings/queries'
+import { policyDateLabel } from '@/lib/i18n/policy-date'
 import { localeAlternates } from '../../_lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,10 +18,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * request only (art. 11 proviso) — requests go to the Instagram DM. No phone number is shown.
  */
 export default async function TokushoPage() {
-  const [t, tDocs, settings] = await Promise.all([
+  const [t, tDocs, settings, locale] = await Promise.all([
     getTranslations('tokusho'),
     getTranslations('docs'),
     getPublicSettings(),
+    getLocale(),
   ])
   const rows = t.raw('rows') as { k: string; v: string }[]
   const vars: Record<string, string> = {
@@ -40,7 +42,7 @@ export default async function TokushoPage() {
             <h1 id="doc-h" className="title-24">
               {t('title')}
             </h1>
-            <p className="ver">{tDocs('version', { version: t('version'), date: t('date') })}</p>
+            <p className="ver">{tDocs('version', { version: POLICY.version, date: policyDateLabel(locale) })}</p>
           </header>
           <p className="mt-4">{t('intro')}</p>
           <section className="pol" aria-labelledby="doc-h">

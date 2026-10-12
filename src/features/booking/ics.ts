@@ -15,8 +15,13 @@ export type IcsInput = {
   now?: Date
 }
 
-function escapeText(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/;/g, ';').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n')
+/** RFC 5545 §3.3.11 TEXT: backslash first, then `;` `,` and every line break (CRLF, LF, CR) (CR-12). */
+export function escapeText(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r\n|\r|\n/g, '\\n')
 }
 
 function utcStamp(d: Date): string {

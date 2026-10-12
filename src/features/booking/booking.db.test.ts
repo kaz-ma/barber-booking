@@ -231,6 +231,12 @@ describe('cancelBooking', () => {
     expect((await submitBooking(payload(), ctx())).result.status).toBe('ok')
   })
 
+  it('CR-17: the cancel-hours label follows the booking, not the current setting', async () => {
+    const token = await book()
+    await db.execute(sql`UPDATE settings SET cancel_deadline_min = 1440`)
+    expect(await getBookingByToken(token, NOW)).toMatchObject({ cancelDeadlineHours: 2 })
+  })
+
   it('after the deadline (start - 120 min): refused with past_deadline', async () => {
     const token = await book()
     const { result } = await cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.1', now: jst('2026-11-04 17:00') })

@@ -12,7 +12,6 @@ import { getWeeklyHours } from '@/features/booking/catalog'
 import { bookingSummary, CancelBookingCard } from '@/features/booking/components/booking-card'
 import { CancelFlow } from '@/features/booking/components/cancel-flow'
 import { type BookingByTokenDTO, getBookingByToken } from '@/features/booking/queries'
-import { getPublicSettings } from '@/features/settings/queries'
 import { formatDateTime } from '@/lib/i18n/display'
 import { Link } from '@/lib/i18n/navigation'
 
@@ -38,7 +37,7 @@ export default function CancelPage({ params }: PageProps<'/[locale]/cancel/[toke
 async function CancelContent({ params }: Pick<PageProps<'/[locale]/cancel/[token]'>, 'params'>) {
   await connection()
   const { token } = await params
-  const [booking, locale, settings] = await Promise.all([getBookingByToken(token), getLocale(), getPublicSettings()])
+  const [booking, locale] = await Promise.all([getBookingByToken(token), getLocale()])
   const lang = locale === 'en' ? 'en' : 'ja'
   // Same view for every failure reason (enumeration resistance, FR-S-06).
   if (!booking) return <InvalidView />
@@ -50,7 +49,7 @@ async function CancelContent({ params }: Pick<PageProps<'/[locale]/cancel/[token
       booking={booking}
       durationMin={durationMin}
       deadlineLabel={deadlineLabel}
-      hours={settings.cancelDeadlineMin / 60}
+      hours={booking.cancelDeadlineHours}
     />
   )
   if (!booking.canCancel) return pastDeadline

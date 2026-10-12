@@ -219,6 +219,8 @@
     "slotUnavailableSr": "予約できません（{reason}）",
     "takenTitle": "選んだ時間は埋まりました",
     "takenBody": "申し訳ありません。その枠はたった今埋まりました。別の時間をお選びください。",
+    "unavailableTitle": "選んだ時間は予約できなくなりました",
+    "unavailableBody": "受付の締切を過ぎたなどの理由で、その時間は予約できません。別の時間をお選びください。",
     "loading": "空き状況を読み込んでいます",
     "weekdays": {
       "sun": "日",
@@ -343,8 +345,6 @@
   "privacy": {
     "caps": "Privacy Policy",
     "title": "プライバシーポリシー",
-    "version": "1.0",
-    "date": "2026年11月1日",
     "intro": "Neuer Barber 長田（以下「当店」）は、ご予約のためにお預かりする個人情報を、次のとおり取り扱います。",
     "sections": [
       {
@@ -433,7 +433,9 @@
       {
         "id": "retention",
         "title": "保存期間",
-        "body": ["最後のご来店から 3 年が経った情報は、個人を識別できない形にします。"],
+        "body": [
+          "最後のご来店（ご来店がない場合は最後のご予約日、ご予約もない場合は登録日）から 3 年が経った情報は、個人を識別できない形にします。"
+        ],
         "items": [],
         "after": [],
         "aside": "",
@@ -486,8 +488,6 @@
   "policy": {
     "caps": "Cancellation Policy",
     "title": "キャンセルポリシー",
-    "version": "1.0",
-    "date": "2026年11月1日",
     "intro": "ご予約のキャンセル・変更と、ご来店時のお願いです。ご予約の確定時に、この内容への同意をいただいています。",
     "sections": [
       {
@@ -540,8 +540,6 @@
   "tokusho": {
     "caps": "Legal Notice",
     "title": "特定商取引法に基づく表記",
-    "version": "1.0",
-    "date": "2026年11月1日",
     "intro": "Neuer Barber のオンライン予約に関する表記です。",
     "rows": [
       {

@@ -15,6 +15,26 @@ const DEFAULT_FROM = '予約管理 <onboarding@resend.dev>'
 /** Test-only sink so the OTP flow can be exercised offline (never populated in production). */
 export const devOtpOutbox: { email: string; otp: string; at: Date }[] = []
 
+/** The code is in the body only: a subject shows on lock-screen notification previews (SR-09). */
+export const OTP_EMAIL_SUBJECT = '予約管理のログインコード'
+
+export function buildAdminOtpEmail(
+  email: string,
+  otp: string,
+): { from: string; to: string[]; subject: string; text: string } {
+  return {
+    from: env.RESEND_FROM ?? DEFAULT_FROM,
+    to: [email],
+    subject: OTP_EMAIL_SUBJECT,
+    text: [
+      `予約管理のログインコード: ${otp}`,
+      '',
+      'ホーム画面の「予約管理」アプリに戻って、この 6 桁を入力してください（10 分間有効）。',
+      'このメールに心当たりがない場合は破棄してください。',
+    ].join('\n'),
+  }
+}
+
 export async function sendAdminOtpEmail(email: string, otp: string): Promise<void> {
   if (!env.RESEND_API_KEY) {
     if (env.NODE_ENV === 'test') {
@@ -32,17 +52,7 @@ export async function sendAdminOtpEmail(email: string, otp: string): Promise<voi
     return
   }
 
-  const body = {
-    from: env.RESEND_FROM ?? DEFAULT_FROM,
-    to: [email],
-    subject: `予約管理のログインコード ${otp}`,
-    text: [
-      `予約管理のログインコード: ${otp}`,
-      '',
-      'ホーム画面の「予約管理」アプリに戻って、この 6 桁を入力してください（10 分間有効）。',
-      'このメールに心当たりがない場合は破棄してください。',
-    ].join('\n'),
-  }
+  const body = buildAdminOtpEmail(email, otp)
   try {
     const res = await fetch(RESEND_ENDPOINT, {
       method: 'POST',

@@ -45,8 +45,15 @@ export function jstTime(instant: Date): string {
   return `${p.hour}:${p.minute}`
 }
 
+/**
+ * A real calendar date 'YYYY-MM-DD' (CR-10). Date.parse rolls '2026-11-31' over to Dec 1, so the
+ * parsed date must format back to the same string; otherwise Postgres would reject the `::date`
+ * cast with a 500.
+ */
 export function isDateString(s: string): boolean {
-  return DATE_RE.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`))
+  if (!DATE_RE.test(s)) return false
+  const d = new Date(`${s}T00:00:00Z`)
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s
 }
 
 export function isMonthString(s: string): boolean {

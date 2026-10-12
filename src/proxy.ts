@@ -12,7 +12,8 @@ import { hitWindow, LIMITS, rateKeys } from '@/lib/rate-limit'
  *                            'strict-dynamic' (08_security.md §8.3) and an optimistic
  *                            session-cookie check -> /admin/login?next= (§4). Server Action
  *                            POSTs are never redirected: requireAdmin() answers `unauthorized`.
- *   /{locale}/cancel/**   -> IP rate limit 10/min on page views (FR-S-04), then next-intl.
+ *   /{locale}/cancel/**, /{locale}/book/done/**
+ *                         -> IP rate limit 10/min on page views (FR-S-04, SR-22), then next-intl.
  *                            Server Action POSTs are not counted here: cancelByToken() applies
  *                            the same limit itself and answers `rate_limited` (SR-01, CR-21),
  *                            whatever URL the action is posted to.
@@ -20,7 +21,8 @@ import { hitWindow, LIMITS, rateKeys } from '@/lib/rate-limit'
  * This is never the authorization layer; actions and DAL re-check everything.
  */
 const intl = createMiddleware(routing)
-const CANCEL_PATH = /^\/(ja|en)\/cancel\//
+// Token pages share one IP limit with /api/ics (FR-S-04); done pages too (SR-22).
+const CANCEL_PATH = /^\/(ja|en)\/(cancel|book\/done)\//
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -87,5 +89,6 @@ export const config = {
     '/admin',
     '/admin/:path*',
     '/:locale(ja|en)/cancel/:path*',
+    '/:locale(ja|en)/book/done/:path*',
   ],
 }

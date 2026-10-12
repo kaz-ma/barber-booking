@@ -41,5 +41,13 @@ export const shop = {
   emblem: { src: '/brand/neuer-emblem.png', width: 187, height: 144 },
 } as const
 
-/** Version string stored in consents.policy_version. Bump when the policy text changes. */
-export const POLICY_VERSION = '2026-10-12'
+/**
+ * Version and effective date of the privacy policy / cancellation policy / 特商法 pages
+ * (12.1, 12.3). The pages render these values and consents.policy_version stores the string
+ * built from them, so a stored consent always points at the text that was shown (SR-13).
+ * Bump both when the policy text changes.
+ */
+export const POLICY = { version: '1.0', effectiveDate: '2026-11-01' } as const
+
+/** Stored in consents.policy_version, e.g. "1.0 (2026-11-01)" (<= 32 chars, CHECK). */
+export const POLICY_VERSION = `${POLICY.version} (${POLICY.effectiveDate})`

@@ -1,5 +1,6 @@
 import 'server-only'
 import { and, eq } from 'drizzle-orm'
+import { cache } from 'react'
 import { addDays, addMonths, isDateString, isMonthString, jstDate, monthBounds, monthOf, toJstIso } from '@/domain/time'
 import { db } from '@/lib/db'
 import {
@@ -15,7 +16,10 @@ import { menus, settings } from '@/lib/db/schema'
 /*
  * Availability DAL (06_api.md §2.2). Never cached across requests (D-04, FR-S-12): pages call
  * these under <Suspense>. `now` is injectable for deterministic tests.
- * TODO: wrap in React cache() keyed by primitives if one request starts calling these twice.
+ * Per-request de-duplication only: the exported functions delegate to React cache() wrappers
+ * keyed by primitives (menu, dates, now in ms), so /book/time asking for the same month twice in
+ * one render hits the DB once. React's cache() lives for one server request — nothing is shared
+ * across requests (rule 3).
  */
 
 export type SlotDTO = { startsAt: string; status: SlotStatus }
@@ -46,11 +50,20 @@ async function maxAdvanceDays(): Promise<number> {
 }
 
 /** Every candidate slot (incl. full / deadline) per day; `null` when the menu is unknown/inactive. */
-export async function getAvailability(
+export function getAvailability(
   input: { menuSlug: string; from: string; to: string },
   now: Date = new Date(),
 ): Promise<DayAvailabilityDTO[] | null> {
-  const { menuSlug, from, to } = input
+  return availabilityPerRequest(input.menuSlug, input.from, input.to, now.getTime())
+}
+
+const availabilityPerRequest = cache(async function availability(
+  menuSlug: string,
+  from: string,
+  to: string,
+  nowMs: number,
+): Promise<DayAvailabilityDTO[] | null> {
+  const now = new Date(nowMs)
   if (!isDateString(from) || !isDateString(to) || from > to) return null
   if (addDays(from, MAX_RANGE_DAYS - 1) < to) return null
   if (!(await isActiveMenu(menuSlug))) return null
@@ -61,7 +74,7 @@ export async function getAvailability(
     ...(d.closedReason ? { closedReason: d.closedReason } : {}),
     slots: d.slots.map((s) => ({ startsAt: toJstIso(s.startsAt), status: s.status })),
   }))
-}
+})
 
 /** Slot list for one JST date (S-C-03 after the v0.3 month calendar change). */
 export async function getDayAvailability(
@@ -73,11 +86,19 @@ export async function getDayAvailability(
 }
 
 /** Month calendar summary (§6.1). `null` = invalid month (outside today .. today + max advance). */
-export async function getMonthAvailability(
+export function getMonthAvailability(
   input: { menuSlug: string; month: string },
   now: Date = new Date(),
 ): Promise<MonthAvailabilityDTO | null> {
-  const { menuSlug, month } = input
+  return monthPerRequest(input.menuSlug, input.month, now.getTime())
+}
+
+const monthPerRequest = cache(async function monthAvailability(
+  menuSlug: string,
+  month: string,
+  nowMs: number,
+): Promise<MonthAvailabilityDTO | null> {
+  const now = new Date(nowMs)
   if (!isMonthString(month)) return null
   const today = jstDate(now)
   const firstMonth = monthOf(today)
@@ -103,4 +124,4 @@ export async function getMonthAvailability(
       return firstAvailable ? { firstAvailableDate: firstAvailable } : {}
     })(),
   }
-}
+})

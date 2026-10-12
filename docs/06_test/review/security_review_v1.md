@@ -353,3 +353,36 @@ WHERE c.anonymized_at IS NULL
 - 検証は、スクラッチ領域にコピーしたツリーの本番ビルド（`next start`）と、専用の DB `barber_probe` に対して行った。リポジトリのソース・`.next`・開発用 DB は変更していない。検証スクリプトはスクラッチ領域にあり、コミットしない。
 - Vercel のエッジ（`x-forwarded-for` の上書き、WAF、関数の課金）、Cloudflare の siteverify、Neon の設定（JIT の既定値・pooler）は、ローカルでは再現できない。該当する所見は「推定」とし、staging で確かめる手順を各所見に書いた。
 - 実機のブラウザ（iOS PWA の Push、パスキーの UV の挙動）は対象外（`docs/06_test/pwa_device_test.md` の予定に含める）。
+
+---
+
+## 7. 対応状況（2026-10-12 修正パス）
+
+検証: `npm run typecheck`・`npm run lint`・`npm test`（33 ファイル・206 件、修正前 17 ファイル・118 件）・`npm run build`・`node test/e2e/run.mjs`（7/7、`NODE_ENV=production` の `next start` に全秘密・Turnstile スタブを与えて実行）すべて成功。
+
+| ID | 状況 | 対応内容 | 回帰テスト |
+|---|---|---|---|
+| SR-01 | 済 | `cancelByToken(raw, { ip, now })` の先頭で IP 制限（10 回/分、proxy と同じキー）を判定し `rate_limited` を返す。形式チェック後、ロックなしでハッシュを引き、存在しないトークンでは advisory lock もトランザクションも取らない。proxy の matcher に `/admin/:path*`・`/:locale(ja\|en)/cancel/:path*`・`/:locale(ja\|en)/book/done/:path*` を明示追加（ドットを含むパスも通る）。proxy は Server Action の POST を数えない | `booking.db.test.ts`「SR-01: the 11th cancel attempt…」「SR-01: an unknown token never waits for the calendar lock; a real one does」、`proxy.test.ts`（matcher）、`proxy.db.test.ts`、E2E「Security…」（`/ja/cancel/x.y` への POST 11 回目が `rate_limited`） |
+| SR-02 | 済 | `insertBooking` で `lockCalendar(tx)` 直後に `checkPhoneDaily(…, { db: tx })` を実行し、同じトランザクションで加算。外側の判定は早期拒否として残置 | `booking.db.test.ts`「SR-02 / CR-08: concurrent bookings with one phone -> exactly 3 succeed」（6 件同時 → ok 3・rate_limited 3） |
+| SR-03 | 済 | siteverify に `idempotency_key` を送らない（単回使用）。widget に `cData: submissionNonce` を渡し、`success`・`action`・`hostname`（許可リスト）・`cdata === nonce` をすべて要求。失敗後は必ず widget をリセット | `lib/turnstile.test.ts`（fetch モック: 成功・cdata 不一致・cdata 欠落・hostname 不一致・action 不一致・timeout-or-duplicate・HTTP 500・例外） |
+| SR-04 | 済 | 空き計算は `readAvailability()`（読み取り専用トランザクション＋`SET LOCAL jit = off`）で実行し、予約トランザクションもロック直後に `disableJit(tx)`。ロール設定ではなく `SET LOCAL` を採用（トランザクションモードのプーラーでも有効、マイグレーション不要）。デプロイガイドの WAF 条件に `book/time` を追加。キャッシュは追加していない（ルール 3）。可用性 DAL は React `cache()` でリクエスト内のみ重複排除 | `availability.db.test.ts`「JIT is disabled for availability queries (SR-04)」（`SHOW jit = off`、`EXPLAIN (ANALYZE, FORMAT JSON)` に JIT 節なし、接続へ漏れない） |
+| SR-05 | 済 | `NODE_ENV=production`（プラットフォーム不問）と Vercel preview で `SITE_URL`・`BETTER_AUTH_SECRET`・`PII_HASH_SECRET`・`TURNSTILE_SITE_KEY`/`SECRET_KEY`・`VAPID_*`・`CRON_SECRET`・`ADMIN_EMAIL`・`RESEND_API_KEY`/`RESEND_FROM` を必須化（`next build` のみ緩和、`next.config.ts` がフェーズを受けて検証）。`SKIP_ENV_VALIDATION` は本番では無視。リポジトリ内の固定フォールバック秘密を削除し、開発・テストはプロセスごとの乱数（警告ログ）。Turnstile は本番で秘密がなければ fail closed | `lib/env.test.ts`（envMode・serverSchema・parseServerEnv）、`lib/turnstile.test.ts`「without a secret…」、E2E（本番モードで起動） |
+| SR-06 | 済 | 匿名化の基準を `GREATEST(last_visit_at, created_at, 最終予約の upper(during))` に変更。匿名化時に `consents.ip_hash`・`user_agent` も NULL。プライバシーポリシー（ja/en）の保存期間の文言を合わせた（公開前のため版は 1.0 のまま） | `digest.db.test.ts`「SR-06 / CR-04: a 5-year-old customer who never visited is anonymized」ほか 3 件 |
+| SR-07 | 済 | `passkey({ registration/authentication: { afterVerification } })` で UV フラグ（`userVerified`）を必須化 | `lib/passkey-uv.test.ts` |
+| SR-08 | 保留 | パスキー一覧・削除 UI は設定画面の新規 UI（S-A-10 の拡張）で、設計書の画面仕様が必要。公開後 2 週間以内の対応として残す | — |
+| SR-09 | 一部 | (a) コード送信に全体上限 10 通/日（`otp:global`）を追加し、到達時に監査ログ `auth.otp_global_limit`。(c) 件名からコードを除去（本文のみ）。(b) `login:acct` ロック中にパスキーへ誘導する UI は未対応（パスキーでのログインは可能） | `otp.db.test.ts`「SR-09: caps code requests…」「SR-09: the code is never in the email subject」 |
+| SR-10 | 済 | matcher 修正（SR-01）でドットを含む管理パスも proxy を通り、未ログインは login へ 307、ページには nonce 付き CSP。`next.config.ts` 側の静的 CSP 併記は、二重 CSP が nonce スクリプトを阻害するため採用しない | `proxy.test.ts`、`proxy.db.test.ts`「a dotted admin path…」、E2E |
+| SR-11 | 済 | `/api/csp-report`（IP あたり 20 件/分、常に 204、ログは directive・遮断元オリジン・disposition のみで URL・IP・サンプルなし）を追加し、公開・管理の両 CSP に `report-uri`（`SITE_URL` があれば `report-to` と `Reporting-Endpoints`）を設定。`CSP_ENFORCE=1` で公開 CSP を強制に切替 | `lib/csp-report.test.ts`、`app/api/csp-report/route.db.test.ts`、E2E |
+| SR-12 | 済 | 同じ電話番号の有効予約があり nonce が一致しない場合も `conflict: slot_taken` を返す（内部コードはログ `booking.duplicate_rejected`）。画面側も `duplicate` を `slotTaken` 表示に統一し、時間選択へ戻す。(b) `restricted` は記録のみ（FR-A-13 の文言要件） | `booking.db.test.ts`「same person + slot from another browser…(SR-12)」、`booking/messages.test.ts` |
+| SR-13 | 済 | `config/shop.ts` の `POLICY = { version, effectiveDate }` から `POLICY_VERSION`（例 `1.0 (2026-11-01)`）と各ポリシーページの版・改定日表示を生成し、messages の `version`/`date` を削除 | `config/shop.test.ts` |
+| SR-14 | 済 | upsert 前に既存顧客を `FOR UPDATE` で読み、氏名・ふりがなが変わる場合に `customer.overwrite`（`fields: 'name,nameKana'`、値は記録しない）を監査ログに残す | `booking.db.test.ts`「SR-14: overwriting a customer name is audited with field names only」 |
+| SR-15 | 済 | `consents.ip` を `ip_hash`（HMAC-SHA256、22 文字）に変更（マイグレーション `0004_consent_ip_hash.sql`、既存の生 IP は破棄）。1 年後の NULL 化を含む housekeeping を retention の Cron に移した | `booking.db.test.ts`「SR-15: consents store an HMAC…」、`digest.db.test.ts` |
+| SR-16 | 保留 | プライバシーポリシーの委託先（Sentry・Web Analytics）・Cookie の記載は公開時点の構成（導入の有無）を依頼者と確定してから改める（法務文面）。保存期間の文言は SR-06 で修正済み | — |
+| SR-17 | 済 | `/api/admin/push/rotate` は Origin ヘッダーが自オリジンと一致しない（欠落を含む）場合 403 | （コード修正のみ） |
+| SR-18 | 済 | Push endpoint を主要 Push サービス（`*.push.apple.com`、`fcm.googleapis.com`、`updates.push.services.mozilla.com`、`*.notify.windows.com`、https・既定ポートのみ）に限定（購読と rotate の両方） | `domain/push-endpoint.test.ts` |
+| SR-19 | 済 | CR-12 と同一（`;`・`\`・CR/LF のエスケープ） | `ics.test.ts` |
+| SR-20 | 保留 | 情報。Vercel では XFF を信頼してよい。移行時に `clientIp()` を差し替える（ADR-0001） | — |
+| SR-21 | 保留 | 情報。Next.js 16.4 系パッチ更新は依存更新として別作業（ネットワーク経由の lockfile 更新が必要）。CI の Postgres は digest 固定済み（CR-22） | — |
+| SR-22 | 一部 | 完了ページ（`/book/done/*`）も proxy のトークンページ IP 制限（キャンセル・ICS と共通キー）の対象にした。next-intl の `Link`（hreflang）ヘッダーからトークンページを除外する対応は未実施 | `proxy.test.ts`（matcher） |
+| SR-23 | 済 | ロガーの伏せ字を大文字小文字無視・ネスト再帰にし、`email`・`otp`・`code`・`endpoint`・`authorization`・`cookie`・`message`・`stack`・`query`・`params`・`detail` 等を追加。Error オブジェクトは名前のみ | `lib/logger.test.ts` |
+| SR-24 | 済 | ハニーポット時も保存しない 43 文字のトークンで本物と同じ形の `doneUrl` を返す | `booking.db.test.ts`「honeypot: …(SR-24)」 |

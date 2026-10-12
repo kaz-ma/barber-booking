@@ -213,6 +213,8 @@ export const S = {
     toArrived: '来店済みにする',
     toInProgress: '施術を開始する',
     toCompleted: '完了にする',
+    stepBack: (label: string) => `直前の状態（${label}）に戻す`,
+    steppedBack: (label: string) => `「${label}」に戻しました`,
     whyInProgress: '来店済みにした後に押せます',
     whyCompleted: '施術を開始した後に押せます',
     lateMinutes: '遅刻（分）',
@@ -402,7 +404,9 @@ export const S = {
     previewBody: (now: string, earliest: string, last: string, days: number) =>
       `今が ${now} なら、web で予約できる最短の開始は ${earliest}。web 予約は ${last}（${days} 日先）まで受け付けます。`,
     sameDay: '当日の web 予約を受け付ける',
-    digestHour: '日次サマリーの時刻（目安）',
+    digestHour: '日次サマリーの時刻',
+    digestHourValue: '毎日 21:00 前後',
+    digestHourNote: 'Hobby プランでは 21:00 前後に固定（変更できません）',
     minutes: (m: number) => `${m} 分`,
   },
 

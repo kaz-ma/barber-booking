@@ -9,6 +9,7 @@ import { sendAdminOtpEmail } from '@/lib/auth-email'
 import { db } from '@/lib/db'
 import { authAccount, authPasskey, authRateLimit, authSession, authUser, authVerification } from '@/lib/db/schema'
 import { env } from '@/lib/env'
+import { passkeyUserVerificationHooks } from '@/lib/passkey-uv'
 import { secretOrEphemeral } from '@/lib/secrets'
 import { siteUrl } from '@/lib/site'
 
@@ -95,6 +96,9 @@ export const auth = betterAuth({
       rpName: '予約管理',
       origin,
       authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+      // Enforce the UV flag server-side on both ceremonies (SR-07).
+      registration: passkeyUserVerificationHooks.registration,
+      authentication: passkeyUserVerificationHooks.authentication,
     }),
     emailOTP({
       otpLength: OTP_LENGTH,

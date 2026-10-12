@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildIcs } from './ics'
+import { buildIcs, escapeText } from './ics'
 
 describe('buildIcs', () => {
   const ics = buildIcs({
@@ -28,5 +28,32 @@ describe('buildIcs', () => {
     }
     const unfolded = ics.replace(/\r\n /g, '')
     expect(unfolded).toContain(`cancel/${'A'.repeat(43)}`)
+  })
+})
+
+describe('escapeText (RFC 5545 TEXT, CR-12)', () => {
+  it('escapes backslash, semicolon, comma and every kind of line break', () => {
+    expect(escapeText('a;b')).toBe('a\\;b')
+    expect(escapeText('a,b')).toBe('a\\,b')
+    expect(escapeText('C:\\path')).toBe('C:\\\\path')
+    expect(escapeText('1\r\n2\n3\r4')).toBe('1\\n2\\n3\\n4')
+    // backslash is escaped first, so an escaped `;` is not double-processed
+    expect(escapeText('\\;')).toBe('\\\\\\;')
+  })
+
+  it('is applied to SUMMARY / LOCATION / DESCRIPTION', () => {
+    const ics = buildIcs({
+      uid: 'u',
+      start: new Date('2026-11-04T09:00:00Z'),
+      end: new Date('2026-11-04T10:00:00Z'),
+      summary: 'カット; シャンプー',
+      location: 'x',
+      description: 'line1\nline2',
+      url: 'https://example.com',
+      alarmText: 'z',
+      now: new Date('2026-11-01T00:00:00Z'),
+    })
+    expect(ics).toContain('SUMMARY:カット\\; シャンプー\r\n')
+    expect(ics).toContain('DESCRIPTION:line1\\nline2\r\n')
   })
 })

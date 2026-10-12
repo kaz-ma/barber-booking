@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { queryAvailabilityDays } from '@/lib/db/availability-sql'
 import { insertBlock, insertNamedBooking, jst, resetDb, seedAdminSession } from '../../../test/db-helpers'
 import { captureLogs, withFailingTrigger } from '../../../test/log-capture'
-import { getDayAgenda, getInbox, getInboxCount, getOverlaps } from './queries'
+import { getBookingDetail, getCustomerDetail, getDayAgenda, getInbox, getInboxCount, getOverlaps } from './queries'
 import {
   acknowledgeAll,
   acknowledgeBooking,
@@ -14,6 +14,7 @@ import {
   deleteTimeBlock,
   logoutOtherDevices,
   restoreTimeBlock,
+  stepBackBookingStatus,
   subscribePush,
   unacknowledge,
   undoBookingChange,
@@ -394,5 +395,64 @@ describe('CR-01: admin errors are logged without PII', () => {
     const text = lines.join('\n')
     expect(text).toContain('admin.manual_booking_failed')
     for (const pii of ['中村', 'なかむら', '+819087654321', '9087654321', '常連']) expect(text).not.toContain(pii)
+  })
+})
+
+describe('stepBackBookingStatus (CR-24, 直前状態へ戻す)', () => {
+  it('steps completed -> in_progress -> arrived -> confirmed, restoring last_visit_at and late minutes', async () => {
+    const earlier = await insertNamedBooking(jst('2026-10-01 19:00'), jst('2026-10-01 20:00'), { status: 'completed' })
+    const { bookingId, customerId } = await insertNamedBooking(jst('2026-11-03 11:00'), jst('2026-11-03 12:00'))
+    // same customer for both bookings
+    await db.execute(sql`UPDATE bookings SET customer_id = ${customerId} WHERE id = ${earlier.bookingId}`)
+    await db.execute(
+      sql`UPDATE customers SET last_visit_at = ${jst('2026-10-01 20:00').toISOString()}::timestamptz WHERE id = ${customerId}`,
+    )
+
+    expect((await updateBookingStatus({ bookingId, to: 'arrived', lateMinutes: 10 }, { now: NOW })).status).toBe('ok')
+    expect((await updateBookingStatus({ bookingId, to: 'in_progress' }, { now: NOW })).status).toBe('ok')
+    expect((await updateBookingStatus({ bookingId, to: 'completed' }, { now: NOW })).status).toBe('ok')
+    const lastVisit = async () =>
+      new Date(
+        (await one<{ v: string }>(sql`SELECT last_visit_at AS v FROM customers WHERE id = ${customerId}`)).v,
+      ).toISOString()
+    expect(await lastVisit()).toBe(jst('2026-11-03 12:00').toISOString())
+
+    expect(await stepBackBookingStatus(bookingId, { now: NOW })).toEqual({
+      status: 'ok',
+      data: { status: 'in_progress' },
+    })
+    expect(await lastVisit()).toBe(jst('2026-10-01 20:00').toISOString())
+    expect(await stepBackBookingStatus(bookingId, { now: NOW })).toEqual({ status: 'ok', data: { status: 'arrived' } })
+    expect(await stepBackBookingStatus(bookingId, { now: NOW })).toEqual({
+      status: 'ok',
+      data: { status: 'confirmed' },
+    })
+    const row = await one<{ status: string; late_minutes: number | null }>(
+      sql`SELECT status, late_minutes FROM bookings WHERE id = ${bookingId}`,
+    )
+    expect(row).toEqual({ status: 'confirmed', late_minutes: null })
+    // nothing before confirmed
+    expect((await stepBackBookingStatus(bookingId, { now: NOW })).status).toBe('invalid')
+    const audits = await one<{ n: number }>(
+      sql`SELECT count(*)::int AS n FROM audit_log WHERE action = 'booking.step_back'`,
+    )
+    expect(audits.n).toBe(3)
+  })
+
+  it('cannot step a completed booking back into a slot that was re-booked meanwhile', async () => {
+    const { bookingId } = await insertNamedBooking(jst('2026-11-04 19:00'), jst('2026-11-04 20:00'), {
+      status: 'completed',
+    })
+    await insertNamedBooking(jst('2026-11-04 19:00'), jst('2026-11-04 20:00'))
+    expect(await stepBackBookingStatus(bookingId, { now: NOW })).toEqual({ status: 'conflict', reason: 'undo_blocked' })
+  })
+})
+
+describe('malformed ids (CR-11)', () => {
+  it('detail queries return null instead of failing the uuid cast', async () => {
+    for (const id of ['-'.repeat(36), 'abc', '6f1c1d2e3a4b4c5d8e9f0a1b2c3d4e5f----']) {
+      expect(await getBookingDetail(id)).toBeNull()
+      expect(await getCustomerDetail(id)).toBeNull()
+    }
   })
 })

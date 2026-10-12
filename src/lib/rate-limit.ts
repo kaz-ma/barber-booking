@@ -30,7 +30,12 @@ export const rateKeys = {
 const nowSql = (now?: Date): SQL => (now ? sql`${now.toISOString()}::timestamptz` : sql`now()`)
 
 /** Increment the current window and report whether the caller is still within `limit`. */
-export async function hitWindow(key: string, windowSec: number, limit: number, opts: RateOpts = {}): Promise<RateResult> {
+export async function hitWindow(
+  key: string,
+  windowSec: number,
+  limit: number,
+  opts: RateOpts = {},
+): Promise<RateResult> {
   const db = opts.db ?? defaultDb
   const now = nowSql(opts.now)
   const res = await db.execute<{ count: number; retry_after: number }>(sql`
@@ -45,7 +50,8 @@ export async function hitWindow(key: string, windowSec: number, limit: number, o
   return { ok: false, retryAfterSec: Math.max(1, row.retry_after) }
 }
 
-const jstDayStart = (now: SQL) => sql`((((${now}) AT TIME ZONE 'Asia/Tokyo')::date)::timestamp AT TIME ZONE 'Asia/Tokyo')`
+const jstDayStart = (now: SQL) =>
+  sql`((((${now}) AT TIME ZONE 'Asia/Tokyo')::date)::timestamp AT TIME ZONE 'Asia/Tokyo')`
 
 /**
  * Check only. The booking transaction calls this again under the calendar advisory lock and

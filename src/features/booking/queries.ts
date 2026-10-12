@@ -19,6 +19,11 @@ export type BookingByTokenDTO = {
   locale: 'ja' | 'en'
   canCancel: boolean
   deadline: string
+  /**
+   * "Until N hours before" as fixed for this booking (start − cancel_token_expires_at), not the
+   * current setting, which may have changed since (CR-17).
+   */
+  cancelDeadlineHours: number
 }
 
 type Row = {
@@ -65,5 +70,6 @@ export async function getBookingByToken(token: string, now: Date = new Date()): 
     locale: row.locale,
     canCancel: now.getTime() < deadline.getTime(),
     deadline: toJstIso(deadline),
+    cancelDeadlineHours: Math.round(((new Date(row.start_at).getTime() - deadline.getTime()) / 3_600_000) * 100) / 100,
   }
 }

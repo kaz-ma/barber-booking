@@ -1,12 +1,13 @@
 import 'server-only'
 import { asc, eq } from 'drizzle-orm'
 import { cacheLife, cacheTag } from 'next/cache'
+import { CACHE_TAGS } from '@/lib/cache-tags'
 import { db } from '@/lib/db'
 import { menus, settings } from '@/lib/db/schema'
 
 /*
  * Rarely-changing reference data, cached into the static shell (DES-00 §3.2, FR-S-12).
- * Admin actions invalidate with updateTag('menus' | 'settings'). Availability is NOT here
+ * Admin actions invalidate with updateTag(CACHE_TAGS.menus | CACHE_TAGS.settings). Availability is NOT here
  * and is never cached. Booking writes re-read menus from the DB inside the transaction.
  */
 
@@ -21,7 +22,7 @@ export type MenuDTO = {
 
 export async function getActiveMenus(): Promise<MenuDTO[]> {
   'use cache'
-  cacheTag('menus')
+  cacheTag(CACHE_TAGS.menus)
   cacheLife('days')
   const rows = await db
     .select()
@@ -42,7 +43,7 @@ export type PublicSettingsDTO = { leadTimeMin: number; cancelDeadlineMin: number
 
 export async function getPublicSettings(): Promise<PublicSettingsDTO> {
   'use cache'
-  cacheTag('settings')
+  cacheTag(CACHE_TAGS.settings)
   cacheLife('days')
   const [row] = await db
     .select({

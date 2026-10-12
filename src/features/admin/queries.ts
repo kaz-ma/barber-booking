@@ -5,6 +5,7 @@ import { jstInstant, minutesFromJstMidnight } from '@/domain/jst-format'
 import { toHiragana } from '@/domain/kana'
 import { isValidE164, normalizePhone } from '@/domain/phone'
 import { addDays, jstDate, toJstIso } from '@/domain/time'
+import { isUuid } from '@/domain/uuid'
 import { db } from '@/lib/db'
 import {
   authPasskey,
@@ -365,7 +366,7 @@ type DetailRow = {
 
 /** S-A-04 booking detail (FR-A-04). Deleted (soft) bookings are still readable for undo. */
 export async function getBookingDetail(id: string): Promise<BookingDetail | null> {
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return null
+  if (!isUuid(id)) return null
   const res = await db.execute<DetailRow>(sql`
     SELECT b.id, b.public_code, b.status, b.source, b.locale, lower(b.during) AS start_at, upper(b.during) AS end_at,
            b.buffer_min, b.price_jpy, b.is_student, b.note, b.owner_note, b.created_at, b.status_changed_at,
@@ -566,7 +567,7 @@ export type CustomerDetail = CustomerListItem & {
 }
 
 export async function getCustomerDetail(id: string): Promise<CustomerDetail | null> {
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return null
+  if (!isUuid(id)) return null
   const res = await db.execute<CustomerRow & { phone_unverified: boolean }>(sql`
     SELECT c.id, c.name, c.name_kana, c.phone_e164, c.phone_unverified, c.last_visit_at, c.booking_restriction,
            c.no_show_count, c.late_cancel_count, c.created_at,

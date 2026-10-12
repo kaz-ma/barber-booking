@@ -4,6 +4,7 @@ import { refresh, updateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import type { ActionResult } from '@/lib/action-result'
 import { invalid } from '@/lib/action-result'
+import { CACHE_TAGS } from '@/lib/cache-tags'
 import { clientIp } from '@/lib/client-ip'
 import { guardAction } from '@/lib/unexpected-error'
 import { requireAdmin } from './auth'
@@ -38,7 +39,7 @@ import type { AdminResult } from './types'
 /*
  * Thin admin Server Actions (06_api.md §3, API-04): requireAdmin() -> Zod -> service.
  * Every export is reachable by a direct POST, so nothing here trusts the UI; a request without
- * a valid session gets `unauthorized` (AT-27). Cache: menus / hours / settings use updateTag,
+ * a valid session gets `unauthorized` (AT-27). Cache: menus / business hours / settings use updateTag(CACHE_TAGS.*),
  * calendar changes call refresh() so the client router re-renders (API-08).
  */
 
@@ -88,6 +89,17 @@ export async function updateBookingStatusAction(input: unknown): Promise<ActionR
     const parsed = updateBookingStatusSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.updateBookingStatus(parsed.data)
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+export async function stepBackBookingStatusAction(input: unknown): Promise<ActionResult<service.StatusChangeOk>> {
+  return guardAction('admin.step_back_booking_status_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = bookingIdSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    const result = await service.stepBackBookingStatus(parsed.data.bookingId)
     if (result.status === 'ok') refresh()
     return result
   })
@@ -205,7 +217,7 @@ export async function updateBusinessHoursAction(input: unknown): Promise<ActionR
     const parsed = businessHoursSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.updateBusinessHours(parsed.data.days)
-    updateTag('hours')
+    updateTag(CACHE_TAGS.businessHours)
     return result
   })
 }
@@ -218,7 +230,7 @@ export async function upsertHourOverrideAction(
     const parsed = hourOverrideSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.upsertHourOverride(parsed.data)
-    updateTag('hours')
+    updateTag(CACHE_TAGS.businessHours)
     return result
   })
 }
@@ -229,7 +241,7 @@ export async function deleteHourOverrideAction(input: unknown): Promise<ActionRe
     const parsed = dateSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.deleteHourOverride(parsed.data.date)
-    updateTag('hours')
+    updateTag(CACHE_TAGS.businessHours)
     return result
   })
 }
@@ -240,7 +252,7 @@ export async function updateSettingsAction(input: unknown): Promise<ActionResult
     const parsed = settingsSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.updateSettings(parsed.data)
-    updateTag('settings')
+    updateTag(CACHE_TAGS.settings)
     return result
   })
 }
@@ -251,7 +263,7 @@ export async function upsertMenuAction(input: unknown): Promise<ActionResult<{ m
     const parsed = upsertMenuSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.upsertMenu(parsed.data)
-    if (result.status === 'ok') updateTag('menus')
+    if (result.status === 'ok') updateTag(CACHE_TAGS.menus)
     return result
   })
 }
@@ -262,7 +274,7 @@ export async function setMenuActiveAction(input: unknown): Promise<ActionResult<
     const parsed = setMenuActiveSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.setMenuActive(parsed.data.menuId, parsed.data.isActive)
-    updateTag('menus')
+    updateTag(CACHE_TAGS.menus)
     return result
   })
 }
@@ -273,7 +285,7 @@ export async function moveMenuAction(input: unknown): Promise<ActionResult<null>
     const parsed = moveMenuSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.moveMenu(parsed.data.menuId, parsed.data.direction)
-    updateTag('menus')
+    updateTag(CACHE_TAGS.menus)
     return result
   })
 }

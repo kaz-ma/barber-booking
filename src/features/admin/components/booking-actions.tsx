@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import type { BookingStatus } from '@/domain/booking-status'
+import { type BookingStatus, stepBackTarget } from '@/domain/booking-status'
 import {
   acknowledgeBookingAction,
   deleteBookingAction,
   reissueConfirmationUrlAction,
+  stepBackBookingStatusAction,
   undoBookingChangeAction,
   updateBookingStatusAction,
   updateOwnerNoteAction,
@@ -87,6 +88,18 @@ export function BookingActions(props: Props) {
     })
   }
 
+  function stepBack(to: BookingStatus) {
+    startTransition(async () => {
+      const res = await stepBackBookingStatusAction({ bookingId })
+      const failure = describeFailure(res)
+      if (failure || res.status !== 'ok') {
+        toast.show({ message: failure ?? (S.errors.generic as string) })
+        return
+      }
+      toast.show({ message: S.detail.steppedBack(S.status[to] ?? to), placement: 'bottom' })
+    })
+  }
+
   function removeEntry() {
     startTransition(async () => {
       const res = await deleteBookingAction({ bookingId })
@@ -141,6 +154,7 @@ export function BookingActions(props: Props) {
 
   const progressIndex = status === 'confirmed' ? 0 : status === 'arrived' ? 1 : status === 'in_progress' ? 2 : 3
   const active = ['confirmed', 'arrived', 'in_progress'].includes(status) && !props.deleted
+  const backTo = props.deleted ? null : stepBackTarget(status)
   const overdue = status === 'confirmed' && nowMs !== null && nowMs > new Date(props.startIso).getTime() + 30 * 60_000
 
   const step = (index: number, label: string, to: BookingStatus, why: string) => {
@@ -216,6 +230,15 @@ export function BookingActions(props: Props) {
             </div>
           ) : null}
         </>
+      ) : null}
+
+      {backTo ? (
+        <div className="center-row mt-2">
+          <button className="btn btn-ghost" type="button" disabled={pending} onClick={() => stepBack(backTo)}>
+            <Icon name="back" />
+            {S.detail.stepBack(S.status[backTo] ?? backTo)}
+          </button>
+        </div>
       ) : null}
 
       {status === 'confirmed' && !props.deleted ? (

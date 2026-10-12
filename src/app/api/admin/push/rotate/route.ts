@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
+import { isAllowedPushEndpoint } from '@/domain/push-endpoint'
 import { requireAdmin } from '@/features/admin/auth'
 import { rotatePushSubscription } from '@/features/admin/service'
 import { siteUrl } from '@/lib/site'
@@ -9,7 +10,10 @@ const NO_STORE = { 'Cache-Control': 'no-store' }
 const body = z.object({
   oldEndpoint: z.url().max(2048).optional(),
   subscription: z.object({
-    endpoint: z.url({ protocol: /^https$/ }).max(2048),
+    endpoint: z
+      .url({ protocol: /^https$/ })
+      .max(2048)
+      .refine(isAllowedPushEndpoint),
     keys: z.object({ p256dh: z.string().min(16).max(256), auth: z.string().min(8).max(64) }),
   }),
 })
@@ -20,8 +24,9 @@ const body = z.object({
  */
 export async function POST(request: NextRequest): Promise<Response> {
   return guardRoute('admin_api.push_rotate_failed', async () => {
+    // Browsers (incl. the service worker's fetch) always send Origin on POST: require it (SR-17).
     const origin = request.headers.get('origin')
-    if (origin && origin !== new URL(siteUrl()).origin) return new Response(null, { status: 403, headers: NO_STORE })
+    if (origin !== new URL(siteUrl()).origin) return new Response(null, { status: 403, headers: NO_STORE })
     const session = await requireAdmin()
     if (!session) return new Response(null, { status: 401, headers: NO_STORE })
     const parsed = body.safeParse(await request.json().catch(() => null))
