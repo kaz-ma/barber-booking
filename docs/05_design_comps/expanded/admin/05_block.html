@@ -245,14 +245,14 @@ textarea.input{height:auto;min-height:88px;padding:var(--space-3);resize:vertica
 @media (max-width:359px){.dayhead h1{font-size:var(--text-18)}.inbox-btn .t{display:none}.inbox-btn{padding:0 var(--space-2)}}
 .end-btn{margin-left:var(--space-1)}
 
-.bs .row-link{min-height:52px;margin:0 calc(var(--gutter) * -1);padding:var(--space-1) var(--gutter);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);font-weight:700}
+.bs .row-link{min-height:var(--target-min);margin:0 calc(var(--gutter) * -1);padding:var(--space-1) var(--gutter);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);font-weight:700}
 .bs .row-link .ic:first-child{width:22px;height:22px}
-.bs .legend{display:flex;align-items:baseline;justify-content:space-between;width:100%;margin:var(--space-3) 0 var(--space-2);font-size:var(--text-16);line-height:1.4;font-weight:700}
-.presets{display:grid;gap:6px}
+.bs .legend{display:block;width:100%;margin:var(--space-2) 0 6px;font-size:var(--text-16);line-height:1.4;font-weight:700}
+.presets{display:grid;gap:4px}
 .preset{position:relative;display:block;cursor:pointer}
-.preset .box{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:2px var(--space-3);align-items:center;min-height:56px;padding:var(--space-2) var(--space-3);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card)}
+.preset .box{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:2px var(--space-3);align-items:center;min-height:52px;padding:6px var(--space-3);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card)}
 .preset .rd{width:20px;height:20px;border-radius:50%;border:1px solid var(--fg);display:grid;place-items:center}
-.preset input:checked+.box{border-width:2px;padding:calc(var(--space-2) - 1px) calc(var(--space-3) - 1px)}
+.preset input:checked+.box{border-width:2px;padding:5px calc(var(--space-3) - 1px)}
 .preset input:checked+.box .rd::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--fg)}
 .preset input:focus-visible+.box{outline:2px solid var(--ring);outline-offset:2px}
 .preset b{font-size:var(--text-16);line-height:1.4}
@@ -261,11 +261,13 @@ textarea.input{height:auto;min-height:88px;padding:var(--space-3);resize:vertica
 .preset .sub b{font-size:var(--text-12);color:var(--fg);font-weight:700}
 .preset .ov{grid-column:2/-1;display:flex;align-items:center;gap:6px;margin-top:2px;padding:2px 6px;border:2px solid var(--fg);border-radius:var(--radius-sm);font-size:var(--text-12);line-height:1.5;font-weight:700}
 .preset .ov .ic{width:16px;height:16px}
-.kind-row{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-3);margin-top:var(--space-3)}
-.effect{display:flex;gap:var(--space-2);margin:var(--space-3) 0;font-size:var(--text-12);line-height:1.6;color:var(--fg-muted)}
+.kind-row{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);margin-top:var(--space-2)}
+.effect{display:flex;gap:var(--space-2);margin:var(--space-2) 0;font-size:var(--text-12);line-height:1.6;color:var(--fg-muted)}
 .effect .ic{width:16px;height:16px;margin-top:2px;color:var(--info)}
 .effect b{color:var(--fg)}
+.bs .sheet-head{margin-bottom:0}
 .bs .sheet-head h2{font-size:var(--text-18)}
+.bs .legend .cap{display:block;font-weight:500}
 </style>
 </head>
 <body class="paper">
@@ -330,7 +332,7 @@ textarea.input{height:auto;min-height:88px;padding:var(--space-3);resize:vertica
   <a class="row-link" href="04_manual.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-userplus"/></svg><span class="grow">手動予約を入れる</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chev-r"/></svg></a>
   <fieldset>
     <legend class="legend">時間をブロック<span class="cap">開始は今（<span class="num">18:02</span>）を 5 分単位で切り捨て</span></legend>
-    <div class="presets"><label class="preset"><input class="vh-input" type="radio" name="preset" value="p60" checked><span class="box"><span class="rd" aria-hidden="true"></span><b>今から 1 時間</b><span class="rng">18:00–19:00</span><span class="sub"><b>休憩</b>として ・ お客様側の変化なし（<span class="num">19:00</span> まで受付終了済み）</span></span></label><label class="preset"><input class="vh-input" type="radio" name="preset" value="p120"><span class="box"><span class="rd" aria-hidden="true"></span><b>今から 2 時間</b><span class="rng">18:00–20:00</span><span class="sub"><b>休憩</b>として ・ お客様側は <span class="num">19:30</span> 開始の枠を止める</span></span></label><label class="preset"><input class="vh-input" type="radio" name="preset" value="pclose"><span class="box"><span class="rd" aria-hidden="true"></span><b>今日はここまで</b><span class="rng">18:00–24:00</span><span class="sub"><b>臨時休業</b>として ・ お客様側は今日 <span class="num">19:30</span> 以降の枠をすべて止める</span><span class="ov"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-alert"/></svg><span><span class="num">21:00–22:00</span> 加藤 大翔様と重なります（予約は残ります）</span></span></span></label><label class="preset"><input class="vh-input" type="radio" name="preset" value="prange"><span class="box"><span class="rd" aria-hidden="true"></span><b>期間を指定</b><span class="rng">日時を選ぶ</span><span class="sub">開始・終了を 5 分刻みで（最大 <span class="num">60</span> 日）</span></span></label></div>
+    <div class="presets"><label class="preset"><input class="vh-input" type="radio" name="preset" value="p60" checked><span class="box"><span class="rd" aria-hidden="true"></span><b>今から 1 時間</b><span class="rng">18:00–19:00</span><span class="sub"><b>休憩</b>として ・ お客様側の変化なし（<span class="num">19:00</span> まで受付終了済み）</span></span></label><label class="preset"><input class="vh-input" type="radio" name="preset" value="p120"><span class="box"><span class="rd" aria-hidden="true"></span><b>今から 2 時間</b><span class="rng">18:00–20:00</span><span class="sub"><b>休憩</b>として ・ お客様側は <span class="num">19:30</span> 開始の枠を止める</span></span></label><label class="preset"><input class="vh-input" type="radio" name="preset" value="pclose"><span class="box"><span class="rd" aria-hidden="true"></span><b>今日はここまで</b><span class="rng">18:00–24:00</span><span class="sub"><b>臨時休業</b>として ・ お客様側は今日 <span class="num">19:30</span> 以降の枠をすべて止める</span><span class="ov"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-alert"/></svg><span><span class="num">21:00–22:00</span> 加藤 大翔様と重なります</span></span></span></label><label class="preset"><input class="vh-input" type="radio" name="preset" value="prange"><span class="box"><span class="rd" aria-hidden="true"></span><b>期間を指定</b><span class="rng">日時を選ぶ</span><span class="sub">開始・終了を 5 分刻みで（最大 <span class="num">60</span> 日）</span></span></label></div>
   </fieldset>
   <div class="kind-row">
     <fieldset class="field"><legend class="label">種別<span class="req">プリセットの既定。あとから変えられます</span></legend><div class="seg-row"><label><input class="vh-input" type="radio" name="kind" checked><span>休憩</span></label><label><input class="vh-input" type="radio" name="kind"><span>私用</span></label><label><input class="vh-input" type="radio" name="kind"><span>臨時休業</span></label></div></fieldset>

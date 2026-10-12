@@ -72,7 +72,7 @@ const audit = (page) => page.evaluate(() => {
   const visible = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
   const isVh = (el) => el.closest('.vh,.vh-input') !== null;
   const theme = document.documentElement.dataset.theme || 'light';
-  const pairs = []; const targets = []; let inertSkipped = 0;
+  const pairs = []; const targets = []; let inertSkipped = 0; let decoEdges = 0;
   for (const el of document.querySelectorAll('body *')) {
     if (el.closest('svg')) continue;
     if (el.closest('[inert]')) { inertSkipped++; continue; }
@@ -91,7 +91,11 @@ const audit = (page) => page.evaluate(() => {
       const r = box.getBoundingClientRect();
       const name = (el.getAttribute('aria-label') || box.textContent || el.value || el.id).trim().replace(/\s+/g, ' ').slice(0, 30);
       targets.push({ text: name, tag: el.tagName.toLowerCase(), w: Math.round(r.width), h: Math.round(r.height) });
-      if (!el.matches('input[type=checkbox],input[type=radio]')) {
+      // full-width list rows (row links, listbox options, inbox / menu rows, booking card links) are identified by their
+      // text + chevron; their hairline separators / group fill are decorative (1.4.11 n/a) -> counted, not judged
+      const decoEdge = el.matches('.row-link,[role=option],.ib-row,.m-main,.bk-main');
+      if (decoEdge) { decoEdges++; }
+      else if (!el.matches('input[type=checkbox],input[type=radio]')) {
         const parentBg = bgOf(el.parentElement);
         const bw = parseFloat(cs.borderTopWidth);
         if (bw > 0 && cs.borderTopStyle !== 'none') pairs.push({ kind: 'ui', fg: hex(parse(cs.borderTopColor)), bg: parentBg.hex, paper: parentBg.paper, text: 'border: ' + name.slice(0, 20) });
@@ -122,7 +126,7 @@ const audit = (page) => page.evaluate(() => {
   const toasts = [...document.querySelectorAll('.toast')].map((t) => ({ role: t.getAttribute('role'), live: t.getAttribute('aria-live'), text: t.textContent.trim().replace(/\s+/g, ' ').slice(0, 30) }));
   const alerts = [...document.querySelectorAll('.alert')].map((t) => t.getAttribute('role'));
   const sheets = [...document.querySelectorAll('.sheet')].map((s) => ({ role: s.getAttribute('role'), modal: s.getAttribute('aria-modal'), top: Math.round(s.getBoundingClientRect().top), bottom: Math.round(s.getBoundingClientRect().bottom) }));
-  return { theme, pairs, targets, inertSkipped, cards, tabbar, fabs, unlabeled, toasts, alerts, sheets, animations: document.getAnimations().length, h1: document.querySelectorAll('h1').length };
+  return { theme, pairs, targets, inertSkipped, decoEdges, cards, tabbar, fabs, unlabeled, toasts, alerts, sheets, animations: document.getAnimations().length, h1: document.querySelectorAll('h1').length };
 });
 const overflow = (page) => page.evaluate(() => {
   const W = document.documentElement.clientWidth;
@@ -166,13 +170,13 @@ for (const [n] of pages) {
 // contact sheet: first screen (390x844) of every page, 6 columns, <= 1600px wide
 {
   const COLS = 6, GAP = 16, PAD = 24, W = 1600, colW = Math.floor((W - PAD * 2 - GAP * (COLS - 1)) / COLS);
-  const cells = pages.map(([n, full, id, label]) => `<figure><figcaption><b>${n}</b><span>${id} ${label}${full ? '（個別 JPEG は全長）' : ''}</span></figcaption><img src="file://${out}/${n}_vp.png"></figure>`).join('');
+  const cells = pages.map(([n, full, id, label]) => `<figure><figcaption><b>${n}</b><span>${id} ${label}${full ? ' ・全長' : ''}</span></figcaption><img src="file://${out}/${n}_vp.png"></figure>`).join('');
   const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet"><style>
   body{margin:0;width:${W}px;background:#d8ccb6;font-family:Lato,"Noto Sans JP",sans-serif;color:#191919}
   h1{margin:0;padding:${PAD}px ${PAD}px 8px;font-size:22px} p.sub{margin:0;padding:0 ${PAD}px 16px;font-size:14px;color:#3a3632}
   main{display:grid;grid-template-columns:repeat(${COLS},${colW}px);gap:24px ${GAP}px;padding:0 ${PAD}px ${PAD}px}
-  figure{margin:0} figcaption{display:grid;height:44px;font-size:12px;line-height:18px} figcaption b{font-size:13px} img{display:block;width:${colW}px;height:auto;box-shadow:0 1px 3px rgb(0 0 0 / .25)}
-  </style></head><body><h1>管理 PWA 展開カンプ（expanded/admin）— 22 画面</h1><p class="sub">DG-001 v0.3「A ヘリテージ・ペーパー」／ WF-A v0.3 ／ 390×844 の 1 画面目。02_today_dark は data-theme="dark"</p><main>${cells}</main></body></html>`;
+  figure{margin:0} figcaption{display:grid;min-height:44px;margin-bottom:4px;font-size:12px;line-height:18px} figcaption b{font-size:13px} img{display:block;width:${colW}px;height:auto;box-shadow:0 1px 3px rgb(0 0 0 / .25)}
+  </style></head><body><h1>管理 PWA 展開カンプ（expanded/admin）— 22 画面</h1><p class="sub">DG-001 v0.3「A ヘリテージ・ペーパー」／ WF-A v0.3 ／ 390×844 の 1 画面目。02_today_dark は data-theme="dark"。「全長」= 個別 JPEG は full page</p><main>${cells}</main></body></html>`;
   writeFileSync(`${out}/contact_sheet.html`, html);
   const c = await browser.newContext({ viewport: { width: W, height: 800 }, deviceScaleFactor: 1 });
   const p = await c.newPage(); await p.goto(`file://${out}/contact_sheet.html`, { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready);
