@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>日時を選ぶ（2/4）｜ご予約｜Neuer Barber 長田</title>
-<!-- Base design S-C-03 予約 ② 日時を選ぶ /ja 状態 (a) — DG-001 v0.1（方向 A）2026-10-12 -->
+<!-- Base design S-C-03 予約 ② 日時を選ぶ /ja 状態 (a) — DG-001 v0.2（方向 A＋クライアント FB: 月カレンダー・Instagram 導線）2026-10-12 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
@@ -54,21 +54,27 @@ a{color:inherit}
 .picked p span{display:inline-block}
 .month{display:grid;grid-template-columns:var(--target-min) 1fr var(--target-min);align-items:center;margin-top:var(--space-8)}
 .month h2{text-align:center;font:700 var(--text-20)/var(--text-20--lh) var(--font-sans);letter-spacing:.04em}
-/* ---- week strip ---- */
-.week{display:grid;grid-auto-flow:column;grid-auto-columns:46px;gap:6px;margin:var(--space-4) calc(var(--gutter) * -1) 0;padding:0 var(--gutter) var(--space-1);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gutter);scrollbar-width:none}
-.week::-webkit-scrollbar{display:none}
-.day{position:relative;display:grid;justify-items:center;align-content:center;height:72px;border-radius:var(--radius-sm);scroll-snap-align:start;text-decoration:none;font-size:var(--text-12);line-height:16px;letter-spacing:0;transition:background-color var(--duration-short3) var(--ease-standard)}
-.day b{font:700 var(--text-20)/24px var(--font-num)}
-.day .mk{font-weight:700;white-space:nowrap}
-.day.open{background:var(--bg-card);border:1px solid var(--status-open)}
-.day.open .mk{color:var(--status-open);font-size:var(--text-14)}
-.day.open:hover{background:var(--bg-sunken)}
-.day.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.day.sel .mk{color:var(--on-accent)}
-.day.x{border:1px dashed var(--fg-subtle);color:var(--fg-subtle)}
-.day.x b{font-weight:400}
+/* ---- month calendar (MonthCalendar / DayCell grid, 月曜始まり) ---- */
+.btn-icon.is-off{background:transparent;border:1px dashed var(--fg-subtle);color:var(--fg-subtle);cursor:default}
+.dow,.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:6px}
+.dow{margin-top:var(--space-4);text-align:center;font-size:var(--text-12);line-height:16px;font-weight:700;letter-spacing:0;color:var(--fg-muted)}
+.cal{row-gap:6px;margin-top:var(--space-2)}
+.cd{position:relative;display:grid;justify-items:center;align-content:center;gap:2px;height:52px;border-radius:var(--radius-sm);text-decoration:none;letter-spacing:0;transition:background-color var(--duration-short3) var(--ease-standard)}
+.cd b{font:700 var(--text-18)/20px var(--font-num)}
+.cd .mk{font-size:var(--text-12);line-height:16px;font-weight:700;white-space:nowrap}
+.cd.open{background:var(--bg-card);border:1px solid var(--status-open)}
+.cd.open .mk{color:var(--status-open);font-size:var(--text-14)}
+.cd.open:hover{background:var(--bg-sunken)}
+.cd.today{border:2px solid var(--fg)}
+.cd.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent);box-shadow:inset 0 0 0 2px var(--accent),inset 0 0 0 3px rgb(244 236 221 / .4)}
+.cd.sel .mk{color:var(--on-accent)}
+.cd.x{border:1px dashed var(--fg-subtle);color:var(--fg-subtle)}
+.cd.x b{font-weight:400}
+.cd.past,.cd.out{color:var(--fg-subtle)}
+.cd.past b,.cd.out b{font-weight:400}
+@media (max-width:359px){.dow,.cal{column-gap:2px;margin-left:calc(var(--gutter) / -2);margin-right:calc(var(--gutter) / -2)}.cal{row-gap:4px}}
 /* ---- legend + deadline ---- */
-.legend{display:flex;flex-wrap:wrap;gap:0 var(--space-2);margin-top:var(--space-3);font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
+.legend{display:flex;flex-wrap:wrap;gap:0 var(--space-2);margin-top:var(--space-4);font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
 .legend .o{color:var(--status-open)}
 .legend .x{color:var(--fg-subtle)}
 .legend b{font-weight:700;margin-right:4px}
@@ -96,8 +102,7 @@ a{color:inherit}
 .slot.x{min-height:48px;background:var(--bg-sunken);border:1px dashed var(--fg-subtle);color:var(--fg-subtle)}
 .slot.x .t{font-weight:400;font-size:var(--text-18);text-decoration:line-through;text-decoration-thickness:1px}
 .slot.x .end{font-weight:500}
-.tel{margin:var(--space-8) 0 var(--space-12)}
-.tel{font-size:var(--text-14)}
+.slots{margin-bottom:var(--space-12)}
 @media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
 @media (min-width:768px){:root{--gutter:var(--space-6)}}
 </style>
@@ -107,8 +112,8 @@ a{color:inherit}
   <div class="in">
     <a class="back" href="/ja/book?menu=cut" aria-label="メニュー選択に戻る"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
     <h1>ご予約</h1>
-    <a class="lang" href="/en/book/time?menu=cut&amp;date=2026-10-10" hreflang="en" lang="en" aria-label="English">EN</a>
-    <a class="btn btn-secondary btn-sm" href="tel:+8160000000"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>電話する</a>
+    <a class="lang" href="/en/book/time?menu=cut&amp;date=2026-10-13" hreflang="en" lang="en" aria-label="English">EN</a>
+    <a class="btn btn-secondary btn-sm" href="https://ig.me/m/neuer.kento" rel="noopener noreferrer" aria-label="Instagram の DM で問い合わせる（@neuer.kento）"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>Instagram</a>
   </div>
 </header>
 
@@ -126,46 +131,66 @@ a{color:inherit}
   </div>
 
   <div class="month">
-    <a class="btn btn-secondary btn-icon" href="?menu=cut&amp;from=2026-09-26" aria-label="前の週"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></a>
-    <h2><span class="num">2026</span>年<span class="num">10</span>月</h2>
-    <a class="btn btn-secondary btn-icon" href="?menu=cut&amp;from=2026-10-24" aria-label="次の週"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+    <button class="btn btn-secondary btn-icon is-off" type="button" disabled aria-label="前の月（予約できる期間外）"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <h2 id="month-h"><span class="num">2026</span>年<span class="num">10</span>月</h2>
+    <a class="btn btn-secondary btn-icon" href="?menu=cut&amp;month=2026-11" aria-label="次の月（2026年11月）"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
   </div>
 
-  <ul class="week" aria-label="日付（今日から 14 日分）">
-    <li><a class="day open sel" href="?menu=cut&amp;date=2026-10-10" aria-current="date" aria-label="10月10日 土曜日 今日 予約できます 選択中"><span>今日</span><b>10</b><span class="mk">◎</span></a></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-11" aria-label="10月11日 日曜日 明日 予約できます"><span>明日</span><b>11</b><span class="mk">◎</span></a></li>
-    <li><div class="day x"><span>月</span><b>12</b><span class="mk">× 定休</span><span class="vh">10月12日 月曜日 予約できません</span></div></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-13" aria-label="10月13日 火曜日 予約できます"><span>火</span><b>13</b><span class="mk">◎</span></a></li>
-    <li><div class="day x"><span>水</span><b><s>14</s></b><span class="mk">× 満席</span><span class="vh">10月14日 水曜日 予約できません</span></div></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-15" aria-label="10月15日 木曜日 予約できます"><span>木</span><b>15</b><span class="mk">◎</span></a></li>
-    <li><div class="day x"><span>金</span><b>16</b><span class="mk">× 休業</span><span class="vh">10月16日 金曜日 予約できません</span></div></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-17" aria-label="10月17日 土曜日 予約できます"><span>土</span><b>17</b><span class="mk">◎</span></a></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-18" aria-label="10月18日 日曜日 予約できます"><span>日</span><b>18</b><span class="mk">◎</span></a></li>
-    <li><div class="day x"><span>月</span><b>19</b><span class="mk">× 定休</span><span class="vh">10月19日 月曜日 予約できません</span></div></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-20" aria-label="10月20日 火曜日 予約できます"><span>火</span><b>20</b><span class="mk">◎</span></a></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-21" aria-label="10月21日 水曜日 予約できます"><span>水</span><b>21</b><span class="mk">◎</span></a></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-22" aria-label="10月22日 木曜日 予約できます"><span>木</span><b>22</b><span class="mk">◎</span></a></li>
-    <li><a class="day open" href="?menu=cut&amp;date=2026-10-23" aria-label="10月23日 金曜日 予約できます"><span>金</span><b>23</b><span class="mk">◎</span></a></li>
-  </ul>
+  <p class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></p>
+  <ol class="cal" aria-labelledby="month-h">
+    <li aria-hidden="true"></li>
+    <li aria-hidden="true"></li>
+    <li aria-hidden="true"></li>
+    <li><span class="cd past"><b>1</b><span class="vh">10月1日 木曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>2</b><span class="vh">10月2日 金曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>3</b><span class="vh">10月3日 土曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>4</b><span class="vh">10月4日 日曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>5</b><span class="vh">10月5日 月曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>6</b><span class="vh">10月6日 火曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>7</b><span class="vh">10月7日 水曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>8</b><span class="vh">10月8日 木曜日 受付終了</span></span></li>
+    <li><span class="cd past"><b>9</b><span class="vh">10月9日 金曜日 受付終了</span></span></li>
+    <li><a class="cd open today" href="?menu=cut&amp;date=2026-10-10" aria-current="date" aria-label="10月10日 土曜日 今日 予約できます"><b>10</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-11" aria-label="10月11日 日曜日 予約できます"><b>11</b><span class="mk">◎</span></a></li>
+    <li><span class="cd x"><b>12</b><span class="mk">× 定休</span><span class="vh">10月12日 月曜日 予約できません</span></span></li>
+    <li><a class="cd open sel" href="?menu=cut&amp;date=2026-10-13" aria-label="10月13日 火曜日 予約できます 選択中"><b>13</b><span class="mk">◎</span></a></li>
+    <li><span class="cd x"><b><s>14</s></b><span class="mk">× 満席</span><span class="vh">10月14日 水曜日 予約できません</span></span></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-15" aria-label="10月15日 木曜日 予約できます"><b>15</b><span class="mk">◎</span></a></li>
+    <li><span class="cd x"><b>16</b><span class="mk">× 休業</span><span class="vh">10月16日 金曜日 予約できません</span></span></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-17" aria-label="10月17日 土曜日 予約できます"><b>17</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-18" aria-label="10月18日 日曜日 予約できます"><b>18</b><span class="mk">◎</span></a></li>
+    <li><span class="cd x"><b>19</b><span class="mk">× 定休</span><span class="vh">10月19日 月曜日 予約できません</span></span></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-20" aria-label="10月20日 火曜日 予約できます"><b>20</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-21" aria-label="10月21日 水曜日 予約できます"><b>21</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-22" aria-label="10月22日 木曜日 予約できます"><b>22</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-23" aria-label="10月23日 金曜日 予約できます"><b>23</b><span class="mk">◎</span></a></li>
+    <li><span class="cd x"><b><s>24</s></b><span class="mk">× 満席</span><span class="vh">10月24日 土曜日 予約できません</span></span></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-25" aria-label="10月25日 日曜日 予約できます"><b>25</b><span class="mk">◎</span></a></li>
+    <li><span class="cd x"><b>26</b><span class="mk">× 定休</span><span class="vh">10月26日 月曜日 予約できません</span></span></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-27" aria-label="10月27日 火曜日 予約できます"><b>27</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-28" aria-label="10月28日 水曜日 予約できます"><b>28</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-29" aria-label="10月29日 木曜日 予約できます"><b>29</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-30" aria-label="10月30日 金曜日 予約できます"><b>30</b><span class="mk">◎</span></a></li>
+    <li><a class="cd open" href="?menu=cut&amp;date=2026-10-31" aria-label="10月31日 土曜日 予約できます"><b>31</b><span class="mk">◎</span></a></li>
+    <li aria-hidden="true"></li>
+  </ol>
   <p class="legend"><span><b class="o">◎</b>予約できます</span><span aria-hidden="true">／</span><span><b class="x">×</b>予約できません</span></p>
   <p class="deadline"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>予約締切: 開始 <span class="num">60</span> 分前まで</p>
 
-  <div class="slots-head"><h2 id="slots-h" tabindex="-1"><span class="num">10</span>月<span class="num">10</span>日（土）の空き時間</h2></div>
+  <div class="slots-head"><h2 id="slots-h" tabindex="-1"><span class="num">10</span>月<span class="num">13</span>日（火）の空き時間</h2></div>
   <ul class="slots" aria-labelledby="slots-h">
-    <li class="slot x"><span class="mk" aria-hidden="true">×</span><span class="t num">18:00–19:00</span><span class="end"><span class="vh">予約できません（</span>締切<span class="vh">）</span></span></li>
-    <li class="slot x"><span class="mk" aria-hidden="true">×</span><span class="t num">18:30–19:30</span><span class="end"><span class="vh">予約できません（</span>満席<span class="vh">）</span></span></li>
-    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-10T19:00" aria-label="19:00–20:00 予約できます"><span class="mk">◎</span><span class="t num">19:00<span>–</span>20:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
-    <li><a class="slot open sel" href="/ja/book/info?menu=cut&amp;start=2026-10-10T19:30" aria-current="true" aria-label="19:30–20:30 選択中"><span class="mk">◎</span><span class="t num">19:30<span>–</span>20:30</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span></a></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T18:00" aria-label="18:00–19:00 予約できます"><span class="mk">◎</span><span class="t num">18:00<span>–</span>19:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T18:30" aria-label="18:30–19:30 予約できます"><span class="mk">◎</span><span class="t num">18:30<span>–</span>19:30</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li><a class="slot open sel" href="/ja/book/info?menu=cut&amp;start=2026-10-13T19:00" aria-current="true" aria-label="19:00–20:00 選択中"><span class="mk">◎</span><span class="t num">19:00<span>–</span>20:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>選択中</span></a></li>
+    <li class="slot x"><span class="mk" aria-hidden="true">×</span><span class="t num">19:30–20:30</span><span class="end"><span class="vh">予約できません（</span>満席<span class="vh">）</span></span></li>
     <li class="slot x"><span class="mk" aria-hidden="true">×</span><span class="t num">20:00–21:00</span><span class="end"><span class="vh">予約できません（</span>満席<span class="vh">）</span></span></li>
-    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-10T20:30" aria-label="20:30–21:30 予約できます"><span class="mk">◎</span><span class="t num">20:30<span>–</span>21:30</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
-    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-10T21:00" aria-label="21:00–22:00 予約できます"><span class="mk">◎</span><span class="t num">21:00<span>–</span>22:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
-    <li class="slot x"><span class="mk" aria-hidden="true">×</span><span class="t num">21:30–22:30</span><span class="end"><span class="vh">予約できません（</span>満席<span class="vh">）</span></span></li>
-    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-10T22:00" aria-label="22:00–23:00 予約できます"><span class="mk">◎</span><span class="t num">22:00<span>–</span>23:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
-    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-10T22:30" aria-label="22:30–23:30 予約できます"><span class="mk">◎</span><span class="t num">22:30<span>–</span>23:30</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
-    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-10T23:00" aria-label="23:00–24:00 予約できます"><span class="mk">◎</span><span class="t num">23:00<span>–</span>24:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li class="slot x"><span class="mk" aria-hidden="true">×</span><span class="t num">20:30–21:30</span><span class="end"><span class="vh">予約できません（</span>満席<span class="vh">）</span></span></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T21:00" aria-label="21:00–22:00 予約できます"><span class="mk">◎</span><span class="t num">21:00<span>–</span>22:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T21:30" aria-label="21:30–22:30 予約できます"><span class="mk">◎</span><span class="t num">21:30<span>–</span>22:30</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T22:00" aria-label="22:00–23:00 予約できます"><span class="mk">◎</span><span class="t num">22:00<span>–</span>23:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T22:30" aria-label="22:30–23:30 予約できます"><span class="mk">◎</span><span class="t num">22:30<span>–</span>23:30</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
+    <li><a class="slot open" href="/ja/book/info?menu=cut&amp;start=2026-10-13T23:00" aria-label="23:00–24:00 予約できます"><span class="mk">◎</span><span class="t num">23:00<span>–</span>24:00</span><span class="end"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a></li>
   </ul>
-
-  <a class="btn btn-secondary tel" href="tel:+8160000000"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>本日の残り枠はお電話で <span class="num">06-xxxx-xxxx</span></a>
 </main>
 </body>
 </html>

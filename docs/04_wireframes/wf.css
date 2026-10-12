@@ -139,3 +139,18 @@ p{margin:0}
 .recap .change{min-height:44px;display:inline-flex;align-items:center;text-decoration:underline;font-size:13px;flex:none}
 /* v0.2: non-interactive "×" row text (not a button, not focusable) */
 .slot.full .sym{color:var(--wf-faint)}
+/* v0.3: month calendar (replaces the week strip; 月曜始まり・7 列). Cells reuse .day so the 44px / ×-not-focusable checks apply */
+.monthnav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;text-align:center}
+.monthnav .btn.small{padding:0;width:44px}
+.monthnav .navoff{border-style:dashed;color:var(--wf-faint)}
+.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-size:12px;line-height:1.2;color:var(--wf-muted);margin-bottom:-4px}
+.mcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.mcal .day{min-height:56px;padding:4px 0;gap:1px;flex:none}
+.mcal .day b{font-size:15px;line-height:1.2}
+.mcal .day.today{border:2px solid var(--wf-ink)}
+.mcal .day.selected{background:var(--wf-ink);color:#fff;border:2px solid var(--wf-ink)}
+.mcal .day.selected.today{box-shadow:inset 0 0 0 2px var(--wf-ink),inset 0 0 0 4px #fff}
+.mcal .day.off.selected{background:var(--wf-surface);color:var(--wf-ink);box-shadow:none}
+.mcal .day.past,.mcal .day.out{border-color:transparent;background:none;color:var(--wf-faint)}
+.mcal .day.past b,.mcal .day.out b{font-weight:400}
+.mcal .blank{min-height:56px}

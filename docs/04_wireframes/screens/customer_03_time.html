@@ -18,24 +18,22 @@
 .stepper .step b{font-size:13px}
 .content{gap:12px}
 .btn.small{padding:0 12px}
-.weekstrip{margin-top:-4px}
 .day{padding:6px 0}
 .day.off b s{font-weight:400}
 .sk{background:var(--wf-sunken);border-radius:8px}
-.sk.day-sk{flex:1;height:78px}
+.sk.cal-sk{height:56px}
 .sk.slot-sk{height:48px}
 .sk.line{height:16px;width:60%}
 .sticky-cta{display:flex;flex-direction:column;gap:8px}
 .slot.full{cursor:default}
-.day span:first-child{white-space:nowrap}
 .legend{flex-wrap:wrap;gap:4px 12px}
 </style>
 </head>
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.2 / S-C-03 予約 ステップ 2 日時を選ぶ（/ja/book/time）</h1>
-    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。週ストリップ（日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 休業 / 満席 / 締切）を添える。時刻はすべて JST。</p>
+    <h1>WF-C v0.3 / S-C-03 予約 ステップ 2 日時を選ぶ（/ja/book/time）</h1>
+    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。月カレンダー（月曜始まり、今日から 60 日先まで。日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。v0.3 で週ストリップを月カレンダーに置き換え、電話導線を削除（クライアント FB）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 休業 / 満席 / 締切）を添える。時刻はすべて JST。</p>
   </div>
 
   <!-- (a) mixed: tap a slot -> next step -->
@@ -43,19 +41,19 @@
     <p class="frame-title">(a) 空き混在 → 枠をタップすると次の段へ<small>/ja/book/time?menu=cut&amp;date=2026-10-10 — 17:02 時点。固定 CTA は出さない</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
-      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
-        <div class="row between anc"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a><div class="note" style="top:-12px;left:-4px"><span class="n">1</span>横スクロール 14 日</div></div>
-        <div class="weekstrip anc">
-          <a class="day selected" aria-pressed="true"><span>今日</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>明日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
-          <a class="day"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
-          <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div><div class="note" style="top:-36px;right:56px"><span class="n">2</span>今日・明日</div>
+        <div class="monthnav"><span class="btn small secondary navoff" aria-disabled="true" aria-label="前の月（予約できる期間外）">‹</span><b>2026年10月</b><a class="btn small secondary" aria-label="次の月（11月）">›</a></div>
+        <div class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+        <div class="mcal anc">
+          <span class="blank"></span><span class="blank"></span><span class="blank"></span><div class="day off past"><b>1</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>2</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>3</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>4</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off past"><b>5</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>6</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>7</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>8</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>9</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><a class="day today selected" aria-current="date" aria-pressed="true"><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>12</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b>16</b><span class="mark">×</span><span class="mark">休業</span></div><a class="day"><b>17</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>18</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>19</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>20</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>21</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>22</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>23</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>24</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>25</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>26</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>27</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>28</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>29</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>30</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>31</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><span class="blank"></span>
+          <div class="note" style="top:6px;left:0"><span class="n">1</span>月カレンダー・月曜始まり</div><div class="note" style="bottom:-50px;right:0"><span class="n">2</span>今日 = 枠、選択 = 塗り</div>
         </div>
         <div class="legend anc"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span><div class="note" style="top:0;right:0"><span class="n">3</span>凡例は直下</div></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -75,16 +73,14 @@
           <div class="note" style="top:12px;right:96px"><span class="n">4</span>× は文字の行</div>
           <div class="note" style="top:124px;right:120px"><span class="n">5</span>タップで次へ</div>
         </div>
-        <a class="btn secondary anc">本日の残り枠はお電話で 06-xxxx-xxxx<div class="note" style="top:-14px;right:-4px"><span class="n">6</span></div></a>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>週ストリップは今日から 14 日分を横スクロール、日セル 44×64px 以上。× の日（定休・休業・満席・締切）は × と理由ラベル（満席は取り消し線も）で示し、リンクにもボタンにもしない（フォーカス対象外）（FR-C-07, FR-C-08）。</li>
-      <li><span class="n">2</span>今日と翌日のセルは曜日の位置に「今日」「明日」（/en は Today / Tmrw）。曜日は <code>aria-label</code>（例「10月11日 日曜 明日」）と下の見出しで伝える（FR-C-07、CW-04）。</li>
-      <li><span class="n">3</span>凡例はストリップの直下に置き、FR-C-07 の文言どおり「◎ 予約できます ／ × 予約できません」。× の理由は日セル・行の右に小さく出す（定休 = 曜日の定休日、休業 = 臨時休業、満席、締切 = リードタイム経過）。○・△ は使わない（FR-C-07、CW-09）。</li>
+      <li><span class="n">1</span>日付は月カレンダー（ホットペッパービューティー型、v0.3 クライアント FB）。月見出し「‹ 2026年10月 ›」、曜日行は<b>月曜始まり</b>（月〜日。月曜定休の列が左端にそろう）、7 列のグリッド。日セルは高さ 56px（カンプは 52px）以上で、日付と記号（◎ / × ＋理由）を出す。過去日と 60 日先より後の日は記号なしの薄い文字で、リンクにもボタンにもしない。× の日（定休・休業・満席・締切）は × と理由ラベル（満席は取り消し線も）で示し、フォーカス対象外。前の月は今月より前なので無効（破線）、次の月（11 月）へは移動できる。60 日の範囲に 1 日も入らない月は ‹ › を無効にする（FR-C-07, FR-C-08）。</li>
+      <li><span class="n">2</span>今日のセルは 2px の枠、選択中の日は塗り（初期表示は今日を選択。今日を選択中のときは塗り＋内側の白線で両方を示す）。読み上げは <code>aria-label</code>（例「10月10日 土曜日 今日 予約できます 選択中」）と下の見出しで伝える。週ストリップの「今日・明日」ラベルは廃止（FR-C-07、CW-04）。</li>
+      <li><span class="n">3</span>凡例はカレンダーの直下に置き、FR-C-07 の文言どおり「◎ 予約できます ／ × 予約できません」。× の理由は日セル・行の右に小さく出す（定休 = 曜日の定休日、休業 = 臨時休業、満席、締切 = リードタイム経過）。○・△ は使わない（FR-C-07、CW-09）。</li>
       <li><span class="n">4</span>× の時刻は行を残すが、ボタンにせずフォーカスも当てない（<code>&lt;div&gt;</code> の文字情報として読み上げる）。行が消えると「その時刻は営業していない」と誤解されるため（CW-10、要件 v0.4 FR-C-07）。18:00 は 17:02 時点でリードタイム 60 分を過ぎたため「締切」、満席と区別する（CW-09）。</li>
       <li><span class="n">5</span>◎ の枠をタップすると選択表示（✓）を 150ms 見せてそのまま次の段へ進む。確認ボタンは挟まない（日 1＋時間 1 タップ、US-01、CW-05）。遷移先は通常 <code>/ja/book/info</code>（S-C-02b お客様情報）。お客様情報が入力済み（確認画面から「変更」で来た・(d) の 23P01 から戻った）なら <code>/ja/book/confirm</code> へ直行する。</li>
-      <li><span class="n">6</span>リストの下に電話導線（HPB の TEL 枠と同じ位置）（FR-C-07, FR-C-16、OI-10）。</li>
     </ul>
   </div>
 
@@ -93,19 +89,18 @@
     <p class="frame-title">(a') 戻ってきたとき（選択を保持）<small>?menu=cut&amp;date=2026-10-13 — お客様情報・確認の「変更」やブラウザの「戻る」で戻った</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:05</span><span>5G ▮▮▮</span></div>
-      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
-        <div class="row between"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a></div>
-        <div class="weekstrip">
-          <a class="day"><span>今日</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>明日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
-          <a class="day selected" aria-pressed="true"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
-          <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div>
+        <div class="monthnav"><span class="btn small secondary navoff" aria-disabled="true" aria-label="前の月（予約できる期間外）">‹</span><b>2026年10月</b><a class="btn small secondary" aria-label="次の月（11月）">›</a></div>
+        <div class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+        <div class="mcal anc">
+          <span class="blank"></span><span class="blank"></span><span class="blank"></span><div class="day off past"><b>1</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>2</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>3</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>4</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off past"><b>5</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>6</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>7</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>8</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>9</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><a class="day today" aria-current="date"><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>12</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day selected" aria-pressed="true"><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b>16</b><span class="mark">×</span><span class="mark">休業</span></div><a class="day"><b>17</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>18</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>19</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>20</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>21</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>22</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>23</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>24</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>25</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>26</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>27</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>28</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>29</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>30</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>31</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><span class="blank"></span>
         </div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -138,19 +133,18 @@
     <p class="frame-title">(b) 選択日に空きなし<small>?date=2026-10-10 — 22:31。本日の枠は締切済み、明日も満席</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>22:31</span><span>5G ▮▮▮</span></div>
-      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
-        <div class="row between"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a></div>
-        <div class="weekstrip">
-          <div class="day off selected" aria-current="date"><span>今日</span><b>10</b><span class="mark">×</span><span class="mark">締切</span></div>
-          <div class="day off"><span>明日</span><b><s>11</s></b><span class="mark">×</span><span class="mark">満席</span></div>
-          <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
-          <a class="day"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
-          <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div>
+        <div class="monthnav"><span class="btn small secondary navoff" aria-disabled="true" aria-label="前の月（予約できる期間外）">‹</span><b>2026年10月</b><a class="btn small secondary" aria-label="次の月（11月）">›</a></div>
+        <div class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+        <div class="mcal anc">
+          <span class="blank"></span><span class="blank"></span><span class="blank"></span><div class="day off past"><b>1</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>2</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>3</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>4</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off past"><b>5</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>6</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>7</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>8</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>9</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off today selected"><b>10</b><span class="mark">×</span><span class="mark">締切</span></div><div class="day off"><b><s>11</s></b><span class="mark">×</span><span class="mark">満席</span></div>
+          <div class="day off"><b>12</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b>16</b><span class="mark">×</span><span class="mark">休業</span></div><a class="day"><b>17</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>18</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>19</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>20</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>21</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>22</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>23</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>24</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>25</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>26</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>27</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>28</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>29</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>30</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>31</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><span class="blank"></span>
         </div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -161,13 +155,11 @@
           <a class="btn secondary">次に空いている日へ 10/13(火)</a>
           <div class="note" style="top:-14px;right:8px"><span class="n">1</span>次の空き日</div>
         </div>
-        <a class="btn secondary anc">本日の残り枠はお電話で 06-xxxx-xxxx<div class="note" style="top:-14px;right:-4px"><span class="n">2</span></div></a>
         <div class="spacer"></div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休 / 休業）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。14 日すべて空きなしなら「2 週間以内に空きがありません。お電話で…」＋「さらに先を見る」（FR-C-07）。選択がないので固定 CTA は出さない。</li>
-      <li><span class="n">2</span>当日はリードタイム 60 分で締切済みでも、電話なら受けられる可能性があるため電話導線を残す（FR-C-08, FR-C-16）。</li>
+      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休 / 休業）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。今月に空きがなければ同じ位置に「次の月を見る」、60 日先まで空きがなければ「現在ご予約いただける日がありません」の 1 文だけにする（FR-C-07）。選択がないので固定 CTA は出さない。v0.3: 電話導線「本日の残り枠はお電話で」は削除し、次の空き日ボタンだけにした（電話対応なし、クライアント FB）。</li>
     </ul>
   </div>
 
@@ -176,12 +168,18 @@
     <p class="frame-title">(c) 読み込み中（スケルトン）<small>Suspense fallback — 空き枠は非キャッシュで取得</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
-      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
-        <div class="row between"><a class="btn small secondary" aria-label="前の週">‹</a><b>2026年10月</b><a class="btn small secondary" aria-label="次の週">›</a></div>
-        <div class="weekstrip anc"><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div><div class="sk day-sk"></div>
+        <div class="monthnav"><span class="btn small secondary navoff" aria-disabled="true" aria-label="前の月（予約できる期間外）">‹</span><b>2026年10月</b><a class="btn small secondary" aria-label="次の月（11月）">›</a></div>
+        <div class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+        <div class="mcal anc">
+          <div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div>
+          <div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div>
+          <div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div>
+          <div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div>
+          <div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div><div class="sk cal-sk"></div>
           <div class="note" style="top:28px;right:8px"><span class="n">1</span>高さ固定 CLS 0</div></div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -192,8 +190,8 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>ストリップ 7 セルと時間枠 3 行を実寸のスケルトンで確保し、読込完了時のずれ（CLS）を 0 にする。Neon 冷起動の数百 ms を吸収（FR-C-07、NFR-AV-02）。</li>
-      <li><span class="n">2</span>凡例・締切・メニュー名は静的シェルなので先に出す。リスト領域は <code>aria-busy="true"</code>。失敗時は「空き状況を読み込めませんでした」＋再読み込み＋電話。</li>
+      <li><span class="n">1</span>カレンダー 5 行 × 7 セル（月によって 6 行。行数は月から決まるので先に確定できる）と時間枠 3 行を実寸のスケルトンで確保し、読込完了時のずれ（CLS）を 0 にする。Neon 冷起動の数百 ms を吸収（FR-C-07、NFR-AV-02）。</li>
+      <li><span class="n">2</span>凡例・締切・メニュー名は静的シェルなので先に出す。リスト領域は <code>aria-busy="true"</code>。失敗時は「空き状況を読み込めませんでした」＋再読み込み。</li>
     </ul>
   </div>
 
@@ -202,19 +200,18 @@
     <p class="frame-title">(d) 確定時に枠が埋まった（23P01）<small>S-C-04 確認から戻った直後 — ?date=2026-10-13、枠を再取得済み</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:09</span><span>5G ▮▮▮</span></div>
-      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
       <div class="content">
         <div class="banner anc" role="alert"><span>⚠</span><div><b>申し訳ありません。その枠はたった今埋まりました。</b><br>別の時間をお選びください。入力したお客様情報はそのまま残っています。</div>
           <div class="note" style="top:-14px;right:8px"><span class="n">1</span>aria-live</div></div>
-        <div class="weekstrip">
-          <a class="day"><span>今日</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>明日</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>月</span><b>12</b><span class="mark">×</span><span class="mark">定休</span></div>
-          <a class="day selected" aria-pressed="true"><span>火</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>水</span><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div>
-          <a class="day"><span>木</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>金</span><b>16</b><span class="mark">×</span><span class="mark">休業</span></div>
+        <div class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+        <div class="mcal anc">
+          <span class="blank"></span><span class="blank"></span><span class="blank"></span><div class="day off past"><b>1</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>2</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>3</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>4</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off past"><b>5</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>6</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>7</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>8</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>9</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><a class="day today" aria-current="date"><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>12</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day selected" aria-pressed="true"><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>14</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b>16</b><span class="mark">×</span><span class="mark">休業</span></div><a class="day"><b>17</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>18</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>19</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>20</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>21</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>22</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>23</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>24</s></b><span class="mark">×</span><span class="mark">満席</span></div><a class="day"><b>25</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>26</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>27</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>28</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>29</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>30</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>31</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><span class="blank"></span>
         </div>
         <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
         <p class="muted">予約締切: 開始 60 分前まで</p>
@@ -243,20 +240,19 @@
     <p class="frame-title">(e) /en 空き混在<small>/en/book/time?menu=cut&amp;date=2026-10-10 — 12 時間制＋JST（CW-03）</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
-      <header class="header"><a class="back">←</a><div class="title">Booking</div><span class="lang">日本語</span><a class="btn small secondary">Call</a></header>
+      <header class="header"><a class="back">←</a><div class="title">Booking</div><span class="lang">日本語</span><a class="btn small secondary">Instagram</a></header>
       <ol class="stepper"><li class="step done"><b>1</b><br>Menu</li><li class="step current"><b>2</b><br>Date &amp; time</li><li class="step"><b>3</b><br>Your details</li><li class="step"><b>4</b><br>Review</li></ol>
       <div class="content">
         <div class="row between"><p><b>Haircut (60 min)</b></p><a class="btn small ghost">Change menu</a></div>
-        <div class="row between"><a class="btn small secondary" aria-label="Previous week">‹</a><b>October 2026</b><a class="btn small secondary" aria-label="Next week">›</a></div>
-        <div class="weekstrip anc">
-          <a class="day selected" aria-pressed="true"><span>Today</span><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <a class="day"><span>Tmrw</span><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>Mon</span><b>12</b><span class="mark">×</span><span class="mark">Closed</span></div>
-          <a class="day"><span>Tue</span><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>Wed</span><b><s>14</s></b><span class="mark">×</span><span class="mark">Full</span></div>
-          <a class="day"><span>Thu</span><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
-          <div class="day off"><span>Fri</span><b>16</b><span class="mark">×</span><span class="mark">Off</span></div>
-          <div class="note" style="top:-36px;right:56px"><span class="n">1</span>Today / Tmrw</div>
+        <div class="monthnav"><span class="btn small secondary navoff" aria-disabled="true" aria-label="Previous month (not bookable)">‹</span><b>October 2026</b><a class="btn small secondary" aria-label="Next month (November)">›</a></div>
+        <div class="dow" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        <div class="mcal anc">
+          <span class="blank"></span><span class="blank"></span><span class="blank"></span><div class="day off past"><b>1</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>2</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>3</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>4</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off past"><b>5</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>6</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>7</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>8</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off past"><b>9</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><a class="day today selected" aria-current="date" aria-pressed="true"><b>10</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>11</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>12</b><span class="mark">×</span><span class="mark">Closed</span></div><a class="day"><b>13</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>14</s></b><span class="mark">×</span><span class="mark">Full</span></div><a class="day"><b>15</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b>16</b><span class="mark">×</span><span class="mark">Off</span></div><a class="day"><b>17</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>18</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>19</b><span class="mark">×</span><span class="mark">Closed</span></div><a class="day"><b>20</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>21</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>22</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>23</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off"><b><s>24</s></b><span class="mark">×</span><span class="mark">Full</span></div><a class="day"><b>25</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>26</b><span class="mark">×</span><span class="mark">Closed</span></div><a class="day"><b>27</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>28</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>29</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>30</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>31</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><span class="blank"></span>
+          <div class="note" style="top:6px;left:0"><span class="n">1</span>Mon–Sun</div>
         </div>
         <div class="legend anc"><span>◎ Available</span><span>/</span><span>× Unavailable</span><div class="note" style="top:0;right:0"><span class="n">2</span>EN 凡例</div></div>
         <p class="muted">Book at least 60 min before start. All times are JST.</p>
@@ -275,13 +271,44 @@
           <a class="slot"><span>11:00 PM–12:00 AM</span><span class="sym">◎</span></a>
           <div class="note" style="top:12px;right:110px"><span class="n">3</span>最長の行</div>
         </div>
-        <a class="btn secondary">Call us for today: +81 6-xxxx-xxxx</a>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>/en の日セルは Today / Tmrw と英語の曜日略称（Mon…）、× の理由は Closed（定休）/ Off（休業）/ Full（満席）/ Cutoff（締切）（FR-C-07, FR-C-13）。</li>
+      <li><span class="n">1</span>/en の曜日行は Mon…Sun（月曜始まりは /ja と同じ）、月見出しは “October 2026”。× の理由は Closed（定休）/ Off（休業）/ Full（満席）/ Cutoff（締切）（FR-C-07, FR-C-13）。</li>
       <li><span class="n">2</span>凡例は「◎ Available / × Unavailable」。締切文と「All times are JST」を 1 文にまとめる（FR-C-07, FR-C-13）。</li>
       <li><span class="n">3</span>12 時間制の最長の行「11:00 PM–12:00 AM」と「× Cutoff」が 1 行に収まり、横はみ出しがないことを検証対象にした（CW-03）。タップの振る舞いは (a) と同じ。</li>
+    </ul>
+  </div>
+  <!-- (f) December: edge of the 60-day window -->
+  <div class="artboard">
+    <p class="frame-title">(f) 翌々月（60 日の範囲の端）<small>?menu=cut&amp;month=2026-12 — 今日 10/10 から 60 日先 = 12/9 まで</small></p>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>17:03</span><span>5G ▮▮▮</span></div>
+      <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
+      <ol class="stepper"><li class="step done"><b>1</b><br>メニューを選ぶ</li><li class="step current"><b>2</b><br>日時を選ぶ</li><li class="step"><b>3</b><br>お客様情報</li><li class="step"><b>4</b><br>確認</li></ol>
+      <div class="content">
+        <div class="row between"><p><b>カット（60分）</b>を予約します</p><a class="btn small ghost">メニューを変更</a></div>
+        <div class="monthnav anc"><a class="btn small secondary" aria-label="前の月（11月）">‹</a><b>2026年12月</b><span class="btn small secondary navoff" aria-disabled="true" aria-label="次の月（予約できる期間外）">›</span><div class="note" style="top:-12px;right:52px"><span class="n">1</span>1 月は無効</div></div>
+        <div class="dow" aria-hidden="true"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+        <div class="mcal anc">
+          <span class="blank"></span><a class="day"><b>1</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>2</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>3</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>4</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>5</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>6</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a>
+          <div class="day off"><b>7</b><span class="mark">×</span><span class="mark">定休</span></div><a class="day"><b>8</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><a class="day"><b>9</b><span class="mark">◎</span><span class="mark">&nbsp;</span></a><div class="day off out"><b>10</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>11</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>12</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>13</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off out"><b>14</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>15</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>16</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>17</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>18</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>19</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>20</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off out"><b>21</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>22</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>23</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>24</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>25</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>26</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>27</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div>
+          <div class="day off out"><b>28</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>29</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>30</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><div class="day off out"><b>31</b><span class="mark">&nbsp;</span><span class="mark">&nbsp;</span></div><span class="blank"></span><span class="blank"></span><span class="blank"></span>
+          <div class="note" style="top:128px;right:8px"><span class="n">2</span>12/10 以降は期間外</div>
+        </div>
+        <div class="legend"><span>◎ 予約できます</span><span>／</span><span>× 予約できません</span></div>
+        <p class="muted">予約締切: 開始 60 分前まで</p>
+        <p class="muted">ご予約は 60 日先（12月9日）まで受け付けています。</p>
+        <div class="card sunken anc"><p class="muted">日付を選ぶと、その日の空き時間が表示されます。</p><div class="note" style="top:-14px;right:8px"><span class="n">3</span>未選択</div></div>
+        <div class="spacer"></div>
+      </div>
+    </div></div>
+    <ul class="notes-list">
+      <li><span class="n">1</span>月の移動は ‹ › の 44px ボタン。<b>60 日の範囲に 1 日も入らない月（ここでは 2027 年 1 月、10 月表示では 9 月）への矢印は無効</b>: 破線の枠・薄い記号・<code>aria-disabled="true"</code> で、押しても何も起きない（リンクにしない）。範囲に 1 日でも入る月（11 月・12 月）は移動できる（FR-C-07）。</li>
+      <li><span class="n">2</span>60 日先（<code>settings.booking_window_days</code>、仮 60）より後の日は過去日と同じ見た目（記号なし・薄い文字・枠なし）で、押せない。範囲の終わりは「ご予約は 60 日先（12月9日）まで」の 1 文でも伝える。</li>
+      <li><span class="n">3</span>別の月へ移ったときは日付を未選択にし、時間枠リストの位置に案内文を出す（固定 CTA なし）。日をタップすると (a) と同じくその日の時間枠が出る。</li>
     </ul>
   </div>
 </div>

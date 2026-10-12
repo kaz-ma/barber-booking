@@ -8,7 +8,7 @@ for n in NAMES:
     im = Image.open(SRC / f'{n}.png').convert('RGB')
     im.save(OUT / f'{n}.jpg', quality=88, optimize=True, progressive=True)
     print(n, im.size, (OUT / f'{n}.jpg').stat().st_size // 1024, 'KB')
-LABELS = ['S-C-01 トップ /ja', 'S-C-03 ② 日時を選ぶ /ja (a)', 'S-C-05 予約完了 /ja（844px 内）']
+LABELS = ['S-C-01 トップ /ja', 'S-C-03 ② 日時を選ぶ /ja（月カレンダー）', 'S-C-05 予約完了 /ja（844px 内）']
 COL, G, TOP, H_CSS = 500, 24, 56, 1200
 H = round(H_CSS * COL / 390)
 font = ImageFont.truetype('/usr/share/fonts/truetype/fonts-japanese-gothic.ttf', 20)

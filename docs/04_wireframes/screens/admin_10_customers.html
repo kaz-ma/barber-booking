@@ -31,7 +31,7 @@
 <div class="sheet">
 <header class="doc">
   <h1>S-A-11 顧客一覧・詳細（Should）</h1>
-  <p class="muted">WF-A v0.2（2026-10-10）・関連: FR-A-13, 14 ／ FR-S-07, 09 ／ AT-30 ・ 入口: 設定 → セグメント「顧客」、予約詳細の顧客行</p>
+  <p class="muted">WF-A v0.3（2026-10-12）・関連: FR-A-13, 14 ／ FR-S-07, 09 ／ AT-30 ・ 入口: 設定 → セグメント「顧客」、予約詳細の顧客行</p>
 </header>
 
 <!-- (a) list -->
@@ -46,7 +46,7 @@
       <p class="sect">3 件</p>
       <div class="list">
         <div class="item"><div class="grow"><b>山田 太郎</b>（やまだ たろう）<br><span class="caption">来店 5 回 ・ 最終 9/26 ・ 無断 0</span></div><span>›</span></div>
-        <div class="item"><div class="grow"><b>山田 健二</b>（やまだ けんじ） <span class="pill strong">電話のみ</span><br><span class="caption">来店 1 回 ・ 最終 6/14 ・ 無断 2</span></div><span>›</span></div>
+        <div class="item"><div class="grow"><b>山田 健二</b>（やまだ けんじ） <span class="pill strong">DM のみ</span><br><span class="caption">来店 1 回 ・ 最終 6/14 ・ 無断 2</span></div><span>›</span></div>
         <div class="item"><div class="grow"><b>山本 悠斗</b>（やまもと ゆうと）<br><span class="caption">来店 0 回 ・ 次回 10/13 ・ 無断 0</span></div><span>›</span></div>
       </div>
       <p class="sect">並び替え: 最終来店が新しい順</p>
@@ -59,7 +59,7 @@
   </div>
   <ul class="notes-list">
     <li><span class="n">1</span><code>searchCustomers(q)</code>。ひらがな/カタカナ/全角半角を正規化して部分一致、電話は数字だけ取り出して一致（FR-A-13）。</li>
-    <li><span class="n">2</span>各行に来店回数・最終来店・<code>no_show_count</code>。<code>booking_restriction</code> が none 以外なら「電話のみ」「受付停止」を太枠で表示（FR-A-13）。</li>
+    <li><span class="n">2</span>各行に来店回数・最終来店・<code>no_show_count</code>。<code>booking_restriction</code> が none 以外なら「DM のみ」「受付停止」を太枠で表示（FR-A-13）。v0.3: 電話対応なしのため「電話のみ」を「DM のみ」（<code>instagram_only</code>）に改名（クライアント FB）。</li>
     <li><span class="n">3</span>CSV 一括エクスポート（<code>audit_log</code> に記録）。端末に個人情報ファイルが残る旨を確認してから実行（FR-A-14, FR-S-07）。</li>
   </ul>
 </section>
@@ -74,8 +74,8 @@
       <div><h2>山田 健二</h2><p class="muted">やまだ けんじ ・ 電話なし（手動予約のみ）</p></div>
       <div class="stats"><div><b>1</b>来店</div><div><b>2</b>無断</div><div><b>0</b>遅刻取消</div><div><b>6/14</b>最終来店</div></div>
       <div class="field"><span class="label">web 予約の制限</span>
-        <div class="radio-group"><div class="radio"><span class="dot"></span>なし</div><div class="radio on"><span class="dot"></span>電話のみ</div><div class="radio"><span class="dot"></span>受付停止</div></div>
-        <span class="help">電話のみ: web 予約時に「お電話ください」と案内されます</span>
+        <div class="radio-group"><div class="radio"><span class="dot"></span>なし</div><div class="radio on"><span class="dot"></span>DM のみ</div><div class="radio"><span class="dot"></span>受付停止</div></div>
+        <span class="help">DM のみ: web 予約時に「Instagram の DM（@neuer.kento）でご予約ください」と案内されます</span>
       </div>
       <p class="sect">予約履歴</p>
       <div class="list">
@@ -94,7 +94,7 @@
   </div>
   <ul class="notes-list">
     <li><span class="n">4</span>来店・無断（<code>no_show_count</code>）・遅刻キャンセル（<code>late_cancel_count</code>）・最終来店を上部に集約（FR-A-13）。</li>
-    <li><span class="n">5</span><code>updateCustomerRestriction</code>。none / phone_only / blocked。運用基準（既定案: 無断 2 回目以降で電話のみ）は【要確認: OI-16】（FR-A-13）。</li>
+    <li><span class="n">5</span><code>updateCustomerRestriction</code>。none / instagram_only / blocked（v0.3 で phone_only から改名）。運用基準（既定案: 無断 2 回目以降で DM のみ）は【要確認: OI-16】（FR-A-13）。</li>
     <li><span class="n">6</span>履歴行タップで S-A-04（MT: CU → DT）。同一電話番号の予約は 1 顧客に紐づく（FR-A-13）。</li>
     <li><span class="n">7</span>JSON エクスポート（予約・同意履歴）、重複マージ、匿名化。匿名化だけは Undo できないため (c) の確認ダイアログを出す（FR-A-14）。</li>
   </ul>

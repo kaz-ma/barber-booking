@@ -25,15 +25,15 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.2 / S-C-06 キャンセル（/ja/cancel/{token}）</h1>
-    <p class="muted">完了画面・ICS のリンクから開く。締切前のみセルフキャンセル、締切後は電話へ。予約日 = 2026-10-13(火) 19:00、締切 = 17:00（仮: 2 時間前）。</p>
+    <h1>WF-C v0.3 / S-C-06 キャンセル（/ja/cancel/{token}）</h1>
+    <p class="muted">完了画面・ICS のリンクから開く。締切前のみセルフキャンセル、締切後は Instagram の DM へ（v0.3: 電話対応なし）。予約日 = 2026-10-13(火) 19:00、締切 = 17:00（仮: 2 時間前）。</p>
   </div>
 
   <div class="artboard">
     <p class="frame-title">(a) 予約内容の再表示（締切前）<small>/ja/cancel/{token} — GET は副作用なし</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>13:20</span><span>5G ▮▮▮</span></div>
-      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <div class="content">
         <h1>ご予約のキャンセル</h1>
         <div class="card anc">
@@ -46,7 +46,7 @@
         <a class="btn danger anc">この予約をキャンセルする          <div class="note" style="top:-14px;right:-4px"><span class="n">2</span>破壊的操作</div></a>
         <p class="muted">日時の変更は、キャンセル後にもう一度ご予約ください。</p>
         <div class="spacer"></div>
-        <div class="footer-tel"><p class="caption">お困りの場合はお電話ください</p><a class="btn secondary">電話する 06-xxxx-xxxx</a></div>
+        <div class="footer-tel"><p class="caption">お困りの場合は Instagram の DM でご連絡ください</p><a class="btn secondary">Instagram で問い合わせる</a></div>
       </div>
     </div></div>
     <ul class="notes-list">
@@ -58,7 +58,7 @@
     <p class="frame-title">(b) 確認ダイアログ（シート）<small>「この予約をキャンセルする」タップ後</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>13:21</span><span>5G ▮▮▮</span></div>
-      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <div class="content">
         <h1>ご予約のキャンセル</h1>
         <div class="card anc">
@@ -71,7 +71,7 @@
         <a class="btn danger anc">この予約をキャンセルする</a>
         <p class="muted">日時の変更は、キャンセル後にもう一度ご予約ください。</p>
         <div class="spacer"></div>
-        <div class="footer-tel"><p class="caption">お困りの場合はお電話ください</p><a class="btn secondary">電話する 06-xxxx-xxxx</a></div>
+        <div class="footer-tel"><p class="caption">お困りの場合は Instagram の DM でご連絡ください</p><a class="btn secondary">Instagram で問い合わせる</a></div>
       </div>
     </div>
       <div class="scrim"></div>
@@ -92,29 +92,29 @@
     <p class="frame-title">(c) キャンセル完了<small>cancelBooking → ok</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>13:21</span><span>5G ▮▮▮</span></div>
-      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <div class="content">
         <h1 class="anc">✓ 予約を取り消しました          <div class="note" style="top:2px;right:0"><span class="n">1</span>aria-live</div></h1>
         <p>10月13日(火) 19:00–20:00 カット のご予約を取り消しました。</p>
-        <p class="anc"><b>店主に通知しました。お電話は不要です。</b><span class="note" style="bottom:-20px;right:0"><span class="n">3</span>店に伝わった</span></p>
+        <p class="anc"><b>店主に通知しました。ご連絡は不要です。</b><span class="note" style="bottom:-20px;right:0"><span class="n">3</span>店に伝わった</span></p>
         <div class="card sunken"><div class="kv"><span class="k">予約番号</span><span class="mono">K7Q2-M9XD</span><span class="k">状態</span><span>キャンセル済み</span></div></div>
         <a class="btn primary anc">もう一度予約する          <div class="note" style="top:-14px;right:-4px"><span class="n">2</span>再予約</div></a>
         <a class="btn ghost">トップへ戻る</a>
         <div class="spacer"></div>
-        <div class="footer-tel"><a class="btn secondary">電話する 06-xxxx-xxxx</a></div>
+        <div class="footer-tel"><a class="btn secondary">Instagram で問い合わせる</a></div>
       </div>
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span>完了を見出し「予約を取り消しました」（確認シートの語に揃える、CW-16）で伝え <code>aria-live</code> で通知。同じリンクを再度開くと (e) になる（トークンハッシュを NULL 化）（FR-C-12）。</li>
       <li><span class="n">2</span>「もう一度予約する」→ <code>/ja/book</code>。日時変更はこの導線で行う（FR-C-12, CT-08）。</li>
-      <li><span class="n">3</span>店に伝わったかで迷って電話しないよう「店主に通知しました。お電話は不要です。」を 1 行（取り消しと同時に管理 PWA の受信箱・Push に届く）（FR-C-12, FR-A-10、CW-17）。</li>
+      <li><span class="n">3</span>店に伝わったかで迷って DM を送らないよう「店主に通知しました。ご連絡は不要です。」を 1 行（取り消しと同時に管理 PWA の受信箱・Push に届く）（FR-C-12, FR-A-10、CW-17）。</li>
     </ul>
   </div>
   <div class="artboard">
     <p class="frame-title">(d) 締切後<small>締切（開始 2 時間前）〜予約終了まで</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:45</span><span>5G ▮▮▮</span></div>
-      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <div class="content">
         <h1>ご予約のキャンセル</h1>
         <div class="card sunken">
@@ -123,38 +123,38 @@
           <div class="kv"><span class="k">メニュー</span><span>カット</span><span class="k">料金</span><span>¥—（学生料金）</span><span class="k">お名前</span><span>山田 太郎 様</span></div>
 
         </div>
-        <div class="banner anc" role="status"><span>⚠</span><span><b>キャンセル締切（ご来店の 2 時間前）を過ぎています。</b>お電話でご連絡ください。</span>          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>電話に切替</div></div>
-        <a class="btn primary">電話する 06-xxxx-xxxx</a>
-        <p class="caption">営業時間 18:00–24:00（月曜定休）</p>
+        <div class="banner anc" role="status"><span>⚠</span><span><b>キャンセル締切を過ぎています。</b>Instagram の DM でご連絡ください。<br><span class="caption">締切: ご来店の 2 時間前（10月13日(火) 17:00）</span></span>          <div class="note" style="top:-14px;right:8px"><span class="n">1</span>DM に切替</div></div>
+        <a class="btn primary">Instagram で問い合わせる</a>
+        <p class="caption">DM 先: @neuer.kento ／ 受付 18:00–24:00（月曜定休）</p>
         <div class="spacer"></div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>締切後はキャンセルボタンを出さず、理由と次の行動（電話）だけを大きく示す。<code>tel:</code> の番号は OI-10、締切分数は OI-05（FR-C-12, FR-C-16）。</li>
+      <li><span class="n">1</span>締切後はキャンセルボタンを出さず、理由と次の行動（Instagram の DM、<code>https://ig.me/m/neuer.kento</code>）だけを大きく示す。文言「キャンセル締切を過ぎています。Instagram の DM でご連絡ください」。締切分数は OI-05（FR-C-12, FR-C-16、v0.3 クライアント FB で電話から変更）。</li>
     </ul>
   </div>
   <div class="artboard">
     <p class="frame-title">(e) 無効なトークン<small>形式不正・不一致・キャンセル済み・来店済み・表示期限切れ</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>20:10</span><span>5G ▮▮▮</span></div>
-      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">電話</a></header>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
       <div class="content">
         <h1>この予約は見つかりません</h1>
         <p class="muted">リンクが正しくないか、すでにキャンセル・来店済み、または表示期限が過ぎている可能性があります。</p>
         <a class="btn primary anc">予約する<div class="note" style="top:-14px;right:-4px"><span class="n">1</span>理由を区別しない</div></a>
-        <a class="btn secondary">電話する 06-xxxx-xxxx</a>
+        <a class="btn secondary">Instagram で問い合わせる</a>
         <div class="spacer"></div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>存在の有無を推測されないよう理由は 1 文にまとめて区別しない（列挙対策）。無効トークンは IP あたり 10 回/分で 429（FR-C-12）。予約 CTA と電話で行き止まりにしない（FR-C-16）。</li>
+      <li><span class="n">1</span>存在の有無を推測されないよう理由は 1 文にまとめて区別しない（列挙対策）。無効トークンは IP あたり 10 回/分で 429（FR-C-12）。予約 CTA と Instagram の DM で行き止まりにしない（FR-C-16）。</li>
     </ul>
   </div>
   <div class="artboard">
     <p class="frame-title">(f) /en 予約内容の再表示（締切前）<small>/en/cancel/{token} — 英語の締切文（CW-03）</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>13:20</span><span>5G ▮▮▮</span></div>
-      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">日本語</span><a class="btn small secondary">Call</a></header>
+      <header class="header"><div class="logo">LOGO</div><div class="title">Neuer Barber 長田</div><span class="lang">日本語</span><a class="btn small secondary">Instagram</a></header>
       <div class="content">
         <h1>Cancel your booking</h1>
         <div class="card">
@@ -166,11 +166,11 @@
         <a class="btn danger">Cancel this booking</a>
         <p class="muted">To change the date or time, cancel and book again.</p>
         <div class="spacer"></div>
-        <div class="footer-tel"><p class="caption">Need help? Please call us.</p><a class="btn secondary">Call +81 6-xxxx-xxxx</a></div>
+        <div class="footer-tel"><p class="caption">Need help? Message us on Instagram.</p><a class="btn secondary">Ask on Instagram</a></div>
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>/en は締切を曜日つき英語日付＋12 時間制＋JST で明記。確認シートは “Cancel this booking?” と “Keep booking / Cancel booking”、完了は “Your booking has been cancelled. We've let the shop know — no need to call.”（FR-C-12, FR-C-13、CW-16, CW-17）。</li>
+      <li><span class="n">1</span>/en は締切を曜日つき英語日付＋12 時間制＋JST で明記。確認シートは “Cancel this booking?” と “Keep booking / Cancel booking”、完了は “Your booking has been cancelled. We've let the shop know — no need to contact us.”（FR-C-12, FR-C-13、CW-16, CW-17）。</li>
     </ul>
   </div>
 </div>
