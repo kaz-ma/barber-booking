@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-04 |
-| 版 | v0.3 |
+| 版 | v0.4 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`booking_restriction` の値 `phone_only` を `dm_only`（Instagram DM のみ受付）に変更（FR-A-13、F3）、月カレンダー用の日単位要約クエリ `getMonthAvailability(month)` を 6.1 に追加（FR-C-07、F2）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
+| 変更履歴 | v0.4（2026-10-12）: 実装との同期。マイグレーションを 4 本（0000 手書き・0001 生成・0002 手書き・0003 Better Auth の追加分）に、UNIQUE 制約名を drizzle-kit 生成名（`bookings_public_code_unique` 等）に、Better Auth テーブルの実列（`credential_id`＝JS キー `credentialID`、`auth_rate_limit`）を追記。空き計算 SQL の `generate_series` に `::int` キャスト（PostgreSQL 16 で smallint 版が曖昧）、日の状態に `closed`・`out_of_range` を加えた区別、冪等性と重なりはロック下の再検証が通常経路で SQLSTATE は最後の防衛線（3.1）、`booking_restriction` の判定位置、seed（`seed-admin`）、保存期間ジョブとハウスキーピングの実装（8 章）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`booking_restriction` の値 `phone_only` を `dm_only`（Instagram DM のみ受付）に変更（FR-A-13、F3）、月カレンダー用の日単位要約クエリ `getMonthAvailability(month)` を 6.1 に追加（FR-C-07、F2）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
 | 関連要件 | 10 章（10.1〜10.3）、FR-S-01, FR-S-02, FR-S-06, FR-S-07, FR-S-09, FR-C-08, FR-C-10, FR-C-11, FR-A-04〜08, FR-A-11〜14, NFR-PF-05, NFR-MG-02, NFR-SC-05, NFR-SC-07, NFR-EN-07 |
 | 関連 ADR | ADR-0002（Neon）、ADR-0003（EXCLUDE を生 SQL で）、ADR-0006（Better Auth テーブル）、ADR-0008（顧客スナップショットを持たない） |
 
@@ -23,7 +23,7 @@
 | M-04 | 金額は確定時スナップショット | `bookings.price_jpy`・`is_student`・`buffer_min` を確定時に保存し、後のメニュー改定の影響を受けない |
 | M-05 | 秘密はハッシュのみ | キャンセルトークンは SHA-256（`bytea`）、レート制限キーと監査ログの電話番号は HMAC（`PII_HASH_SECRET`） |
 | M-06 | 列挙は Postgres ENUM | 値の追加は `ALTER TYPE … ADD VALUE` で容易。削除は行わない |
-| M-07 | ソフトデリートは誤操作復旧用 | `deleted_at` は 5 秒 Undo のため。法的消去は `anonymized_at`（実データを消す） |
+| M-07 | ソフトデリートは誤操作復旧用 | `deleted_at` は Undo（トースト 5 秒、サーバー側の有効期限 10 秒）のため。法的消去は `anonymized_at`（実データを消す） |
 | M-08 | 拡張点を先に置く | `resource_id`（複数席）、`customers.line_user_id`/`instagram_user_id`（Phase 2）、`consents.kind` の Phase 3 値 |
 
 ---
@@ -204,9 +204,21 @@ erDiagram
     text id PK
     text user_id FK
   }
+  auth_verification {
+    text id PK
+    text identifier
+    text value "hashed OTP"
+    timestamptz expires_at
+  }
+  auth_rate_limit {
+    text id PK
+    text key UK
+    int count
+    bigint last_request
+  }
 ```
 
-`audit_log` は多態参照（`entity_type`＋`entity_id`）のため FK を張らない。`time_blocks`・`business_hours`・`business_hour_overrides`・`settings` は空き計算 SQL で結合する（FK なし）。
+`audit_log` は多態参照（`entity_type`＋`entity_id`）のため FK を張らない。`auth_verification`・`auth_rate_limit` は Better Auth が単独で使う表（FK なし）。`time_blocks`・`business_hours`・`business_hour_overrides`・`settings` は空き計算 SQL で結合する（FK なし）。
 
 ---
 
@@ -219,8 +231,9 @@ erDiagram
 | `drizzle/0000_extensions.sql` | `drizzle-kit generate --custom --name=extensions` に手書き | `btree_gist`、`pg_trgm` |
 | `drizzle/0001_init.sql` | `drizzle-kit generate`（`src/lib/db/schema.ts` から） | ENUM、全テーブル、CHECK、通常インデックス、部分 UNIQUE |
 | `drizzle/0002_constraints.sql` | `drizzle-kit generate --custom --name=constraints` に手書き | `EXCLUDE` 制約、DEFERRABLE FK、`updated_at` トリガー |
+| `drizzle/0003_auth.sql` | `drizzle-kit generate`（`src/lib/db/auth-schema.ts` から） | Better Auth 1.7.7 との突き合わせ。**追加のみ**: CLI が生成する FK・検索列の索引 5 本と `auth_rate_limit` 表（`rateLimit.storage: 'database'`） |
 
-以下は 3 ファイルを統合した論理 DDL（PostgreSQL 17）。
+以下は 4 ファイルを統合した論理 DDL（PostgreSQL 16 以上。本番の Neon は 17、ローカル・CI は 16）。列に付けた `UNIQUE` は、実際には drizzle-kit が `<表>_<列>_unique` の名前の表制約として生成する（例 `bookings_public_code_unique`、`bookings_cancel_token_hash_unique`、`menus_slug_unique`。PostgreSQL 既定の `_key` ではない）。
 
 ```sql
 -- ===== 0000_extensions.sql =====
@@ -400,12 +413,29 @@ CREATE TABLE time_blocks (
 );
 CREATE INDEX time_blocks_during_gist ON time_blocks USING gist (resource_id, during) WHERE deleted_at IS NULL;
 
--- Better Auth（ADR-0006）。modelName を auth_* に変更して予約語 "user" を避ける。列は CLI 生成に従う
+-- Better Auth 1.7.7（ADR-0006）。表名を auth_* にして予約語 "user" を避ける。Drizzle アダプタは
+-- auth-schema.ts の JS キーで対応付けるため、プロパティ名は Better Auth のフィールド名と一致させる（例 credentialID）
 --   auth_user(id, name, email UNIQUE, email_verified, image, created_at, updated_at)
---   auth_session(id, user_id FK, token UNIQUE, expires_at, ip_address, user_agent, created_at, updated_at)
---   auth_account(id, user_id FK, account_id, provider_id, …)
---   auth_verification(id, identifier, value, expires_at, …)       -- ログインのワンタイムコード（emailOTP、OI-12 決定済み。v0.1 のマジックリンク案は不採用）
---   auth_passkey(id, user_id FK, name, public_key, credential_id, counter, device_type, backed_up, transports, created_at)
+--   auth_session(id, user_id FK CASCADE, token UNIQUE, expires_at, ip_address, user_agent, created_at, updated_at)
+--   auth_account(id, user_id FK CASCADE, account_id, provider_id, access_token, refresh_token, id_token,
+--                access_token_expires_at, refresh_token_expires_at, scope, password, created_at, updated_at)
+--   auth_verification(id, identifier, value, expires_at, created_at, updated_at)
+--                -- ログインのワンタイムコード（emailOTP、storeOTP: 'hashed'。OI-12 決定済み。マジックリンク案は不採用）
+--   auth_passkey(id, name, public_key, user_id FK CASCADE, credential_id, counter, device_type, backed_up,
+--                transports, aaguid, created_at)   -- credential_id の JS キーは credentialID
+
+-- ===== 0003_auth.sql（追加のみ） =====
+CREATE TABLE auth_rate_limit (                     -- Better Auth rateLimit.storage: 'database'（ログイン試行の制限）
+  id           text PRIMARY KEY,
+  key          text NOT NULL CONSTRAINT auth_rate_limit_key_unique UNIQUE,
+  count        integer NOT NULL,
+  last_request bigint NOT NULL                     -- epoch ミリ秒
+);
+CREATE INDEX auth_account_user_id_idx         ON auth_account (user_id);
+CREATE INDEX auth_passkey_user_id_idx         ON auth_passkey (user_id);
+CREATE INDEX auth_passkey_credential_id_idx   ON auth_passkey (credential_id);
+CREATE INDEX auth_session_user_id_idx         ON auth_session (user_id);
+CREATE INDEX auth_verification_identifier_idx ON auth_verification (identifier);
 
 CREATE TABLE push_subscriptions (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -487,9 +517,10 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 
 | 制約・インデックス | SQLSTATE | アプリでの扱い（`lib/pg-errors.ts` は `constraint` 名で判別） | 関連 |
 |---|---|---|---|
-| `bookings_no_overlap` | `23P01` | `conflict: slot_taken`（顧客）／`conflict: overlap`（管理） | FR-C-10, FR-A-05 |
-| `bookings_idempotency_active_uidx` | `23505` | 同一ブラウザ再送なら既存予約を返す、そうでなければ `duplicate` | FR-C-10, G-04 |
-| `bookings_public_code_key`・`bookings_cancel_token_hash_key` | `23505` | 生成し直して 1 回だけ再試行（衝突は実質発生しない） | — |
+| `bookings_no_overlap` | `23P01` | `conflict: slot_taken`（顧客）／`conflict: overlap`（管理）／`conflict: undo_blocked`（Undo）。通常は advisory lock 下の再検証（顧客は空き計算 SQL、管理は `findOverlaps`）で先に検出して同じ結果を返すため、`23P01` はロックを経ない書き込みに対する最後の防衛線 | FR-C-10, FR-A-05 |
+| `bookings_idempotency_active_uidx` | `23505` | 通常はロック下で同じキーの有効な予約を `FOR UPDATE` で探して判定する（`submission_nonce` 一致 → トークンを再発行して `ok`、不一致 → `duplicate`）。`23505` は同時送信の競合時のみで、同じ判定をやり直す | FR-C-10, G-04 |
+| `bookings_public_code_unique`・`bookings_cancel_token_hash_unique` | `23505` | 生成し直して 1 回だけ再試行（衝突は実質発生しない） | — |
+| `menus_slug_unique` | `23505` | `upsertMenu` が `invalid`（`slug: slugTaken`）を返す | FR-A-08 |
 | `customers_phone_e164_uidx` | `23505` | upsert（`ON CONFLICT … DO UPDATE`）で発生させない | ADR-0008 |
 | CHECK 違反 | `23514` | バグとして `error`（Zod を通過した値で起きないこと） | — |
 
@@ -502,7 +533,7 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 | `booking_status` | `confirmed` / `arrived` / `in_progress` / `completed` / `cancelled_by_customer` / `cancelled_by_owner` / `cancelled_late` / `no_show` | 05_state_and_flows.md 1 章。排他対象は前 3 つ | 6.3 |
 | `booking_source` | `web` / `phone` / `walk_in` / `instagram` / `line` / `manual` | `web` のみ同意・冪等性キー必須 | FR-A-05 |
 | `occupation` | `student` / `worker` | 学割判定 | FR-C-04 |
-| `booking_restriction` | `none` / `dm_only`（Instagram DM のみ受付。v0.2 の `phone_only` を置換）/ `blocked` | web 予約時に判定し、`dm_only`・`blocked` は `restricted` を返して Instagram DM へ案内（Should）【要確認: OI-16】 | FR-A-13 |
+| `booking_restriction` | `none` / `dm_only`（Instagram DM のみ受付。v0.2 の `phone_only` を置換）/ `blocked` | web 予約のトランザクション内で顧客 upsert の直後に判定し、`none` 以外は `restricted` を返してロールバック（upsert も残らない）。画面は Instagram DM へ案内（Should）【要確認: OI-16】 | FR-A-13 |
 | `block_kind` | `break`（休憩）/ `private`（私用）/ `closed`（臨時休業）/ `holiday`（将来の祝日休業） | UI は前 3 つ | FR-A-06 |
 | `consent_kind` | Phase 1: `booking_policy`, `privacy`。Phase 3: `health_notes`, `photo_karte`, `photo_sns`。任意: `marketing` | Phase 1 は 1 チェックで 2 行作成 | 12.3 |
 | `push_platform` | `ios` / `android` / `desktop` / `other` | UA から推定 | FR-A-09 |
@@ -516,8 +547,8 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 |---|---|---|
 | `settings` | `slot_step_min=30, lead_time_min=60, max_advance_days=60, cancel_deadline_min=120, allow_same_day=true, digest_hour_jst=21` | 【要確認: OI-05, OI-06】 |
 | `business_hours` | 0（日）・2〜6（火〜土）: `open_min=1080, close_min=1440`。1（月）: `is_closed=true` | 【要確認: OI-02, OI-03】 |
-| `menus` | 下表 9 件。**価格は第 2 回打ち合わせで確定するまで `price_jpy=0`・`is_active=false`**（推測値を入れない） | 【要確認: OI-01, OI-07】 |
-| `auth_user` | `ADMIN_EMAIL` で 1 名。初回はワンタイムコードでログインし、パスキーを登録 | コードの配信経路【要確認: OI-21】 |
+| `menus` | 下表 9 件。**価格は第 2 回打ち合わせで確定するまで `price_jpy=0`・`is_active=false`**（推測値を入れない）。ローカル開発・テストだけ `npm run db:seed -- --activate-menus` で予約可能にする | 【要確認: OI-01, OI-07】 |
+| `auth_user` | `ADMIN_EMAIL` で 1 名（`npm run db:seed-admin`。`db:seed` も `ADMIN_EMAIL` があれば作成）。初回はワンタイムコードでログインし、パスキーを登録 | コードの配信経路【要確認: OI-21】 |
 
 | sort | slug | name_ja | name_en（仮） | duration_min | buffer_after_min |
 |---|---|---|---|---|---|
@@ -535,7 +566,7 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 
 ## 6. 空き計算 SQL（FR-S-02）
 
-1 回のクエリで「期間内の各日の状態」と「候補開始時刻とその状態（`available` / `full` / `deadline`）の配列」を返す。JST で候補を生成 → `tstzrange` に変換 → リードタイム内を `deadline`、有効予約・未削除ブロックと `&&` で重なるものを `full` に分類する（v0.2: FR-C-07 の「× の行も表示し操作不可」に合わせ、埋まった候補も返す。閉店をまたぐ時刻は候補にしない）。
+1 回のクエリで「期間内の各日の状態」と「候補開始時刻とその状態（`available` / `full` / `deadline`）の配列」を返す。日の状態はこの 3 値に `closed`（定休・休業）と `out_of_range`（予約可能期間外）を加えた 5 値（`DayStatus`）。実装は `src/lib/db/availability-sql.ts`（CTE を共有し、最終 SELECT だけを 6 章用と 6.1 用の 2 種にする。表示用の DAL と予約確定時の再検証の両方が使うため `lib/db` に置く）。JST で候補を生成 → `tstzrange` に変換 → リードタイム内を `deadline`、有効予約・未削除ブロックと `&&` で重なるものを `full` に分類する（v0.2: FR-C-07 の「× の行も表示し操作不可」に合わせ、埋まった候補も返す。閉店をまたぐ時刻は候補にしない）。
 
 ```sql
 -- getAvailability: $1 menu_slug text, $2 from_date date (JST), $3 to_date date (JST), $4 now timestamptz
@@ -546,7 +577,8 @@ WITH s AS (
 ), p AS (
   SELECT m.duration_min, m.buffer_after_min, s.slot_step_min,
          $4::timestamptz + make_interval(mins => s.lead_time_min)          AS not_before,
-         ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date + s.max_advance_days AS last_date
+         ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date + s.max_advance_days AS last_date,
+         ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date                      AS today
   FROM m CROSS JOIN s
 ), days AS (
   SELECT d::date AS d FROM generate_series($2::date, $3::date, interval '1 day') AS d
@@ -564,10 +596,11 @@ WITH s AS (
          (hr.d::timestamp + make_interval(mins => g.m)) AT TIME ZONE 'Asia/Tokyo' AS start_at
   FROM hours hr
   CROSS JOIN p
+  -- ::int: smallint 同士の generate_series は PostgreSQL 16 で関数解決が曖昧になるため明示する
   CROSS JOIN LATERAL generate_series(
-       hr.open_min,
-       hr.close_min - p.duration_min - p.buffer_after_min,   -- 閉店をまたぐ枠を出さない
-       p.slot_step_min) AS g(m)
+       hr.open_min::int,
+       (hr.close_min - p.duration_min - p.buffer_after_min)::int,   -- 閉店をまたぐ枠を出さない
+       p.slot_step_min::int) AS g(m)
   WHERE NOT hr.is_closed AND hr.d <= p.last_date
 ), slots AS (
   SELECT c.d, c.start_at,
@@ -589,7 +622,7 @@ WITH s AS (
               ELSE 'available' END AS slot_status
   FROM slots sl
 )
-SELECT hr.d AS date,
+SELECT hr.d::text AS date,
        CASE WHEN hr.d > (SELECT last_date FROM p)                         THEN 'out_of_range'
             WHEN hr.is_closed                                             THEN 'closed'
             WHEN count(*) FILTER (WHERE c.slot_status = 'available') > 0 THEN 'available'
@@ -620,7 +653,7 @@ ORDER BY hr.d;
 | 時間ブロック（`deleted_at` あり） | 影響しない | FR-A-06 |
 | JST 0:00 前後（UTC 15:00） | 日付の帰属が JST 暦日 | NFR-EN-07 |
 
-同じ規則を `src/domain/availability.ts`（純粋関数）にも実装し、契約テストで SQL の結果と突き合わせる（テストのオラクル兼、管理画面の重なり表示に使う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に `status = 'available'` で含まれることを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。v0.3 で週ストリップを廃止したため、S-C-03 の時間枠リストも `$2 = $3 = 選択日` で呼ぶ。
+上表のケースは DB 統合テスト `src/features/availability/availability.db.test.ts` が実 Postgres で SQL の結果を期待値と直接照合する（v0.3 までの「TS 版 `src/domain/availability.ts` をオラクルにする」案は採らない。管理画面の重なり表示は `features/admin/calendar.ts` の `findOverlaps`、手動予約の空き開始時刻は `getFreeStarts` が担う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に含まれ、`deadline` でなく（`deadline` または未掲載 → `invalid: not_bookable`）、`full` でない（→ `conflict: slot_taken`）ことを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。v0.3 で週ストリップを廃止したため、S-C-03 の時間枠リストも `getDayAvailability({ menuSlug, date })`（＝ `$2 = $3 = 選択日`）で呼ぶ。`getAvailability` は 1 回 14 日までに制限し、未知・非公開のメニューと不正な日付には `null` を返す。
 
 ### 6.1 月カレンダー用の日単位要約（`getMonthAvailability`）
 
@@ -629,8 +662,8 @@ ORDER BY hr.d;
 ```sql
 -- getMonthAvailability: $1 menu_slug text, $2 month_start date (JST), $3 month_end date (JST), $4 now timestamptz
 -- WITH s AS (...), m AS (...), p AS (...), days AS (...), hours AS (...), cand AS (...), slots AS (...), classified AS (...)  ← 6 章と同一
-SELECT hr.d AS date,
-       CASE WHEN hr.d < ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date   THEN 'out_of_range'  -- 過去日
+SELECT hr.d::text AS date,
+       CASE WHEN hr.d < (SELECT today FROM p)                             THEN 'out_of_range'  -- 過去日
             WHEN hr.d > (SELECT last_date FROM p)                         THEN 'out_of_range'  -- 61 日以降
             WHEN hr.is_closed                                             THEN 'closed'
             WHEN count(*) FILTER (WHERE c.slot_status = 'available') > 0 THEN 'available'
@@ -648,8 +681,8 @@ ORDER BY hr.d;
 | 項目 | 内容 |
 |---|---|
 | コスト | 月表示 1 回につき 1 クエリ（最大 31 日 × 候補 11〜13 枠 ≒ 400 行の `&&` 判定。`bookings` / `time_blocks` の GiST 索引を使う）。週ストリップ時代の 14 日 × 1 クエリと同程度で、NFR-PF-03（p95 500 ms）の範囲内を想定。時間枠リスト用の 1 日分クエリと合わせて S-C-03 の表示は 2 クエリ |
-| キャッシュ | 空き状況のためリクエスト間キャッシュはしない（FR-S-12）。同一リクエスト内で `getMonthAvailability` と `nextAvailableDate` の算出が同じ月を参照する場合に備え、DAL 関数を React `cache()` で包み 1 リクエスト 1 回に抑える |
-| 範囲 | 今月から `today + max_advance_days` を含む月まで。範囲外の `month` は DAL で `invalid`（06_api.md 2.2） |
+| キャッシュ | 空き状況のためリクエスト間キャッシュはしない（FR-S-12）。React `cache()` による同一リクエスト内の重複排除は**未実装**（DAL に TODO）。現状 S-C-03 は、指定月が範囲外のときの今月へのやり直しと「次に空いている日」探索で翌月を引くときに限り、1 リクエストで最大 3 回呼ぶ |
+| 範囲 | 今月から `today + max_advance_days` を含む月まで。範囲外・形式不正の `month` と未知・非公開のメニューは DAL が `null` を返し、ページは今月で取り直す（06_api.md 2.2） |
 | 契約テスト | 6 章の表に加え「月の途中で 61 日目を迎える月は以降が `out_of_range`」「今日より前の日は `out_of_range`」「同じ日の `day_status` が `getAvailability` の結果の集約と一致」 |
 
 ---
@@ -669,7 +702,7 @@ export const tstzrange = customType<{ data: TstzRange; driverData: string }>({
   fromDriver: (value) => {
     // 例: ["2026-11-04 09:00:00+00","2026-11-04 10:00:00+00")  ※接続の TimeZone は UTC に固定
     const m = /^\["?([^",]+)"?,"?([^",)]+)"?\)$/.exec(value)
-    if (!m) throw new Error('unexpected tstzrange literal')
+    if (!m?.[1] || !m[2]) throw new Error('unexpected tstzrange literal')
     const iso = (s: string) => s.replace(' ', 'T').replace(/([+-]\d\d)$/, '$1:00')
     return { start: new Date(iso(m[1])), end: new Date(iso(m[2])) }
   },
@@ -694,10 +727,12 @@ export const bookings = pgTable('bookings', {
   // … 省略 …
   idempotencyKey: text('idempotency_key'),
   cancelTokenHash: bytea('cancel_token_hash').unique(),
-}, (t) => [
-  check('bookings_during_half_open', sql`lower_inc(${t.during}) and not upper_inc(${t.during}) and not isempty(${t.during})`),
-  uniqueIndex('bookings_idempotency_active_uidx').on(t.idempotencyKey)
-    .where(sql`${t.idempotencyKey} is not null and ${t.status} in ('confirmed','arrived','in_progress')`),
+}, () => [
+  // CHECK / WHERE の本体は列名をそのまま書く（生成 SQL を素直にするため）
+  check('bookings_during_half_open',
+    sql`lower_inc(during) AND NOT upper_inc(during) AND NOT isempty(during) AND NOT lower_inf(during) AND NOT upper_inf(during)`),
+  uniqueIndex('bookings_idempotency_active_uidx').on(sql`idempotency_key`)
+    .where(sql`idempotency_key IS NOT NULL AND status IN ('confirmed', 'arrived', 'in_progress')`),
   // EXCLUDE 制約は DSL 非対応のため drizzle/0002_constraints.sql に手書き（ADR-0003）
 ])
 ```
@@ -718,16 +753,17 @@ export const bookings = pgTable('bookings', {
 
 | 対象 | 契機 | 処理 | 残すもの | 関連 |
 |---|---|---|---|---|
-| 顧客（保存期間） | `last_visit_at < now() - interval '3 years'` かつ未来の有効予約なし（`/api/cron/retention`、日次、Should） | `name, name_kana, phone_e164, phone_display, line_user_id, instagram_user_id` を NULL、`phone_hash = HMAC(phone_e164)`、`anonymized_at = now()` | 予約の日時・メニュー・状態・金額、`no_show_count` 等の統計、`consents` の事実 | FR-S-09 |
-| 顧客（削除依頼） | 管理者が S-A-11 で `anonymizeCustomer`（電話＋折り返しで本人確認後、7 日以内） | 同上＋`audit_log`（`customer.anonymize`）。未来の有効予約は先に `cancelled_by_owner` | 同上 | FR-A-14, AT-30 |
+| 顧客（保存期間） | `last_visit_at < now() - interval '3 years'` かつ未来の有効予約なし（`/api/cron/retention`、毎日 18:00 UTC＝03:00 JST、Should。`features/notifications/retention.ts`）。`last_visit_at` は `completed` への遷移でのみ設定されるため、来店記録のない顧客（`last_visit_at IS NULL`）は対象にならない | 1 トランザクションで対象を `FOR UPDATE` し、`name, name_kana, phone_e164, phone_display, line_user_id, instagram_user_id` を NULL、`phone_hash = HMAC(phone_e164)`、`anonymized_at = now()`、その顧客の予約の `note`・`owner_note` を NULL。`audit_log` は 1 実行 1 行（`actor = system`、`customer.anonymize`、`entity_id = 'retention'`、`diff.count`） | 予約の日時・メニュー・状態・金額、`no_show_count` 等の統計、`consents` の事実 | FR-S-09 |
+| 顧客（削除依頼） | 管理者が S-A-11 で `anonymizeCustomer`（電話＋折り返しで本人確認後、7 日以内。電話がある顧客は下 4 桁の一致が必須） | 同上＋その顧客の `consents` の `ip`・`user_agent` を NULL＋`audit_log`（`customer.anonymize`、`diff.cancelledFutureBookings`）。未来の有効予約は先に `cancelled_by_owner`（`cancel_reason = 'anonymized'`、トークン NULL） | 同上 | FR-A-14, AT-30 |
 | 予約の備考 | 顧客匿名化と同時 | `bookings.note`、`owner_note` を NULL（自由記述に個人情報が混入しうるため） | — | 10.3 |
-| 同意記録の IP・UA | `accepted_at < now() - interval '1 year'`（日次 cron） | `ip`, `user_agent` を NULL | 同意の種類・版・日時 | 10.3 |
-| `rate_limits` | `window_start < now() - interval '2 days'`（日次 cron） | DELETE | — | FR-S-04 |
-| `notification_log` | 1 年超（日次 cron） | DELETE | — | NFR-OP-02 |
+| 同意記録の IP・UA | `accepted_at < now() - interval '1 year'`（日次サマリー cron の送信後のハウスキーピング） | `ip`, `user_agent` を NULL | 同意の種類・版・日時 | 10.3 |
+| `rate_limits` | `window_start < now() - interval '2 days'`（同上） | DELETE | — | FR-S-04 |
+| `notification_log` | `created_at` が 1 年超（同上） | DELETE | — | NFR-OP-02 |
+| `auth_verification` | `expires_at` から 1 日超（同上） | DELETE | — | FR-A-01 |
 | ソフトデリート | 5 秒 Undo 経過後もそのまま保持（履歴） | 予約: `deleted_at` を持つ行は一覧から除外。ブロック: 同 | — | FR-A-04 |
 | バックアップ | 30 世代で自動消滅 | 匿名化後も最大 30 日はバックアップに残る旨をプライバシーポリシーに記載 | — | FR-S-08 |
 
-匿名化は 1 トランザクションで行い、`customers_anonymized_clean` CHECK により部分的な匿名化をコミットできないようにする。
+匿名化は 1 トランザクションで行い、`customers_anonymized_clean` CHECK により部分的な匿名化をコミットできないようにする。ハウスキーピングは `features/notifications/digest.ts` の `housekeeping()` が日次サマリーの送信後に実行し、失敗してもサマリーの結果には影響させない（ログのみ）。
 
 ---
 
