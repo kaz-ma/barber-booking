@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-02 |
-| 版 | v0.3 |
+| 版 | v0.4 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-01 の構成簡素化（`HoursSection` を廃止し `AccessSection` に統合、`InstagramLink` 追加。F1）、S-C-03 の `WeekStrip` を `MonthCalendar` に置換（F2）、顧客向けの `tel:`／`PhoneFallback` を `InstagramLink` に置換し遷移図の電話アプリを Instagram DM に変更（F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（お客様情報）、完了画面の共有・コピー、ログインのワンタイムコード、ブロックのプリセット変更、手動予約の「それでも保存」削除 |
+| 変更履歴 | v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップ・404 の CTA を「予約する」→ S-C-02 に統一し、「空き時間を見て予約する」は S-C-02 → S-C-03（CT-02）だけに（3 章の遷移図・CT-01）。S-C-01 の `MenuSummary` を 9 件の情報表示カードに。S-C-03 の初期の選択日 = 今日（OI-24）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-01 の構成簡素化（`HoursSection` を廃止し `AccessSection` に統合、`InstagramLink` 追加。F1）、S-C-03 の `WeekStrip` を `MonthCalendar` に置換（F2）、顧客向けの `tel:`／`PhoneFallback` を `InstagramLink` に置換し遷移図の電話アプリを Instagram DM に変更（F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（お客様情報）、完了画面の共有・コピー、ログインのワンタイムコード、ブロックのプリセット変更、手動予約の「それでも保存」削除 |
 | 関連要件 | 8 章 S-C-01〜10・S-C-02b / S-A-01〜12、FR-C-01〜17、FR-A-01〜19、FR-S-14、AT-01〜23 |
 | 関連文書 | `03_screen_specs.md`（主要画面の詳細）、`06_api.md`（アクション）、`07_components.md`（コンポーネント） |
 
@@ -19,8 +19,8 @@
 
 | 画面ID | 名称 | ルート | 認証 | 主要コンポーネント | データ取得 | Server Actions | 関連 FR |
 |---|---|---|---|---|---|---|---|
-| S-C-01 | トップ | `/{locale}` | なし | 上から `SiteHeader`（言語切替・予約 CTA）、`Hero`（写真のみ）、`MenuSummary`、`BookCta`、`AccessSection`（受付時間・定休・予約締切の 2〜3 行を含む）、`LanguagesNote`、`InstagramLink`、`SiteFooter`、JSON-LD（`telephone` なし） | `getActiveMenus()`・`getBusinessCalendar()`・`getPublicSettings()`（`"use cache"`） | なし | FR-C-13, 14, 16, 17 |
-| S-C-02 | 予約（メニュー）ステップ 1 | `/{locale}/book` | なし | `BookingStepper`、`MenuStep`（`MenuCard`: 一般・学生の両価格）、`StickyCta`（「空き時間を見て予約する」） | `getActiveMenus()`（cache）。選択はクライアント状態（`BookingDraftProvider`＋`sessionStorage`） | なし | FR-C-01, 02 |
+| S-C-01 | トップ | `/{locale}` | なし | 上から `SiteHeader`（言語切替・予約 CTA「予約する」）、`Hero`（写真のみ）、`MenuSummary`（9 件の `MenuCard variant="info"`、リンクなし）、`BookCta`（「予約する」→ `/book`）、`AccessSection`（受付時間・定休・予約締切の 2〜3 行を含む）、`LanguagesNote`、`InstagramLink`、`SiteFooter`、JSON-LD（`telephone` なし） | `getActiveMenus()`・`getBusinessCalendar()`・`getPublicSettings()`（`"use cache"`） | なし | FR-C-13, 14, 16, 17 |
+| S-C-02 | 予約（メニュー）ステップ 1 | `/{locale}/book` | なし | `BookingStepper`、`MenuStep`（`MenuCard`: 一般・学生の両価格）、`StickyCta`（「空き時間を見て予約する」。メニュー選択後に表示） | `getActiveMenus()`（cache）。選択はクライアント状態（`BookingDraftProvider`＋`sessionStorage`） | なし | FR-C-01, 02 |
 | S-C-03 | 予約（日時選択）ステップ 2 | `/{locale}/book/time` | なし | `BookingStepper`、`MonthCalendar`（`DayCell`。◎ の日のみリンク、× と非活性の日は理由付きの非活性セル）、`SlotList`（◎ のみ `SlotButton`、× は非活性の `SlotRow`）、`SlotLegend`、`DeadlineNotice`、`MonthCalendarSkeleton`、`SlotListSkeleton`、`StickyCta`（選択済みで戻ってきたときのみ） | `getMonthAvailability({ menuSlug, month })`（日ごとの状態）＋`getAvailability({ menuSlug, from: date, to: date })`（選択日の時間枠）。いずれも RSC、非キャッシュ、Suspense | なし（選択はクライアント状態） | FR-C-07, 08 |
 | S-C-02b | 予約（お客様情報）ステップ 3 | `/{locale}/book/info` | なし | `BookingStepper`、`SelectionSummary`（メニュー・日時の要約と「変更」）、`BookingForm`（`NameStep`、`KanaField`（ja のみ）、`OccupationStep`、`PhoneStep`（＋ご要望 `NoteField`））、`StepSummary`、`StickyCta` | 下書き（クライアント）。表示用に `getActiveMenus()`（cache）。入力値は `BookingDraftProvider`＋`history.state`＋`sessionStorage` | なし（検証はクライアントで共有 Zod スキーマ） | FR-C-01, 03〜06 |
 | S-C-04 | 予約（確認）ステップ 4 | `/{locale}/book/confirm` | なし | `CheckAnswers`（職業に応じた料金を再計算）、`PolicyDigest`、`ConsentCheckbox`、`TurnstileWidget`、`Honeypot`、`SubmitButton`、`ErrorSummary` | 下書き（クライアント）。料金表示用に `getActiveMenus()`（cache） | `createBooking` | FR-C-09, 10, 15, FR-S-05 |
@@ -60,16 +60,16 @@
 
 ## 3. 画面遷移図（顧客）
 
-矢印ラベルは遷移トリガー（ボタン名・操作）。
+矢印ラベルは遷移トリガー（ボタン名・操作）。予約の入口は 1 本（要件定義書 OI-25）: トップ・404 からは「予約する」で必ず S-C-02 に入り、S-C-01 から S-C-03 への直接の遷移はない。
 
 ```mermaid
 flowchart TD
   IG["Instagram プロフィールのリンク<br/>または DM 定型文の URL"] --> T
-  T["S-C-01 トップ"] -->|"空き時間を見て予約する"| B["S-C-02 メニュー"]
+  T["S-C-01 トップ"] -->|"予約する（ヘッダー / メニュー直後）"| B["S-C-02 メニュー"]
   T -->|"EN または 日本語"| T
   T -->|"Instagram の DM でお問い合わせ"| DM["Instagram DM<br/>（電話番号は掲載しない）"]
   B -->|"メニューカードを選ぶ"| B
-  B -->|"空き時間を見て予約する"| TM["S-C-03 日時"]
+  B -->|"メニュー選択後の 空き時間を見て予約する"| TM["S-C-03 日時<br/>（初期は今日を選択）"]
   TM -->|"月カレンダーで ◎ の日を 1 タップ<br/>または 前月 / 翌月"| TM
   TM -->|"◎ の時間枠を 1 タップ"| F["S-C-02b お客様情報"]
   TM -->|"戻る"| B
@@ -90,13 +90,13 @@ flowchart TD
   D -->|"Instagram の DM でお問い合わせ"| DM
   XD -->|"もう一度予約する"| B
   ANY["存在しない URL や例外"] --> E["S-C-10 404 / エラー"]
-  E -->|"空き時間を見て予約する"| B
+  E -->|"予約する"| B
 ```
 
 | # | 遷移元 | トリガー | 遷移先 | 処理・条件 | 関連 |
 |---|---|---|---|---|---|
-| CT-01 | S-C-01 | 「空き時間を見て予約する / See available times」（全ページ最上部の CTA。S-C-10 も同じ） | S-C-02 | `?menu=` 付きなら当該メニューを選択済みで開始 | FR-C-14 |
-| CT-02 | S-C-02 | メニュー選択後の「空き時間を見て予約する」 | S-C-03 | メニューの Zod 検証 OK。`router.push('/book/time?menu=…')` | FR-C-01 |
+| CT-01 | S-C-01 | 「予約する / Book」（ヘッダーとメニュー直後の 2 か所。全ページのヘッダー・S-C-10 も同じ文言） | S-C-02 | 予約の唯一の入口（OI-25）。トップのメニューカードはリンクにしないので `?menu=` は付けない。外部リンク（Instagram 等）の `?menu=` 付き URL は当該メニューを選択済みで開始 | FR-C-01, 14 |
+| CT-02 | S-C-02 | メニュー選択後の「空き時間を見て予約する」（この文言の CTA はここだけ） | S-C-03 | メニューの Zod 検証 OK。`router.push('/book/time?menu=…')`。S-C-03 は `date` なしで開き、今日を選択した状態で表示（OI-24） | FR-C-01, 07 |
 | CT-03 | S-C-03 | ◎ の時間枠タップ（× の行は操作不可） | S-C-02b（お客様情報が入力済みで確認画面から戻った場合は S-C-04） | 選択表示 150 ms → 選択した `startsAt`（`+09:00`）を下書きへ保存して遷移。選択済みで戻ってきたときだけ固定バー「この日時で進む」を出す | FR-C-07 |
 | CT-03b | S-C-02b | 電話段の「次へ 確認へ」 | S-C-04 | お客様情報の全段の Zod 検証 OK。`router.push('/book/confirm')` | FR-C-01 |
 | CT-04 | S-C-04 | 「この内容で予約を確定する」 | S-C-05 | `createBooking` が `ok` → `router.replace(doneUrl)`（戻るで確認画面に戻らない）、下書き破棄 | FR-C-10, 11 |

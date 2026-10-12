@@ -32,8 +32,8 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.3 / S-C-02 予約 ステップ 1 メニューを選ぶ（/ja/book）</h1>
-    <p class="muted">予約の順序は「1 メニュー → 2 日時 → 3 お客様情報 → 4 確認」（OI-19 決定）。メニューを選ぶと「空き時間を見て予約する」で /ja/book/time へ進む。この画面に入力欄は出さない（FR-C-01）。</p>
+    <h1>WF-C v0.4 / S-C-02 予約 ステップ 1 メニューを選ぶ（/ja/book）</h1>
+    <p class="muted">予約の順序は「1 メニュー → 2 日時 → 3 お客様情報 → 4 確認」（OI-19 決定）。トップの「予約する」は必ずこの画面に来る（v0.4 導線の 1 本化、G1）。メニューを選ぶと「空き時間を見て予約する」で /ja/book/time へ進む。この画面に入力欄は出さない（FR-C-01）。</p>
   </div>
 
   <!-- ===== initial ===== -->
@@ -79,7 +79,7 @@
       <li><span class="n">1</span>4 段ステッパーは動詞形ラベル「1 メニューを選ぶ → 2 日時を選ぶ → 3 お客様情報 → 4 確認」。<code>&lt;ol&gt;</code>、現在段に <code>aria-current="step"</code>（FR-C-01、OI-19 決定: 日時先行）。</li>
       <li><span class="n">2</span>9 枚のカードは <code>&lt;label&gt;</code>＋ネイティブラジオ。JS 前でも選べる。名称 JA/EN・一般/学生価格・60 分・一言説明を併記（FR-C-02）。</li>
       <li><span class="n">3</span>学生価格が未設定のメニューは「一般」だけを出す。料金は <code>menus</code> から取得（FR-C-02, FR-C-04、OI-01）。</li>
-      <li><span class="n">4</span>次の段は見出しだけを薄色で示し、「メニューの次に空き時間が見られる」ことを伝える。トップの CTA「空き時間を見て予約する」との期待のずれを埋める（FR-C-01、CW-02）。</li>
+      <li><span class="n">4</span>次の段は見出しだけを薄色で示し、「メニューの次に空き時間が見られる」ことを伝える。トップの「予約する」から来た人に、メニューの次で空き時間が見られることを先に伝える（FR-C-01、CW-02）。</li>
       <li><span class="n">5</span>キャンセルポリシー要点はメニュー画面下部に折りたたみで掲示（FR-C-15、要件 12.2）。</li>
     </ul>
   </div>
@@ -122,7 +122,7 @@
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span>カードをタップするとラジオが選択状態になるだけで、画面は切り替わらない（選び直しが 1 タップで済む）。<code>?menu=</code> 付きで来た場合はこの状態で開く（FR-C-01, FR-C-02, CT-01）。</li>
-      <li><span class="n">2</span>選択後にだけ固定 CTA を出す。文言は「空き時間を見て予約する / See available times」で、トップの CTA と同じ言葉で次の画面（日時）を予告する。押すと <code>/ja/book/time?menu=cut</code> へ <code>push</code>。日時画面から「戻る」で選択を保ったままこの状態に戻る（FR-C-01、CW-02、OI-19）。</li>
+      <li><span class="n">2</span>選択後にだけ固定 CTA を出す。文言は「空き時間を見て予約する / See available times」で、次の画面（日時）を予告する。この文言を使うのはこの CTA だけ（トップ・ヘッダー・404 は「予約する / Book」、v0.4 G1）。押すと <code>/ja/book/time?menu=cut</code> へ <code>push</code>。日時画面から「戻る」で選択を保ったままこの状態に戻る（FR-C-01、CW-02、OI-19）。</li>
     </ul>
   </div>
 </div>

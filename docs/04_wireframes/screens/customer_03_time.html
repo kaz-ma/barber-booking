@@ -32,13 +32,13 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.3 / S-C-03 予約 ステップ 2 日時を選ぶ（/ja/book/time）</h1>
-    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。月カレンダー（月曜始まり、今日から 60 日先まで。日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。v0.3 で週ストリップを月カレンダーに置き換え、電話導線を削除（クライアント FB）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 休業 / 満席 / 締切）を添える。時刻はすべて JST。</p>
+    <h1>WF-C v0.4 / S-C-03 予約 ステップ 2 日時を選ぶ（/ja/book/time）</h1>
+    <p class="muted">今日 = 2026-10-10(土)。メニューの次の段（OI-19 決定）。月カレンダー（月曜始まり、今日から 60 日先まで。日 1 タップ）＋選択日の時間枠リスト（時間 1 タップで次の段へ）。v0.3 で週ストリップを月カレンダーに置き換え、電話導線を削除（クライアント FB）。記号は ◎ と × の 2 つだけで、× には理由（定休 / 休業 / 満席 / 締切）を添える。時刻はすべて JST。<b>初期表示の選択日は今日</b>（v0.4、OI-24 決定。今日が × でも今日を選択したまま (b) の空きなし表示にする）。</p>
   </div>
 
   <!-- (a) mixed: tap a slot -> next step -->
   <div class="artboard">
-    <p class="frame-title">(a) 空き混在 → 枠をタップすると次の段へ<small>/ja/book/time?menu=cut&amp;date=2026-10-10 — 17:02 時点。固定 CTA は出さない</small></p>
+    <p class="frame-title">(a) 初期表示（今日を選択）・空き混在 → 枠をタップすると次の段へ<small>/ja/book/time?menu=cut（<code>date</code> 省略 = 今日 2026-10-10）— 17:02 時点。固定 CTA は出さない</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>17:02</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
@@ -77,7 +77,7 @@
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span>日付は月カレンダー（ホットペッパービューティー型、v0.3 クライアント FB）。月見出し「‹ 2026年10月 ›」、曜日行は<b>月曜始まり</b>（月〜日。月曜定休の列が左端にそろう）、7 列のグリッド。日セルは高さ 56px（カンプは 52px）以上で、日付と記号（◎ / × ＋理由）を出す。過去日と 60 日先より後の日は記号なしの薄い文字で、リンクにもボタンにもしない。× の日（定休・休業・満席・締切）は × と理由ラベル（満席は取り消し線も）で示し、フォーカス対象外。前の月は今月より前なので無効（破線）、次の月（11 月）へは移動できる。60 日の範囲に 1 日も入らない月は ‹ › を無効にする（FR-C-07, FR-C-08）。</li>
-      <li><span class="n">2</span>今日のセルは 2px の枠、選択中の日は塗り（初期表示は今日を選択。今日を選択中のときは塗り＋内側の白線で両方を示す）。読み上げは <code>aria-label</code>（例「10月10日 土曜日 今日 予約できます 選択中」）と下の見出しで伝える。週ストリップの「今日・明日」ラベルは廃止（FR-C-07、CW-04）。</li>
+      <li><span class="n">2</span>今日のセルは 2px の枠、選択中の日は塗り。<b>初期表示は今日を選択</b>（<code>date</code> 未指定のとき。v0.4 で決定、OI-24・DG-001 U-08）。今日を選択中のときは塗り＋内側の白線で両方を示す。読み上げは <code>aria-label</code>（例「10月10日 土曜日 今日 予約できます 選択中」）と下の見出しで伝える。週ストリップの「今日・明日」ラベルは廃止（FR-C-07、CW-04）。</li>
       <li><span class="n">3</span>凡例はカレンダーの直下に置き、FR-C-07 の文言どおり「◎ 予約できます ／ × 予約できません」。× の理由は日セル・行の右に小さく出す（定休 = 曜日の定休日、休業 = 臨時休業、満席、締切 = リードタイム経過）。○・△ は使わない（FR-C-07、CW-09）。</li>
       <li><span class="n">4</span>× の時刻は行を残すが、ボタンにせずフォーカスも当てない（<code>&lt;div&gt;</code> の文字情報として読み上げる）。行が消えると「その時刻は営業していない」と誤解されるため（CW-10、要件 v0.4 FR-C-07）。18:00 は 17:02 時点でリードタイム 60 分を過ぎたため「締切」、満席と区別する（CW-09）。</li>
       <li><span class="n">5</span>◎ の枠をタップすると選択表示（✓）を 150ms 見せてそのまま次の段へ進む。確認ボタンは挟まない（日 1＋時間 1 タップ、US-01、CW-05）。遷移先は通常 <code>/ja/book/info</code>（S-C-02b お客様情報）。お客様情報が入力済み（確認画面から「変更」で来た・(d) の 23P01 から戻った）なら <code>/ja/book/confirm</code> へ直行する。</li>
@@ -130,7 +130,7 @@
 
   <!-- (b) empty day -->
   <div class="artboard">
-    <p class="frame-title">(b) 選択日に空きなし<small>?date=2026-10-10 — 22:31。本日の枠は締切済み、明日も満席</small></p>
+    <p class="frame-title">(b) 選択日に空きなし（今日が × の初期表示を含む）<small>?menu=cut（今日 2026-10-10）— 22:31。本日の枠は締切済み、明日も満席</small></p>
     <div class="frame"><div class="screen">
       <div class="statusbar"><span>22:31</span><span>5G ▮▮▮</span></div>
       <header class="header"><a class="back">←</a><div class="title">ご予約</div><span class="lang">EN</span><a class="btn small secondary">Instagram</a></header>
@@ -159,7 +159,7 @@
       </div>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休 / 休業）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。今月に空きがなければ同じ位置に「次の月を見る」、60 日先まで空きがなければ「現在ご予約いただける日がありません」の 1 文だけにする（FR-C-07）。選択がないので固定 CTA は出さない。v0.3: 電話導線「本日の残り枠はお電話で」は削除し、次の空き日ボタンだけにした（電話対応なし、クライアント FB）。</li>
+      <li><span class="n">1</span>空の日は理由（締切 / 満席 / 定休 / 休業）を 1 文で伝え、「次に空いている日」を 1 タップで提示（<code>nextAvailableDate</code> へ <code>?date=</code> 遷移）。今月に空きがなければ同じ位置に「次の月を見る」、60 日先まで空きがなければ「現在ご予約いただける日がありません」の 1 文だけにする（FR-C-07）。初期表示で今日が ×（締切・満席・定休・休業）のときも、ほかの日へ自動で移らず今日を選択したままこの表示にする（v0.4、OI-24 決定）。選べる枠がないので固定 CTA は出さない。v0.3: 電話導線「本日の残り枠はお電話で」は削除し、次の空き日ボタンだけにした（電話対応なし、クライアント FB）。</li>
     </ul>
   </div>
 

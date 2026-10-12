@@ -30,7 +30,7 @@
 <body>
 <div class="sheet">
   <div class="sheet-head">
-    <h1>WF-C v0.3 / S-C-08・09 ポリシー（骨子）＋ S-C-10 404・エラー</h1>
+    <h1>WF-C v0.4 / S-C-08・09 ポリシー（骨子）＋ S-C-10 404・エラー</h1>
     <p class="muted">ポリシーは見出し構成のみ（グレーの線 = 本文）。本文は要件 12 章の草案と弁護士確認を経て確定する。</p>
   </div>
 
@@ -75,13 +75,13 @@
         <section class="sec"><h2>2. 当日・無断キャンセルが続いた場合</h2><div class="ph"></div><div class="ph s"></div></section>
         <section class="sec"><h2>3. 遅刻について</h2><div class="ph"></div><div class="ph s"></div></section>
         <section class="sec"><h2>4. やむを得ない事情の場合</h2><div class="ph"></div><div class="ph s"></div></section>
-        <section class="sec anc"><h2>特定商取引法に基づく表記</h2><div class="kv"><span class="k">事業者</span><span>長田 健豊</span><span class="k">所在地</span><span>大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）</span><span class="k">連絡先</span><span>Instagram @neuer.kento（DM）／電話番号は請求があれば遅滞なく開示【要確認: 特商法の表示方法】</span><span class="k">料金</span><span>メニュー一覧のとおり（税込）</span><span class="k">お支払い</span><span>ご来店時</span><span class="k">提供時期</span><span>ご予約の日時</span><span class="k">キャンセル</span><span>上記ポリシーのとおり</span></div><div class="note" style="top:0;right:0"><span class="n">2</span>兼用ページ</div></section>
+        <section class="sec anc"><h2>特定商取引法に基づく表記</h2><div class="kv"><span class="k">事業者</span><span>長田 健豊</span><span class="k">所在地</span><span>大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）</span><span class="k">連絡先</span><span>Instagram @neuer.kento（DM）／電話番号: ご請求があれば遅滞なく開示します（Instagram の DM でご請求ください）</span><span class="k">料金</span><span>メニュー一覧のとおり（税込）</span><span class="k">お支払い</span><span>ご来店時</span><span class="k">提供時期</span><span>ご予約の日時</span><span class="k">キャンセル</span><span>上記ポリシーのとおり</span></div><div class="note" style="top:0;right:0"><span class="n">2</span>兼用ページ</div></section>
       </div>
       <footer class="footer"><a class="btn secondary">Instagram で問い合わせる</a><p class="caption">プライバシーポリシー ／ キャンセルポリシー・特定商取引法に基づく表記</p></footer>
     </div></div>
     <ul class="notes-list">
       <li><span class="n">1</span>締切は <code>settings.cancel_deadline_min</code> から差し込み、確認・完了・キャンセル画面の表記と常に一致させる（FR-C-12, FR-C-15、OI-05）。見出しは要件 12.2 の草案に対応。</li>
-      <li><span class="n">2</span>特商法の表示事項は同ページ下部の表で兼用（該当性は不明だが掲載、要件 12.4）。所在地は OI-09（掲載可）の決定により店舗住所を載せる。v0.3: 電話対応なしのため連絡先は Instagram の DM とし、電話番号の扱い（請求時開示の記載で足りるか）は特商法の表示方法として確認する（FR-C-15）。</li>
+      <li><span class="n">2</span>特商法の表示事項は同ページ下部の表で兼用（該当性は不明だが掲載、要件 12.4）。所在地は OI-09（掲載可）の決定により店舗住所を載せる。v0.3: 電話対応なしのため連絡先は Instagram の DM（<code>@neuer.kento</code>、v0.4 で確定）。v0.4: 電話番号の欄は「ご請求があれば遅滞なく開示します」方式で確定（決定 G3、要件 12.4。要確認の印を外した）（FR-C-15）。</li>
     </ul>
   </div>
   <div class="artboard">
@@ -93,7 +93,7 @@
         <div class="spacer"></div>
         <p class="bigcode">404</p>
         <div class="stack center"><h1>ページが見つかりません</h1><p class="muted">URL が間違っているか、ページが移動・削除された可能性があります。</p></div>
-        <a class="btn primary anc">空き時間を見て予約する<div class="note" style="top:-14px;right:-4px"><span class="n">1</span>行き止まりにしない</div></a>
+        <a class="btn primary anc">予約する<div class="note" style="top:-14px;right:-4px"><span class="n">1</span>行き止まりにしない</div></a>
         <a class="btn secondary">Instagram で問い合わせる</a>
         <a class="btn ghost">トップへ戻る</a>
         <div class="spacer"></div>
@@ -101,7 +101,7 @@
       <footer class="footer"><p class="caption">プライバシーポリシー ／ キャンセルポリシー・特定商取引法に基づく表記</p></footer>
     </div></div>
     <ul class="notes-list">
-      <li><span class="n">1</span>404 でも予約 CTA・Instagram（DM）・トップへの 3 導線を出し、Instagram 等の古いリンクから来た人を逃さない（FR-C-16, CT 図 S-C-10）。ロケール接頭辞なしの URL は <code>global-not-found.tsx</code> で同じ表示。CTA の文言はトップと同じ「空き時間を見て予約する」（OI-19 で日時先行に決まったため据え置き、CW-02）。Instagram は本文のボタンだけにし、フッターの Instagram は省く（HE-01）。</li>
+      <li><span class="n">1</span>404 でも予約 CTA・Instagram（DM）・トップへの 3 導線を出し、Instagram 等の古いリンクから来た人を逃さない（FR-C-16, CT 図 S-C-10）。ロケール接頭辞なしの URL は <code>global-not-found.tsx</code> で同じ表示。CTA の文言はトップ・ヘッダーと同じ「予約する」で、行き先は <code>/ja/book</code>（① メニュー）。v0.4（G1 導線の 1 本化）で「空き時間を見て予約する」はメニュー段の CTA だけにした。Instagram は本文のボタンだけにし、フッターの Instagram は省く（HE-01）。</li>
     </ul>
   </div>
   <div class="artboard">

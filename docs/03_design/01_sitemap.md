@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-01 |
-| 版 | v0.3 |
+| 版 | v0.4 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-03 に月送りの `?month=` を追加（F2）、S-C-10 の電話リンクを Instagram リンクに変更、構造化データに `telephone` を出力しない（OI-10 決定済み、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
+| 変更履歴 | v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップから `/book/time` への直接リンクを置かないことを明記し、`/book` の `?menu=` はトップからは付けない（外部リンク用）。`/book/time` の `date` 未指定時は今日を選択（OI-24 決定済み）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-03 に月送りの `?month=` を追加（F2）、S-C-10 の電話リンクを Instagram リンクに変更、構造化データに `telephone` を出力しない（OI-10 決定済み、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
 | 関連要件 | FR-C-01, FR-C-07, FR-C-11〜16, FR-A-01, FR-A-15, FR-S-10, FR-S-14, NFR-EN-05, NFR-EN-07, NFR-MG-01, S-C-01〜10, S-C-02b, S-A-01〜12 |
 | 関連 ADR | ADR-0001（ドメイン移行）、ADR-0005（i18n） |
 
@@ -21,8 +21,8 @@ flowchart TD
   ROOT -->|"307"| EN["/en"]
 
   subgraph PUB["顧客サイト /ja と /en は同一構造"]
-    JA --> BOOK["/ja/book<br/>S-C-02 メニュー（1）"]
-    BOOK --> TIME["/ja/book/time<br/>S-C-03 日時（2）"]
+    JA -->|"予約する"| BOOK["/ja/book<br/>S-C-02 メニュー（1）"]
+    BOOK -->|"空き時間を見て予約する"| TIME["/ja/book/time<br/>S-C-03 日時（2）"]
     TIME --> INFO["/ja/book/info<br/>S-C-02b お客様情報（3）"]
     INFO --> CONF["/ja/book/confirm<br/>S-C-04 確認（4）"]
     CONF --> DONE["/ja/book/done/token<br/>S-C-05 完了"]
@@ -77,8 +77,8 @@ flowchart TD
 |---|---|---|---|---|---|---|---|
 | `/` | — | 公開 | — | GET | — | ロケール検出して `/ja` または `/en` へ 307 | FR-C-13 |
 | `/{locale}` | S-C-01 | 公開 | index | GET | — | `generateStaticParams` で ja/en を静的生成 | FR-C-14 |
-| `/{locale}/book` | S-C-02 | 公開 | index | GET | `?menu={slug}`（トップ・Instagram からのディープリンク。選択済みで開始） | ステップ 1（メニュー）。CTA「空き時間を見て予約する」で `/book/time` へ | FR-C-01, 02, FR-S-14 |
-| `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&month=YYYY-MM&date=YYYY-MM-DD` | ステップ 2。月カレンダーの表示月（`month`）と選択日（`date`）は JST 暦日。`date` があれば `month` はその月、どちらも未指定は今月と「今日以降で最初に空きがある日」【要確認: OI-24】。範囲外の `month` は今月へ寄せる。メニュー未選択なら `/book` へ戻す | FR-C-07, 08 |
+| `/{locale}/book` | S-C-02 | 公開 | index | GET | `?menu={slug}`（Instagram など外部からのディープリンク。選択済みで開始。トップの CTA は付けない） | ステップ 1（メニュー）。予約の唯一の入口（トップ・ヘッダー・404 の「予約する」の遷移先、OI-25）。メニュー選択後の CTA「空き時間を見て予約する」で `/book/time` へ | FR-C-01, 02, FR-S-14 |
+| `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&month=YYYY-MM&date=YYYY-MM-DD` | ステップ 2。月カレンダーの表示月（`month`）と選択日（`date`）は JST 暦日。`date` があれば `month` はその月、どちらも未指定は今月・今日を選択（OI-24 決定済み。今日が × でも今日を選択し空きなしの表示）。トップ（`/{locale}`）からはリンクしない（OI-25）。範囲外の `month` は今月へ寄せる。メニュー未選択なら `/book` へ戻す | FR-C-07, 08 |
 | `/{locale}/book/info` | S-C-02b | 公開 | noindex | GET | `?step=name\|occupation\|phone`（段階計測用、任意） | ステップ 3。段階は `history.state` が正。クエリは計測と再読込時の復元補助。メニュー・日時が下書きに無ければ `/book` または `/book/time` へ戻す | FR-C-01, 03〜06, FR-S-14 |
 | `/{locale}/book/confirm` | S-C-04 | 公開 | noindex | GET（確定は Server Action POST） | — | ステップ 4。下書きが無ければ `/book` へ、日時・お客様情報が欠けていれば該当ステップへ戻す | FR-C-09, 10 |
 | `/{locale}/book/done/{token}` | S-C-05 | トークン保持者 | noindex | GET | — | トークンは 43 文字 base64url | FR-C-11 |
