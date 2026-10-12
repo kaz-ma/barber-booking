@@ -1,13 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
+import { adminCsp, createNonce } from '@/lib/admin-csp'
+import { sessionCookieName } from '@/lib/auth-cookie'
 import { clientIp } from '@/lib/client-ip'
 import { routing } from '@/lib/i18n/routing'
 import { hitWindow, LIMITS, rateKeys } from '@/lib/rate-limit'
 
 /*
  * proxy.ts (Next.js 16, Node runtime; 01_sitemap.md §4.2):
- *   /admin/**             -> bypasses next-intl (ja only). TODO(admin slice): optimistic
- *                            session-cookie check + per-request CSP nonce (08_security.md §8.3).
+ *   /admin/**             -> bypasses next-intl (ja only). Per-request CSP nonce with
+ *                            'strict-dynamic' (08_security.md §8.3) and an optimistic
+ *                            session-cookie check -> /admin/login?next= (§4). Server Action
+ *                            POSTs are never redirected: requireAdmin() answers `unauthorized`.
  *   /{locale}/cancel/**   -> IP rate limit 10/min (FR-S-04), then next-intl.
  *   everything else       -> next-intl locale negotiation (only `/` redirects, 307).
  * This is never the authorization layer; actions and DAL re-check everything.
@@ -19,7 +23,7 @@ export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    return NextResponse.next()
+    return adminProxy(request)
   }
 
   if (CANCEL_PATH.test(pathname)) {
@@ -42,6 +46,29 @@ export default async function proxy(request: NextRequest) {
   }
 
   return intl(request)
+}
+
+/** Pages reachable without a session (S-A-01 login, S-A-12 install guidance). */
+const PUBLIC_ADMIN_PATHS = new Set(['/admin/login', '/admin/install'])
+
+function adminProxy(request: NextRequest): NextResponse {
+  const { pathname, search } = request.nextUrl
+  const isAction = request.method === 'POST' && request.headers.has('next-action')
+  if (!PUBLIC_ADMIN_PATHS.has(pathname) && !isAction && !request.cookies.has(sessionCookieName())) {
+    const login = new URL('/admin/login', request.url)
+    login.searchParams.set('next', `${pathname}${search}`)
+    return NextResponse.redirect(login, 307)
+  }
+
+  const nonce = createNonce()
+  const csp = adminCsp(nonce)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  // Next.js reads the nonce from the request CSP header and adds it to its own scripts.
+  requestHeaders.set('Content-Security-Policy', csp)
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+  response.headers.set('Content-Security-Policy', csp)
+  return response
 }
 
 export const config = {

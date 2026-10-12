@@ -33,6 +33,8 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: requiredWhenDeployed(secret()),
     ADMIN_EMAIL: z.email().optional(),
     RESEND_API_KEY: z.string().optional(),
+    /** Verified Resend sender for the admin login code, e.g. "予約管理 <login@example.com>". */
+    RESEND_FROM: z.string().min(3).optional(),
 
     VAPID_PUBLIC_KEY: requiredWhenDeployed(z.string().min(1)),
     VAPID_PRIVATE_KEY: requiredWhenDeployed(z.string().min(1)),

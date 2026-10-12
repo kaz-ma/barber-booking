@@ -24,6 +24,12 @@ export async function resetDb(): Promise<void> {
       'menus',
       'business_hours',
       'settings',
+      'auth_rate_limit',
+      'auth_verification',
+      'auth_passkey',
+      'auth_account',
+      'auth_session',
+      'auth_user',
     ]) {
       await tx.execute(sql.raw(`DELETE FROM ${table}`))
     }
@@ -75,4 +81,55 @@ export async function insertBlock(start: Date, end: Date, deleted = false): Prom
 function randomCode(): string {
   const alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
   return Array.from({ length: 8 }, () => alphabet[Math.floor(Math.random() * 32)]).join('')
+}
+
+/** Single admin user + one session row (admin tests; Better Auth tables, ADR-0006). */
+export async function seedAdminSession(email = 'owner@example.com'): Promise<{ userId: string; sessionId: string }> {
+  const userId = randomUUID()
+  const sessionId = randomUUID()
+  await db.execute(
+    sql`INSERT INTO auth_user (id, name, email, email_verified) VALUES (${userId}, 'Owner', ${email}, true)`,
+  )
+  await db.execute(sql`
+    INSERT INTO auth_session (id, user_id, token, expires_at)
+    VALUES (${sessionId}, ${userId}, ${randomUUID()}, now() + interval '30 days')
+  `)
+  return { userId, sessionId }
+}
+
+/** Insert a booking with a named customer and return ids (admin tests). Web rows get a consent. */
+export async function insertNamedBooking(
+  start: Date,
+  end: Date,
+  opts: { name?: string; status?: string; source?: string; phone?: string | null; acknowledged?: boolean } = {},
+): Promise<{ bookingId: string; customerId: string }> {
+  const customerId = randomUUID()
+  const bookingId = randomUUID()
+  const status = opts.status ?? 'confirmed'
+  const source = opts.source ?? 'phone'
+  const web = source === 'web'
+  const consentId = web ? randomUUID() : null
+  const idem = web ? randomUUID().replace(/-/g, '').padEnd(64, '0') : null
+  await db.transaction(async (tx) => {
+    await tx.execute(
+      sql`INSERT INTO customers (id, name, phone_e164) VALUES (${customerId}, ${opts.name ?? '佐藤 健'}, ${opts.phone ?? null})`,
+    )
+    await tx.execute(sql`
+      INSERT INTO bookings (id, public_code, customer_id, menu_id, during, status, source, price_jpy, cancelled_at,
+                            idempotency_key, consent_id, acknowledged_at)
+      SELECT ${bookingId}, ${randomCode()}, ${customerId}, id,
+             tstzrange(${start.toISOString()}::timestamptz, ${end.toISOString()}::timestamptz, '[)'),
+             ${status}::booking_status, ${source}::booking_source, 5000,
+             CASE WHEN ${status} LIKE 'cancelled%' THEN now() END,
+             ${idem}, ${consentId}, ${opts.acknowledged === false ? sql`NULL` : sql`now()`}
+      FROM menus WHERE slug = 'cut'
+    `)
+    if (consentId) {
+      await tx.execute(sql`
+        INSERT INTO consents (id, customer_id, booking_id, kind, policy_version)
+        VALUES (${consentId}, ${customerId}, ${bookingId}, 'booking_policy', 'test')
+      `)
+    }
+  })
+  return { bookingId, customerId }
 }

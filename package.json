@@ -22,11 +22,14 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed-admin": "tsx scripts/seed-admin.ts",
     "db:reset": "bash scripts/db-local.sh reset && npm run db:migrate && npm run db:seed -- --activate-menus"
   },
   "dependencies": {
+    "@better-auth/passkey": "1.7.7",
     "@t3-oss/env-nextjs": "0.13.11",
     "@vercel/functions": "3.9.11",
+    "better-auth": "1.7.7",
     "drizzle-orm": "0.45.4",
     "next": "16.4.0",
     "next-intl": "4.14.9",
@@ -34,6 +37,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1",
+    "web-push": "3.6.7",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -46,6 +50,7 @@
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/web-push": "3.6.4",
     "@vitejs/plugin-react": "6.1.2",
     "drizzle-kit": "0.31.11",
     "eslint": "10.12.0",

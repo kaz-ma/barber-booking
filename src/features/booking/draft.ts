@@ -19,6 +19,16 @@ export type Draft = {
   note: string
 }
 
+export const EMPTY_DRAFT: Draft = {
+  menuSlug: '',
+  startsAt: '',
+  name: '',
+  nameKana: '',
+  occupation: '',
+  phone: '',
+  note: '',
+}
+
 function parseDraft(raw: string | null): Draft | null {
   if (!raw) return null
   try {
@@ -77,6 +87,13 @@ export function saveDraft(draft: Draft): void {
     // storage unavailable (private mode): the flow still works within the page
   }
   for (const l of listeners) l()
+}
+
+/** Merge `patch` into the stored draft (creating it when absent) and notify subscribers. */
+export function updateDraft(patch: Partial<Draft>): Draft {
+  const next = { ...EMPTY_DRAFT, ...(loadDraft() ?? {}), ...patch }
+  saveDraft(next)
+  return next
 }
 
 export function clearDraft(): void {

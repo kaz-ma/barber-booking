@@ -1,22 +1,29 @@
-import { getTranslations } from 'next-intl/server'
+import { useTranslations } from 'next-intl'
+import { Stepper } from '@/components/ui/stepper'
 
 const STEPS = ['menu', 'time', 'info', 'confirm'] as const
 export type BookingStep = (typeof STEPS)[number]
 
-/** Stepper as an ordered list with aria-current="step" (03_screen_specs.md §1.6). */
-export async function BookingStepper({ current }: { current: BookingStep }) {
-  const t = await getTranslations('booking.steps')
+/** BookingStepper: ① メニュー → ② 日時 → ③ お客様情報 → ④ 確認 (OI-19), aria-current="step". */
+export function BookingStepper({ current }: { current: BookingStep }) {
+  const t = useTranslations('booking.steps')
+  const tNav = useTranslations('nav')
   return (
-    <ol className="mb-6 flex flex-wrap gap-x-4 gap-y-1 text-sm text-fg-muted">
-      {STEPS.map((step) => (
-        <li
-          key={step}
-          aria-current={step === current ? 'step' : undefined}
-          className={step === current ? 'font-bold text-fg' : undefined}
-        >
-          {t(step)}
-        </li>
-      ))}
-    </ol>
+    <Stepper
+      steps={STEPS.map((s) => t(s))}
+      current={STEPS.indexOf(current)}
+      label={tNav('stepsLabel')}
+      doneSuffix={t('doneSr')}
+    />
+  )
+}
+
+/** Polite announcement of the current step ("ステップ 3/4: お客様情報"), 03_screen_specs 共通規約. */
+export function StepAnnouncer({ current }: { current: BookingStep }) {
+  const t = useTranslations('booking.steps')
+  return (
+    <p className="sr-only" aria-live="polite">
+      {t('live', { n: STEPS.indexOf(current) + 1, name: t(current) })}
+    </p>
   )
 }

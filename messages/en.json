@@ -4,65 +4,157 @@
     "back": "Back",
     "change": "Change",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "copiedCheck": "Copied ✓",
+    "shareCopy": "Share or copy",
+    "close": "Close",
+    "required": "Required",
+    "optional": "Optional",
+    "errorPrefix": "Error: ",
+    "skipToContent": "Skip to content",
+    "toTop": "Back to top",
+    "priceUnsetSr": " (to be set)",
+    "minutes": "{minutes} min",
+    "listSep": ", "
   },
   "meta": {
     "siteName": "Neuer Barber",
-    "topTitle": "Neuer Barber | Booking",
+    "topTitle": "Neuer Barber | Barber in Abeno, Osaka — book until midnight",
+    "topDescription": "Neuer Barber (Kento Osada) in Abeno, Osaka. Open 6:00 PM–midnight, 5 minutes on foot from Tennoji Station. See available times and book online, no sign-up needed.",
     "bookTitle": "Choose a menu | Neuer Barber",
+    "bookDescription": "Choose from 9 menus, then see available times and book.",
     "timeTitle": "Choose a time | Neuer Barber",
     "infoTitle": "Your details | Neuer Barber",
     "confirmTitle": "Review your booking | Neuer Barber",
     "doneTitle": "Booking confirmed | Neuer Barber",
     "cancelTitle": "Cancel your booking | Neuer Barber",
-    "notFoundTitle": "Page not found | Neuer Barber"
+    "privacyTitle": "Privacy Policy | Neuer Barber",
+    "policyTitle": "Cancellation Policy | Neuer Barber",
+    "tokushoTitle": "Legal Notice (Specified Commercial Transactions Act) | Neuer Barber",
+    "notFoundTitle": "Page not found | Neuer Barber",
+    "errorTitle": "Error | Neuer Barber"
   },
   "nav": {
     "book": "Book",
     "switchLocale": "日本語",
     "switchLocaleLabel": "日本語",
-    "instagram": "Instagram @{handle}"
+    "homeLabel": "Neuer Barber home",
+    "wordmark": "NEUER BARBER",
+    "flowTitle": "Booking",
+    "instagram": "Instagram @{handle}",
+    "instagramShort": "Instagram",
+    "instagramAria": "Instagram — message us (@{handle})",
+    "instagramDm": "Message us on Instagram",
+    "instagramDmSub": "DM · @{handle}",
+    "instagramHandle": "@{handle}",
+    "instagramProfile": "See our work on Instagram",
+    "newTab": " (opens in a new tab)",
+    "policies": "Policies",
+    "privacy": "Privacy Policy",
+    "policy": "Cancellation Policy",
+    "tokusho": "Legal Notice (Specified Commercial Transactions Act)",
+    "copyright": "© Neuer Barber",
+    "stepsLabel": "Booking steps",
+    "backToMenu": "Back to menu selection",
+    "backToTime": "Back to date and time",
+    "backToInfo": "Back to your details"
   },
   "contact": {
     "dmPrompt": "For questions, please message us on Instagram.",
     "pastDeadline": "The cancellation deadline has passed. Please contact us via Instagram DM.",
-    "restricted": "Please book via Instagram DM."
+    "restricted": "Please book via Instagram DM.",
+    "help": "Need help? Message us on Instagram.",
+    "dmTo": "DM: @{handle}"
   },
   "home": {
-    "heading": "Neuer Barber",
-    "hours": "Open 6:00 PM – midnight / Closed on Mondays",
-    "languages": "We speak Japanese and English",
-    "cta": "Book"
+    "h1": "Neuer Barber — a barber in Abeno, Osaka you can book until midnight",
+    "photoAlt": "Photo of the shop (coming soon)",
+    "photoRealAlt": "Inside Neuer Barber",
+    "photoCaption": "PHOTO",
+    "photoCaptionText": "Shop and services (coming soon)",
+    "menuCaps": "Menu",
+    "menuHeading": "Menu",
+    "accessCaps": "Access",
+    "accessHeading": "Access",
+    "mapAlt": "Map: south of Tennoji Station, along Abenosuji",
+    "walk": "{minutes} min walk from {station}",
+    "hoursLabel": "Hours",
+    "closedLabel": "Closed",
+    "leadLabel": "Booking closes",
+    "leadValue": "<b>{minutes}</b> min before start",
+    "noClosedDays": "None",
+    "openMap": "Open map",
+    "langCaps": "Languages",
+    "langHeading": "Languages and payment",
+    "languagesLabel": "Languages",
+    "languagesValue": "<ja>日本語</ja> / English",
+    "paymentLabel": "Payment",
+    "paymentValue": "At the shop (methods to be confirmed)"
   },
   "menu": {
     "duration": "{minutes} min",
     "price": "{price} (tax incl.)",
     "studentPrice": "Student {price}",
     "priceTbd": "Price coming soon",
-    "empty": "Online booking is currently unavailable. Please message us on Instagram."
+    "priceAria": "Price {price}",
+    "priceUnsetAria": "Price to be set",
+    "general": "Standard",
+    "student": "Student",
+    "empty": "Online booking is currently unavailable. Please message us on Instagram.",
+    "lead": "Prices include tax. The student rate applies when you choose Student in Your details.",
+    "selected": "Selected",
+    "nextStep": "Next: choose a time",
+    "nextStepNote": "See available times on a month calendar",
+    "policyDigestTitle": "Cancellation policy (summary)",
+    "policyDigest": "You can cancel from the link on the confirmation screen until {hours} hours before your visit. After that, please message us on Instagram (@{handle}).",
+    "summaryGeneral": "Standard {price}",
+    "summaryStudent": " (Student {price})",
+    "expired": "Your booking details have expired. Please choose a menu again."
   },
   "booking": {
     "steps": {
-      "menu": "1. Choose a menu",
-      "time": "2. Choose a time",
-      "info": "3. Your details",
-      "confirm": "4. Review",
-      "toTime": "See available times"
+      "menu": "Menu",
+      "time": "Date & time",
+      "info": "Your details",
+      "confirm": "Review",
+      "toTime": "See available times",
+      "doneSr": " (done)",
+      "live": "Step {n} of 4: {name}"
     },
     "form": {
-      "selection": "Your booking",
+      "selection": "Your selection",
+      "heading": "Your details",
+      "lead": "We use these only to manage your booking and contact you on the day.",
+      "sectionName": "Your name",
+      "sectionOccupation": "Occupation",
+      "sectionPhone": "Phone number",
+      "sectionDoneSr": " (done)",
+      "stepOf": "{n}/3",
+      "editAria": "Change {section}",
       "name": "Full name",
       "nameHint": "e.g. Alex Smith",
       "kana": "Furigana",
       "kanaHint": "",
+      "kanaHelp": "",
       "occupation": "Occupation",
+      "occupationHelp": "Used to apply the student rate",
       "student": "Student",
       "worker": "Working adult",
       "phone": "Phone number",
-      "phoneHint": "e.g. 090 1234 5678 or +44 7700 900123",
-      "note": "Requests (optional)",
-      "noteCount": "{count} characters left",
-      "toConfirm": "Review"
+      "phoneHelp": "Only used to contact you on the day. e.g. 090 1234 5678 or +44 7700 900123",
+      "phoneHint": "e.g. +44 7700 900123",
+      "note": "Requests",
+      "notePlaceholder": "e.g. Short on the sides, keep some length on top",
+      "addNote": "Add a request (optional)",
+      "noteCount": "{count} / 500",
+      "noteCountSr": "Characters entered ",
+      "next": "Next",
+      "toConfirm": "Continue to review",
+      "changeMenu": "Change menu",
+      "changeTime": "Change date and time",
+      "kanaSummary": " ({kana})",
+      "generalPriceLine": " · Standard {price}",
+      "studentPriceLine": " · Student {price}"
     },
     "errors": {
       "menuRequired": "Select a menu",
@@ -76,33 +168,58 @@
       "phoneRequired": "Enter your phone number, like 090 1234 5678 or +44 7700 900123",
       "phoneInvalid": "Enter a phone number in the correct format, like 090 1234 5678 or +44 7700 900123",
       "noteTooLong": "Notes must be 500 characters or fewer",
-      "consentRequired": "Please agree to the policies",
+      "consentRequired": "Select the checkbox to agree to the policies",
       "startsAtInvalid": "Please choose the time again",
       "invalid": "Please check your entries",
       "botCheckFailed": "Verification failed. Please try again.",
       "notBookable": "That time can't be booked. Please choose another time.",
-      "slotTaken": "Sorry, that time was just booked.",
-      "duplicate": "You already have a booking for this time.",
-      "rateLimited": "Too many attempts. Please try again later.",
+      "slotTaken": "Sorry, that time was just booked. Please choose another time.",
+      "duplicate": "You already have a booking for this time. If you didn't save the confirmation screen, please message us on Instagram.",
+      "rateLimited": "Too many attempts. Please try again later, or message us on Instagram.",
       "restricted": "Please book via Instagram DM.",
-      "error": "Something went wrong. Please try again or message us on Instagram."
+      "error": "We couldn't confirm your booking. Please try again later, or message us on Instagram.",
+      "summaryTitle": "We couldn't send your booking"
     }
   },
   "availability": {
-    "legendOpen": "◎ Available",
-    "legendClosed": "× Not available",
+    "legendOpen": "Available",
+    "legendClosed": "Not available",
     "available": "◎",
-    "full": "Booked",
-    "deadline": "Closed for booking",
+    "open": "available",
+    "notOpen": "not available",
+    "full": "Full",
+    "deadline": "Cutoff",
     "closed": "Closed",
-    "closedOverride": "Closed",
-    "outOfRange": "Not open for booking",
+    "closedOverride": "Off",
+    "past": "past",
+    "outOfRange": "not open for booking",
+    "today": "today",
+    "selected": "selected",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
-    "noSlots": "No times available on this day",
-    "jstNote": "All times are Japan Standard Time (JST)",
+    "monthTo": "{label} ({month})",
+    "monthOff": "{label} (outside the booking window)",
     "leadTime": "Bookings close {minutes} minutes before the start time",
+    "jstNote": "All times are Japan Standard Time (JST).",
+    "windowNote": "Bookings open up to {days} days ahead ({date})",
     "selectedDate": "Available times on {date}",
+    "noSlots": "No times available on this day",
+    "noSlotsHint": "Pick another day on the calendar, or jump to the next available day.",
+    "nextAvailable": "Next available day",
+    "nextAvailableDate": "Next available: {date}",
+    "nextMonthCta": "See next month",
+    "pickDay": "Choose a day on the calendar",
+    "noSlotsMonth": "No times available this month",
+    "picked": "Booking <b>{menu} ({minutes} min)</b>",
+    "changeMenu": "Change menu",
+    "proceed": "Continue with this time",
+    "proceedSummary": "{date}, {time}",
+    "slotAria": "{time} available",
+    "slotSelectedAria": "{time} selected",
+    "slotUnavailableSr": "not available ({reason})",
+    "takenTitle": "That time was just booked",
+    "takenBody": "Sorry, that time was just booked. Please choose another time.",
+    "loading": "Loading availability",
     "weekdays": {
       "sun": "Sun",
       "mon": "Mon",
@@ -111,45 +228,96 @@
       "thu": "Thu",
       "fri": "Fri",
       "sat": "Sat"
+    },
+    "weekdaysLong": {
+      "sun": "Sundays",
+      "mon": "Mondays",
+      "tue": "Tuesdays",
+      "wed": "Wednesdays",
+      "thu": "Thursdays",
+      "fri": "Fridays",
+      "sat": "Saturdays"
     }
   },
   "confirm": {
     "heading": "Review your booking",
-    "date": "Date & time",
+    "lead": "Check the details, then confirm.",
     "menu": "Menu",
     "price": "Price",
-    "consent": "I agree to the Privacy Policy and Cancellation Policy",
+    "duration": "Duration",
+    "date": "Date & time",
+    "name": "Name",
+    "occupation": "Occupation",
+    "phone": "Phone",
+    "note": "Requests",
+    "noteNone": "None",
+    "jst": " JST",
+    "studentRate": "Student rate",
+    "studentApplied": "Student rate applied (standard {price})",
+    "changeAria": "Change {item}",
+    "digestTitle": "Cancellation",
+    "digest": "You can cancel from the link on the confirmation screen until {hours} hours before your visit (<b>{deadline}</b>). After that, please message us on Instagram (@{handle}).",
+    "readPolicy": "Read the full Cancellation Policy",
+    "privacy": "We use your name and phone number only to manage your booking and contact you about it. We do not share them with third parties.",
+    "readPrivacy": "Read the full Privacy Policy",
+    "consent": "I agree to the Privacy Policy and the Cancellation Policy",
     "submit": "Confirm booking",
-    "submitting": "Sending…",
+    "submitting": "Confirming…",
+    "hintReady": "Your booking is confirmed immediately (no approval step).",
+    "hintUnchecked": "Tick the box above to confirm.",
     "honeypot": "Leave this field empty",
-    "turnstileDev": "(development: bot check disabled)",
+    "turnstileTitle": "Cloudflare Turnstile",
+    "turnstileDev": "Automatic check (disabled in development)",
     "missingDraft": "We couldn't find your booking details. Please start again from the menu."
   },
   "done": {
+    "stamp": "Confirmed",
+    "stampEn": "BOOKED",
     "heading": "Your booking is confirmed",
     "screenshot": "Please take a screenshot of this page (no confirmation email is sent).",
-    "publicCode": "Booking number",
-    "date": "Date & time",
+    "cardLabel": "Booking details",
+    "publicCode": "Booking no.",
     "menu": "Menu",
-    "price": "Price",
-    "student": "Student price",
+    "stylist": "Stylist",
     "shop": "Shop",
-    "addToCalendar": "Add to calendar (.ics)",
-    "cancelLink": "Link to cancel or change",
-    "cancelHelp": "You can cancel up to {hours} hours before your visit. The calendar event also contains this link.",
-    "notFound": "We couldn't find this booking."
+    "student": "Student rate",
+    "openMap": "Open map",
+    "addToCalendar": "Add to calendar",
+    "addToCalendarSub": "iPhone, Google, Outlook (.ics)",
+    "cancelLabel": "Cancellation link (until {hours} hours before)",
+    "cancelFromCalendar": "You can also cancel from the calendar event",
+    "shareTitle": "Neuer Barber booking",
+    "shareText": "Cancellation link for my booking (no. {code})",
+    "cancelPolicy": "Policy",
+    "notFound": "We couldn't find this booking",
+    "notFoundBody": "The link may be wrong, the booking may already be cancelled or completed, or the link may have expired."
   },
   "cancel": {
     "heading": "Cancel your booking",
-    "deadline": "Cancel by {deadline}",
+    "cardLabel": "Booking details",
+    "deadline": "You can cancel until <nw>{deadline}</nw>",
     "button": "Cancel this booking",
-    "confirmQuestion": "Are you sure? This can't be undone.",
+    "dialogTitle": "Cancel this booking?",
+    "dialogBody": "Your booking for <b>{summary}</b> will be cancelled. This can't be undone.",
+    "keep": "Keep booking",
     "confirmButton": "Cancel booking",
-    "back": "Back",
-    "done": "Your booking has been cancelled.",
+    "submitting": "Cancelling…",
+    "changeHint": "To change the date or time, cancel and book again.",
+    "stamp": "Cancelled",
+    "stampEn": "CANCELLED",
+    "doneHeading": "Your booking has been cancelled",
+    "doneBody": "Your booking for <nw>{summary}</nw> has been cancelled.",
+    "notified": "We've let the stylist know. No need to contact us.",
+    "status": "Status",
+    "statusCancelled": "Cancelled",
     "bookAgain": "Book again",
-    "changeHint": "To change the time, cancel and book again.",
-    "notFound": "We couldn't find this booking."
+    "bookAgainNote": "To choose a different date or time, book again here.",
+    "pastDeadlineTitle": "The cancellation deadline has passed. Please contact us via Instagram DM.",
+    "pastDeadlineSub": "Deadline: {hours} hours before your visit ({deadline})",
+    "hours": "Open {hours}",
+    "notFound": "We couldn't find this booking",
+    "notFoundBody": "The link may be wrong, the booking may already be cancelled or completed, or the link may have expired.",
+    "failed": "Something went wrong. Please try again later, or message us on Instagram."
   },
   "ics": {
     "summary": "{menu} | {shop}",
@@ -158,8 +326,264 @@
   },
   "errors": {
     "notFound": "Page not found",
+    "notFoundBody": "The URL may be wrong, or the page may have moved or been removed.",
+    "notFoundCaps": "NOT FOUND",
     "generic": "Something went wrong",
+    "genericBody": "Please try again later. If the problem continues, message us on Instagram.",
+    "errorCaps": "ERROR",
+    "errorId": "Error ID: {digest}",
     "retry": "Try again",
     "toTop": "Back to top"
+  },
+  "docs": {
+    "toc": "Contents",
+    "toTop": "Back to the top",
+    "version": "Version {version} / Updated {date}"
+  },
+  "privacy": {
+    "caps": "Privacy Policy",
+    "title": "Privacy Policy",
+    "version": "1.0",
+    "date": "November 1, 2026",
+    "intro": "Neuer Barber (Kento Osada, \"we\") handles the personal information you give us when booking as follows.",
+    "sections": [
+      {
+        "id": "owner",
+        "title": "Business name and address",
+        "body": ["This site is operated by Kento Osada (sole proprietor)."],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": [
+          {
+            "k": "Operator",
+            "v": "Kento Osada"
+          },
+          {
+            "k": "Address",
+            "v": "3F South (B), Kanamura Bldg., 2-4-48 Abenosuji, Abeno-ku, Osaka"
+          },
+          {
+            "k": "Shop",
+            "v": "Neuer Barber"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "title": "Information we collect",
+        "body": ["When you book, we collect:"],
+        "items": [
+          "Your name (and furigana on the Japanese site)",
+          "Phone number",
+          "Occupation category (student or working adult)",
+          "Notes (requests)",
+          "Booking details (menu, date and time)",
+          "IP address and browser information at the time of booking (to record consent and prevent abuse)"
+        ],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "purpose",
+        "title": "How we use it",
+        "body": [],
+        "items": [
+          "Managing your booking and contacting you about it",
+          "Applying the student rate",
+          "Handling same-day cancellations and no-shows",
+          "Statistics to improve our service (not personally identifiable)"
+        ],
+        "after": ["If you are under 16, please book with a parent's or guardian's consent."],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "third",
+        "title": "Sharing with third parties",
+        "body": ["We do not share your information with third parties except where required by law."],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "vendor",
+        "title": "Service providers",
+        "body": [
+          "We use services that process data on our behalf, such as bot detection (Cloudflare Turnstile), error monitoring (Sentry) and notification delivery (Apple, Google)."
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "security",
+        "title": "Security measures (use of overseas cloud providers)",
+        "body": [
+          "We encrypt connections, restrict access to the owner signing in with a passkey, keep personal information out of logs, and encrypt backups."
+        ],
+        "items": [],
+        "after": [],
+        "aside": "This site uses the US cloud providers Vercel Inc. and Neon Inc., and its servers are in the United States. Under contract, these providers do not handle your personal data. We take the measures above with an understanding of the US data protection framework.",
+        "rows": []
+      },
+      {
+        "id": "retention",
+        "title": "Retention",
+        "body": ["Information is made non-identifiable 3 years after your last visit."],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "request",
+        "title": "Access, correction, suspension and deletion",
+        "body": [
+          "After confirming your identity with your phone number, we respond without delay (within about 7 days). There is no fee. Please send requests via Instagram DM."
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "contact",
+        "title": "Complaints",
+        "body": ["Please contact us via Instagram DM (@{handle})."],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "cookie",
+        "title": "Cookies",
+        "body": [
+          "We use a cookie to remember your language choice and anonymous analytics that do not identify you (Vercel Web Analytics)."
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "revision",
+        "title": "Changes",
+        "body": [
+          "When we change this policy, we show the date and version on this page. Your consent is recorded against the version in force when you book."
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      }
+    ]
+  },
+  "policy": {
+    "caps": "Cancellation Policy",
+    "title": "Cancellation Policy",
+    "version": "1.0",
+    "date": "November 1, 2026",
+    "intro": "How to cancel or change a booking, and a few requests for your visit. You agree to this policy when you confirm a booking.",
+    "sections": [
+      {
+        "id": "cancel",
+        "title": "Cancelling or changing",
+        "body": [],
+        "items": [
+          "Please cancel or change your booking from the link on the confirmation screen (or in the calendar event) up to {hours} hours before your booking time.",
+          "To change the date or time, cancel and then book again.",
+          "After the deadline, please message us on Instagram (@{handle})."
+        ],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "late",
+        "title": "Arriving late",
+        "body": [],
+        "items": [
+          "If you are more than 15 minutes late without letting us know, we may need to shorten or change the service.",
+          "After 30 minutes, the booking may be treated as cancelled."
+        ],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "repeat",
+        "title": "Repeated same-day cancellations or no-shows",
+        "body": ["We may ask you to book future visits via Instagram DM only."],
+        "items": [],
+        "after": [],
+        "aside": "If you are unwell or something unavoidable comes up, please just let us know.",
+        "rows": []
+      },
+      {
+        "id": "terms",
+        "title": "About bookings",
+        "body": [
+          "A booking on this site is confirmed as soon as you press the confirm button (no approval step). No confirmation email is sent, so please save the confirmation screen. There is no cancellation fee."
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      }
+    ]
+  },
+  "tokusho": {
+    "caps": "Legal Notice",
+    "title": "Legal Notice (Specified Commercial Transactions Act)",
+    "version": "1.0",
+    "date": "November 1, 2026",
+    "intro": "Disclosures for online booking at Neuer Barber.",
+    "rows": [
+      {
+        "k": "Business",
+        "v": "Kento Osada (sole proprietor)"
+      },
+      {
+        "k": "Shop",
+        "v": "Neuer Barber"
+      },
+      {
+        "k": "Address",
+        "v": "3F South (B), Kanamura Bldg., 2-4-48 Abenosuji, Abeno-ku, Osaka"
+      },
+      {
+        "k": "Phone number",
+        "v": "Disclosed without delay on request (please request via Instagram DM @{handle})"
+      },
+      {
+        "k": "Contact",
+        "v": "Instagram DM (@{handle})"
+      },
+      {
+        "k": "Prices",
+        "v": "Prices for each menu (tax included) are shown on the booking page"
+      },
+      {
+        "k": "Additional fees",
+        "v": "None"
+      },
+      {
+        "k": "Payment",
+        "v": "Paid at the shop (methods to be confirmed)"
+      },
+      {
+        "k": "Time of service",
+        "v": "The date and time you book"
+      },
+      {
+        "k": "Cancellation",
+        "v": "As set out in the Cancellation Policy (from the confirmation link up to {hours} hours before your visit)"
+      }
+    ]
   }
 }

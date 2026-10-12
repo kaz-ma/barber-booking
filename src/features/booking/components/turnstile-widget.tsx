@@ -16,18 +16,20 @@ declare global {
 }
 
 /**
- * Cloudflare Turnstile, managed mode, explicit render (08_security.md §7).
- * Minimal wiring: TODO(turnstile slice) verify against real keys, reset after a failed
- * submit, Instagram DM fallback copy when the widget cannot load.
+ * Cloudflare Turnstile, managed mode, explicit render (08_security.md §7). Non-interactive in
+ * the normal case (WCAG 3.3.8). `resetOn` changes to a new non-null value after a failed submit
+ * (bot_check_failed) to issue a fresh token. TODO(turnstile slice): verify against real keys.
  */
 export function TurnstileWidget({
   siteKey,
   locale,
   onToken,
+  resetOn,
 }: {
   siteKey: string
   locale: string
   onToken: (token: string) => void
+  resetOn?: unknown
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const widgetId = useRef<string | null>(null)
@@ -55,6 +57,12 @@ export function TurnstileWidget({
     }
   }, [render])
 
+  useEffect(() => {
+    if (!resetOn || !widgetId.current) return
+    onToken('')
+    window.turnstile?.reset(widgetId.current)
+  }, [resetOn, onToken])
+
   return (
     <>
       <Script
@@ -62,7 +70,7 @@ export function TurnstileWidget({
         strategy="afterInteractive"
         onLoad={render}
       />
-      <div ref={ref} />
+      <div ref={ref} className="turnstile-slot" />
     </>
   )
 }

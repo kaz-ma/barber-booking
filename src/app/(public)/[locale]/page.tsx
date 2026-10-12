@@ -1,21 +1,117 @@
-import { getTranslations } from 'next-intl/server'
-import { ButtonLink } from '@/components/ui/button-link'
+import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { LinkButton } from '@/components/ui/button'
+import { Footer } from '@/components/ui/footer'
+import { SiteHeader } from '@/components/ui/header'
 import { InstagramLink } from '@/components/ui/instagram-link'
 import { shop } from '@/config/shop'
+import { openingHoursSpecification, summarizeHours } from '@/domain/hours'
+import { getMenuCatalog, getWeeklyHours } from '@/features/booking/catalog'
+import { MenuInfoCard } from '@/features/booking/components/menu-info-card'
+import { getPublicSettings } from '@/features/settings/queries'
+import { absoluteUrl } from '@/lib/site'
+import { AccessSection } from '../_components/access-section'
+import { Hero } from '../_components/hero'
+import { JsonLd } from '../_components/json-ld'
+import { localeAlternates, openGraph } from '../_lib/seo'
 
-/** S-C-01 stub. TODO(UI slice): hero photo, 9 info menu cards, access section per comps. */
+export async function generateMetadata(): Promise<Metadata> {
+  const [t, locale] = await Promise.all([getTranslations('meta'), getLocale()])
+  return {
+    title: t('topTitle'),
+    description: t('topDescription'),
+    alternates: localeAlternates(locale, ''),
+    openGraph: openGraph(locale, t('topTitle'), t('topDescription')),
+  }
+}
+
+/**
+ * S-C-01 top (DG-001 §5.10): header → photo → 9 menu cards → 予約する → access → languages →
+ * Instagram → footer. Menus, hours and settings are cached reference data (static shell).
+ */
 export default async function TopPage() {
-  const t = await getTranslations('home')
-  const tNav = await getTranslations('nav')
+  const [t, tNav, locale, menus, hoursRows, settings] = await Promise.all([
+    getTranslations('home'),
+    getTranslations('nav'),
+    getLocale(),
+    getMenuCatalog(),
+    getWeeklyHours(),
+    getPublicSettings(),
+  ])
+  const hours = summarizeHours(hoursRows)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'HairSalon',
+    name: shop.name,
+    alternateName: `${shop.name} ${shop.stylist.ja}`,
+    url: absoluteUrl(`/${locale}`),
+    image: absoluteUrl(shop.emblem.src as `/${string}`),
+    address: { '@type': 'PostalAddress', ...shop.postalAddress },
+    openingHoursSpecification: openingHoursSpecification(hours),
+    availableLanguage: ['ja', 'en'],
+    sameAs: [shop.instagram.url],
+  }
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{t('heading')}</h1>
-      <p>{t('hours')}</p>
-      <p className="text-fg-muted">{t('languages')}</p>
-      <ButtonLink href="/book">{t('cta')}</ButtonLink>
-      <p>
-        <InstagramLink label={tNav('instagram', { handle: shop.instagram.handle })} />
-      </p>
-    </div>
+    <>
+      <SiteHeader />
+      <main id="main">
+        <section className="hero wrap" aria-labelledby="hero-h">
+          <h1 className="sr-only" id="hero-h">
+            {t('h1')}
+          </h1>
+          <Hero />
+        </section>
+
+        <div className="wrap">
+          <section className="sec" aria-labelledby="menu-h">
+            <div className="sec-head">
+              <p className="caps" lang="en">
+                {t('menuCaps')}
+              </p>
+              <h2 id="menu-h">{t('menuHeading')}</h2>
+            </div>
+            <div className="menus">
+              {menus.map((m) => (
+                <MenuInfoCard key={m.slug} menu={m} />
+              ))}
+            </div>
+          </section>
+          <LinkButton href="/book" variant="primary" block trailingIcon="arrowRight" className="mt-6">
+            {tNav('book')}
+          </LinkButton>
+
+          <AccessSection hours={hours} leadTimeMin={settings.leadTimeMin} />
+
+          <section className="sec" aria-labelledby="lang-h">
+            <div className="sec-head">
+              <p className="caps" lang="en">
+                {t('langCaps')}
+              </p>
+              <h2 id="lang-h">{t('langHeading')}</h2>
+            </div>
+            <dl className="kv">
+              <div>
+                <dt>{t('languagesLabel')}</dt>
+                <dd>
+                  {t.rich('languagesValue', {
+                    en: (c) => <span lang="en">{c}</span>,
+                    ja: (c) => <span lang="ja">{c}</span>,
+                  })}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('paymentLabel')}</dt>
+                <dd>{t('paymentValue')}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <InstagramLink variant="profile" className="mt-section" />
+        </div>
+      </main>
+      <Footer />
+      <JsonLd data={jsonLd} />
+    </>
   )
 }

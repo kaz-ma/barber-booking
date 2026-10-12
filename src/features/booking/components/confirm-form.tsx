@@ -3,22 +3,46 @@
 import type { Route } from 'next'
 import { useRouter as useNextRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
-import { useActionState, useEffect, useState } from 'react'
+import { type FormEvent, type ReactNode, useActionState, useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FieldError } from '@/components/ui/field'
+import { Icon } from '@/components/ui/icon'
 import { InstagramLink } from '@/components/ui/instagram-link'
 import { shop } from '@/config/shop'
+import { applicablePrice } from '@/domain/pricing'
+import { formatDateTime, formatDayOf, formatTimeSpan } from '@/lib/i18n/display'
 import { Link, useRouter } from '@/lib/i18n/navigation'
 import { type CreateBookingState, createBooking } from '../actions'
-import { clearDraft, loadDraft, useDraft, useSubmissionNonce } from '../draft'
-import { asErrorKey, resultMessageKey } from '../messages'
-import { SelectionSummary } from './selection-summary'
+import { clearDraft, type Draft, loadDraft, useDraft, useSubmissionNonce } from '../draft'
+import { asErrorKey, type BookingErrorKey, resultMessageKey } from '../messages'
+import { firstIncompleteStage } from '../validate'
+import { yenText } from './price'
 import { TurnstileWidget } from './turnstile-widget'
 import type { BookingMenu } from './types'
 
 /** Placeholder token when no site key is configured (local dev; the server skips siteverify). */
 const DEV_TURNSTILE_TOKEN = 'turnstile-not-configured'
 
-/** S-C-04: review + consent + Turnstile + honeypot -> createBooking via useActionState. */
-export function ConfirmForm({ menus, turnstileSiteKey }: { menus: BookingMenu[]; turnstileSiteKey?: string }) {
+/** Results that offer the Instagram DM as the way forward (HE-02). */
+const WITH_INSTAGRAM: BookingErrorKey[] = ['rateLimited', 'duplicate', 'restricted', 'error', 'botCheckFailed']
+
+/**
+ * S-C-04 ④ 確認 (FR-C-09/10): check-answers rows with "変更" (price and duration have none),
+ * cancellation summary, privacy note, required consent (the submit button stays focusable with
+ * aria-disabled and explains itself when pressed), Turnstile + honeypot, then createBooking via
+ * useActionState. Expected failures come back as values and render an error summary.
+ */
+export function ConfirmForm({
+  menus,
+  turnstileSiteKey,
+  cancelDeadlineMin,
+}: {
+  menus: BookingMenu[]
+  turnstileSiteKey?: string
+  cancelDeadlineMin: number
+}) {
   const t = useTranslations()
   const locale = useLocale()
   const router = useRouter()
@@ -26,41 +50,117 @@ export function ConfirmForm({ menus, turnstileSiteKey }: { menus: BookingMenu[];
   const draft = useDraft()
   const nonce = useSubmissionNonce()
   const [turnstileToken, setTurnstileToken] = useState(turnstileSiteKey ? '' : DEV_TURNSTILE_TOKEN)
+  const [consent, setConsent] = useState(false)
+  const [consentError, setConsentError] = useState(false)
   const [state, formAction, pending] = useActionState<CreateBookingState, FormData>(createBooking, null)
+  const alertRef = useRef<HTMLDivElement>(null)
+  const consentRef = useRef<HTMLInputElement>(null)
+  const menu = draft ? menus.find((m) => m.slug === draft.menuSlug) : undefined
+
+  // Missing / incomplete draft → back to the step that needs input (03_screen_specs §3.4).
+  useEffect(() => {
+    if (draft === undefined || state?.status === 'ok') return
+    if (draft === null || !menu) {
+      router.replace({ pathname: '/book', query: { expired: '1' } })
+    } else if (!draft.startsAt) {
+      router.replace({ pathname: '/book/time', query: { menu: draft.menuSlug } })
+    } else {
+      const stage = firstIncompleteStage(draft, locale)
+      if (stage) router.replace({ pathname: '/book/info', query: { step: stage } })
+    }
+  }, [draft, menu, locale, router, state])
 
   useEffect(() => {
-    if (state?.status === 'ok') {
+    if (!state) return
+    if (state.status === 'ok') {
       clearDraft()
       // doneUrl is already locale-prefixed: use the plain Next router.
       nextRouter.replace(state.data.doneUrl as Route)
-    } else if (state?.status === 'conflict') {
-      // The slot was just taken: send the customer back to pick another time.
+    } else if (state.status === 'conflict') {
+      // The slot was just taken: back to the calendar with the banner (AT-03).
       const d = loadDraft()
-      if (d) router.push({ pathname: '/book/time', query: { menu: d.menuSlug, date: d.startsAt.slice(0, 10) } })
+      if (d) {
+        router.push({
+          pathname: '/book/time',
+          query: { menu: d.menuSlug, date: d.startsAt.slice(0, 10), taken: '1', return: 'confirm' },
+        })
+      }
+    } else {
+      alertRef.current?.focus()
     }
   }, [state, nextRouter, router])
 
-  // After success the draft is cleared while navigation is in flight: keep a neutral state.
   if (state?.status === 'ok') return <p role="status">{t('confirm.submitting')}</p>
-  if (draft === undefined) return null
-  if (draft === null) {
-    return (
-      <p>
-        {t('confirm.missingDraft')}{' '}
-        <Link href="/book" className="underline">
-          {t('booking.steps.menu')}
-        </Link>
-      </p>
-    )
+  if (!draft || !menu || !draft.startsAt || firstIncompleteStage(draft, locale)) {
+    return <div className="min-h-96" aria-hidden="true" />
   }
 
-  const menu = menus.find((m) => m.slug === draft.menuSlug)
-  const messageKey = resultMessageKey(state)
+  const messageKey = state?.status === 'conflict' ? null : resultMessageKey(state)
   const fieldErrors = state?.status === 'invalid' ? state.fieldErrors : {}
+  const ready = consent && !!nonce && !!turnstileToken && !pending
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    if (pending) {
+      e.preventDefault()
+      return
+    }
+    if (!consent) {
+      e.preventDefault()
+      setConsentError(true)
+      consentRef.current?.focus()
+      return
+    }
+    if (!nonce || !turnstileToken) e.preventDefault()
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
-      <SelectionSummary menu={menu} startsAt={draft.startsAt} occupation={draft.occupation} />
+    <form action={formAction} onSubmit={onSubmit} noValidate>
+      {messageKey ? (
+        <div className="alert" role="alert" tabIndex={-1} ref={alertRef} aria-labelledby="alert-h">
+          <h2 id="alert-h">
+            <Icon name="alert" />
+            <span>
+              <span className="sr-only">{t('common.errorPrefix')}</span>
+              {t('booking.errors.summaryTitle')}
+            </span>
+          </h2>
+          <p>{t(`booking.errors.${messageKey}`)}</p>
+          {Object.keys(fieldErrors).length > 0 ? (
+            <ul>
+              {Object.entries(fieldErrors).map(([field, keys]) => (
+                <li key={field}>{t(`booking.errors.${asErrorKey(keys[0])}`)}</li>
+              ))}
+            </ul>
+          ) : null}
+          {WITH_INSTAGRAM.includes(messageKey) ? <InstagramLink variant="button" /> : null}
+        </div>
+      ) : null}
+
+      <h1 className="page-h" id="cf-h">
+        {t('confirm.heading')}
+      </h1>
+      <p className="lead">{t('confirm.lead')}</p>
+
+      <CheckAnswers draft={draft} menu={menu} />
+
+      <section className="digest" aria-labelledby="dg-h">
+        <h2 id="dg-h">
+          <Icon name="clock" />
+          {t('confirm.digestTitle')}
+        </h2>
+        <p>
+          {t.rich('confirm.digest', {
+            hours: cancelDeadlineMin / 60,
+            deadline: formatDateTime(new Date(new Date(draft.startsAt).getTime() - cancelDeadlineMin * 60_000), locale),
+            handle: shop.instagram.handle,
+            b: (c) => <b>{c}</b>,
+          })}
+        </p>
+        <Link className="btn btn-ghost" href="/policy">
+          {t('confirm.readPolicy')}
+        </Link>
+      </section>
+
       {Object.entries(draft).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}
@@ -74,35 +174,170 @@ export function ConfirmForm({ menus, turnstileSiteKey }: { menus: BookingMenu[];
           <input type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
         </label>
       </div>
-      <label className="flex items-start gap-2">
-        <input type="checkbox" name="consent" value="on" required className="mt-1.5 size-5" />
-        <span>{t('confirm.consent')}</span>
-      </label>
-      {turnstileSiteKey ? (
-        <TurnstileWidget siteKey={turnstileSiteKey} locale={locale} onToken={setTurnstileToken} />
-      ) : (
-        <p className="text-sm text-fg-muted">{t('confirm.turnstileDev')}</p>
-      )}
-      {messageKey ? (
-        <div role="alert" className="rounded-sm border border-accent p-3">
-          <p>{t(`booking.errors.${messageKey}`)}</p>
-          {Object.entries(fieldErrors).map(([field, keys]) => (
-            <p key={field} className="text-sm">
-              {t(`booking.errors.${asErrorKey(keys[0])}`)}
-            </p>
-          ))}
-          {messageKey === 'duplicate' || messageKey === 'restricted' || messageKey === 'error' ? (
-            <InstagramLink label={t('nav.instagram', { handle: shop.instagram.handle })} />
-          ) : null}
+
+      <p className="privacy">{t('confirm.privacy')}</p>
+      <Link className="btn btn-ghost" href="/privacy">
+        {t('confirm.readPrivacy')}
+      </Link>
+      <Checkbox
+        ref={consentRef}
+        name="consent"
+        value="on"
+        checked={consent}
+        onChange={(e) => {
+          setConsent(e.target.checked)
+          if (e.target.checked) setConsentError(false)
+        }}
+        label={t('confirm.consent')}
+        tag={t('common.required')}
+        invalid={consentError}
+        aria-describedby={consentError ? 'consent-err' : undefined}
+      />
+      {consentError ? (
+        <div className="mt-2">
+          <FieldError id="consent-err" prefix={t('common.errorPrefix')} message={t('booking.errors.consentRequired')} />
         </div>
       ) : null}
-      <button
-        type="submit"
-        disabled={pending || !nonce || !turnstileToken}
-        className="min-h-14 w-full rounded-sm bg-accent font-bold text-on-accent disabled:opacity-60"
-      >
-        {pending ? t('confirm.submitting') : t('confirm.submit')}
-      </button>
+
+      {turnstileSiteKey ? (
+        <TurnstileWidget
+          siteKey={turnstileSiteKey}
+          locale={locale}
+          onToken={setTurnstileToken}
+          resetOn={state?.status === 'bot_check_failed' ? state : null}
+        />
+      ) : (
+        <div className="turnstile-dev" aria-hidden="true">
+          <Icon name="shield" />
+          <span>
+            <b>{t('confirm.turnstileTitle')}</b>
+            {t('confirm.turnstileDev')}
+          </span>
+        </div>
+      )}
+
+      <div className="sticky-cta paper">
+        <div className="in">
+          <Button
+            type="submit"
+            variant="primary"
+            block
+            aria-disabled={!ready || undefined}
+            aria-busy={pending || undefined}
+            aria-describedby="submit-hint"
+          >
+            {pending ? t('confirm.submitting') : t('confirm.submit')}
+          </Button>
+          <p className="hint" id="submit-hint">
+            {consent ? t('confirm.hintReady') : t('confirm.hintUnchecked')}
+          </p>
+        </div>
+      </div>
     </form>
+  )
+}
+
+function CheckAnswers({ draft, menu }: { draft: Draft; menu: BookingMenu }) {
+  const t = useTranslations('confirm')
+  const tc = useTranslations('common')
+  const tForm = useTranslations('booking.form')
+  const tMenu = useTranslations('menu')
+  const locale = useLocale() as 'ja' | 'en'
+  const start = new Date(draft.startsAt)
+  const end = new Date(start.getTime() + menu.durationMin * 60_000)
+  const occupation = draft.occupation || 'worker'
+  const price = applicablePrice(menu, occupation)
+  const isStudentRate = occupation === 'student' && menu.priceStudentJpy !== null
+  const date = draft.startsAt.slice(0, 10)
+
+  const rows: { key: string; label: string; value: ReactNode; edit?: Parameters<typeof Link>[0]['href'] }[] = [
+    {
+      key: 'menu',
+      label: t('menu'),
+      value: menu.name[locale],
+      edit: { pathname: '/book', query: { menu: menu.slug } },
+    },
+    {
+      key: 'price',
+      label: t('price'),
+      value: (
+        <>
+          <span className="p">{yenText(price)}</span>
+          {price ? null : <span className="sr-only">{tc('priceUnsetSr')}</span>}
+          {isStudentRate ? (
+            <>
+              <span className="tag">{t('studentRate')}</span>
+              <small>{t('studentApplied', { price: yenText(menu.priceJpy) })}</small>
+            </>
+          ) : null}
+        </>
+      ),
+    },
+    { key: 'duration', label: t('duration'), value: tMenu('duration', { minutes: menu.durationMin }) },
+    {
+      key: 'date',
+      label: t('date'),
+      value: (
+        <>
+          <b>{formatDayOf(start, locale)}</b>
+          <br />
+          <b className="num">{formatTimeSpan(start, end, locale)}</b>
+          {t('jst')}
+        </>
+      ),
+      edit: { pathname: '/book/time', query: { menu: menu.slug, date, sel: draft.startsAt, return: 'confirm' } },
+    },
+    {
+      key: 'name',
+      label: t('name'),
+      value: (
+        <>
+          {draft.name}
+          {locale === 'ja' && draft.nameKana ? (
+            <>
+              <br />
+              {tForm('kanaSummary', { kana: draft.nameKana })}
+            </>
+          ) : null}
+        </>
+      ),
+      edit: { pathname: '/book/info', query: { step: 'name' } },
+    },
+    {
+      key: 'occupation',
+      label: t('occupation'),
+      value: draft.occupation ? tForm(draft.occupation) : '',
+      edit: { pathname: '/book/info', query: { step: 'occupation' } },
+    },
+    {
+      key: 'phone',
+      label: t('phone'),
+      value: <span className="num">{draft.phone}</span>,
+      edit: { pathname: '/book/info', query: { step: 'phone' } },
+    },
+    {
+      key: 'note',
+      label: t('note'),
+      value: draft.note.trim() ? <span className="whitespace-pre-line">{draft.note}</span> : t('noteNone'),
+      edit: { pathname: '/book/info', query: { step: 'phone', note: '1' } },
+    },
+  ]
+
+  return (
+    <Card as="dl" className="answers" aria-labelledby="cf-h">
+      {rows.map((r) => (
+        <div key={r.key} className="ans">
+          <dt>{r.label}</dt>
+          <dd>
+            <span className="v">{r.value}</span>
+            {r.edit ? (
+              <Link className="btn btn-ghost" href={r.edit} aria-label={t('changeAria', { item: r.label })}>
+                {tc('change')}
+              </Link>
+            ) : null}
+          </dd>
+        </div>
+      ))}
+    </Card>
   )
 }

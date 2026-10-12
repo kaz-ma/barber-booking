@@ -1,16 +1,49 @@
 import '@/styles/globals.css'
-import type { Metadata } from 'next'
+import '@/styles/admin.css'
+import type { Metadata, Viewport } from 'next'
+import { Lato, Noto_Sans_JP } from 'next/font/google'
+import { headers } from 'next/headers'
+import { siteUrl } from '@/lib/site'
+
+// Self-hosted at build time by next/font (font-src 'self'). Noto is large: no preload.
+const lato = Lato({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-lato-next', display: 'swap' })
+const noto = Noto_Sans_JP({ subsets: ['latin'], variable: '--font-noto-next', display: 'swap', preload: false })
+
+/*
+ * Admin PWA root layout (U-07): Japanese only, outside next-intl. Rendered per request
+ * (`instant = false` + headers()): no static shell, so Next.js stamps the CSP nonce from
+ * proxy.ts on every script (08_security.md §8.3). The manifest is linked here only — the
+ * customer site never offers installation.
+ */
+export const instant = false
 
 export const metadata: Metadata = {
-  title: '予約管理',
+  metadataBase: new URL(siteUrl()),
+  title: { default: '予約管理', template: '%s｜予約管理' },
   robots: { index: false, follow: false },
+  manifest: '/manifest.webmanifest',
+  applicationName: '予約管理',
+  appleWebApp: { capable: true, title: '予約管理', statusBarStyle: 'default' },
+  icons: { icon: '/icons/icon-192.png', apple: '/icons/apple-touch-icon.png' },
+  formatDetection: { telephone: false },
 }
 
-/** Admin PWA root layout: Japanese only, outside next-intl routing (U-07). */
-export default function AdminLayout({ children }: LayoutProps<'/admin'>) {
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f4ecdd' },
+    { media: '(prefers-color-scheme: dark)', color: '#191919' },
+  ],
+}
+
+export default async function AdminRootLayout({ children }: LayoutProps<'/admin'>) {
+  // Request-time read: the whole admin tree renders per request so the CSP nonce applies.
+  await headers()
   return (
-    <html lang="ja">
-      <body className="min-h-dvh bg-bg text-fg">{children}</body>
+    <html lang="ja" className={`admin-html ${lato.variable} ${noto.variable}`}>
+      <body className="admin paper">{children}</body>
     </html>
   )
 }

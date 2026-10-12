@@ -11,7 +11,8 @@ const isDev = env.NODE_ENV === 'development'
  * 'unsafe-inline' scripts are accepted and XSS defence relies on React escaping (T-09).
  * Shipped as Report-Only first; switch to enforcing after a clean week on staging (AT-26),
  * and add 'upgrade-insecure-requests' then (browsers ignore it in Report-Only).
- * TODO(admin slice): /admin gets a nonce-based enforcing CSP from proxy.ts (§8.3).
+ * /admin/** gets a nonce-based enforcing CSP from proxy.ts instead (§8.3, src/lib/admin-csp.ts),
+ * so the public Report-Only policy is not sent there.
  */
 const csp = [
   "default-src 'self'",
@@ -37,7 +38,6 @@ const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-  { key: 'Content-Security-Policy-Report-Only', value: csp },
   ...(env.VERCEL_ENV === 'production' ? [] : [{ key: 'X-Robots-Tag', value: 'noindex' }]),
 ]
 
@@ -60,6 +60,21 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },
+      // Public CSP (Report-Only) everywhere except /admin/** (nonce CSP from proxy.ts).
+      { source: '/((?!admin(?:/|$)).*)', headers: [{ key: 'Content-Security-Policy-Report-Only', value: csp }] },
+      // Service worker (05 §7.2, 08 §8.4): always revalidated, own minimal CSP.
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self'" },
+        ],
+      },
+      {
+        source: '/manifest.webmanifest',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
+      },
       { source: '/:locale(ja|en)/book/:step(time|info|confirm)', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] },
       { source: '/:locale(ja|en)/book/done/:token', headers: tokenHeaders },
       { source: '/:locale(ja|en)/cancel/:token', headers: tokenHeaders },

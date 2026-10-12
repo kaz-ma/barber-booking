@@ -4,65 +4,157 @@
     "back": "戻る",
     "change": "変更",
     "copy": "コピー",
-    "copied": "コピーしました"
+    "copied": "コピーしました",
+    "copiedCheck": "コピーしました ✓",
+    "shareCopy": "共有・コピー",
+    "close": "閉じる",
+    "required": "必須",
+    "optional": "任意",
+    "errorPrefix": "エラー: ",
+    "skipToContent": "本文へスキップ",
+    "toTop": "トップへ戻る",
+    "priceUnsetSr": "（未定）",
+    "minutes": "{minutes}分",
+    "listSep": "・"
   },
   "meta": {
     "siteName": "Neuer Barber",
-    "topTitle": "Neuer Barber ｜ ご予約",
+    "topTitle": "Neuer Barber 長田｜夜 24 時まで予約できるバーバー（大阪・阿倍野）",
+    "topDescription": "大阪・阿倍野の Neuer Barber（長田 健豊）。受付 18:00–24:00、天王寺駅から徒歩 5 分。会員登録なしで空き時間を見てそのまま予約できます。",
     "bookTitle": "メニューを選ぶ ｜ Neuer Barber",
+    "bookDescription": "メニュー 9 種類から選んで、空き時間を見て予約できます。",
     "timeTitle": "日時を選ぶ ｜ Neuer Barber",
     "infoTitle": "お客様情報 ｜ Neuer Barber",
     "confirmTitle": "ご予約内容の確認 ｜ Neuer Barber",
     "doneTitle": "予約完了 ｜ Neuer Barber",
     "cancelTitle": "ご予約のキャンセル ｜ Neuer Barber",
-    "notFoundTitle": "ページが見つかりません ｜ Neuer Barber"
+    "privacyTitle": "プライバシーポリシー ｜ Neuer Barber",
+    "policyTitle": "キャンセルポリシー ｜ Neuer Barber",
+    "tokushoTitle": "特定商取引法に基づく表記 ｜ Neuer Barber",
+    "notFoundTitle": "ページが見つかりません ｜ Neuer Barber",
+    "errorTitle": "エラー ｜ Neuer Barber"
   },
   "nav": {
     "book": "予約する",
     "switchLocale": "EN",
     "switchLocaleLabel": "English",
-    "instagram": "Instagram @{handle}"
+    "homeLabel": "Neuer Barber 長田 トップへ",
+    "wordmark": "NEUER BARBER",
+    "flowTitle": "ご予約",
+    "instagram": "Instagram @{handle}",
+    "instagramShort": "Instagram",
+    "instagramAria": "Instagram の DM で問い合わせる（@{handle}）",
+    "instagramDm": "Instagram で問い合わせる",
+    "instagramDmSub": "DM ・ @{handle}",
+    "instagramHandle": "@{handle}",
+    "instagramProfile": "Instagram で施術写真を見る",
+    "newTab": "（新しいタブで開きます）",
+    "policies": "ポリシー",
+    "privacy": "プライバシーポリシー",
+    "policy": "キャンセルポリシー",
+    "tokusho": "特定商取引法に基づく表記",
+    "copyright": "© Neuer Barber 長田",
+    "stepsLabel": "予約の手順",
+    "backToMenu": "メニュー選択に戻る",
+    "backToTime": "日時選択に戻る",
+    "backToInfo": "お客様情報に戻る"
   },
   "contact": {
     "dmPrompt": "お問い合わせは Instagram の DM でお願いします",
-    "pastDeadline": "キャンセル締切を過ぎています。Instagram の DM でご連絡ください",
-    "restricted": "お手数ですが、ご予約は Instagram の DM で承ります"
+    "pastDeadline": "キャンセル締切を過ぎています。Instagram の DM でご連絡ください。",
+    "restricted": "お手数ですが、ご予約は Instagram の DM で承ります",
+    "help": "お困りの場合は Instagram の DM でご連絡ください",
+    "dmTo": "DM 先: @{handle}"
   },
   "home": {
-    "heading": "Neuer Barber",
-    "hours": "受付 18:00〜24:00 ／ 定休日 月曜",
-    "languages": "日本語・English に対応しています",
-    "cta": "予約する"
+    "h1": "Neuer Barber 長田 — 夜 24 時まで予約できるバーバー（大阪・阿倍野）",
+    "photoAlt": "店内の写真（撮影予定）",
+    "photoRealAlt": "Neuer Barber の店内と施術の様子",
+    "photoCaption": "PHOTO",
+    "photoCaptionText": "店内・施術風景（撮影予定）",
+    "menuCaps": "Menu",
+    "menuHeading": "メニュー",
+    "accessCaps": "Access",
+    "accessHeading": "アクセス",
+    "mapAlt": "地図: 天王寺駅の南、あべの筋沿い",
+    "walk": "{station}から徒歩 {minutes} 分",
+    "hoursLabel": "受付",
+    "closedLabel": "定休",
+    "leadLabel": "予約締切",
+    "leadValue": "開始 <b>{minutes}</b> 分前",
+    "noClosedDays": "なし",
+    "openMap": "地図を開く",
+    "langCaps": "Languages",
+    "langHeading": "対応言語・お支払い",
+    "languagesLabel": "対応言語",
+    "languagesValue": "日本語 ／ <en>English</en>",
+    "paymentLabel": "お支払い",
+    "paymentValue": "ご来店時（方法は確認中）"
   },
   "menu": {
     "duration": "{minutes}分",
     "price": "{price}（税込）",
     "studentPrice": "学生 {price}",
     "priceTbd": "料金は準備中です",
-    "empty": "現在オンライン予約を受け付けていません。Instagram の DM でお問い合わせください"
+    "priceAria": "料金 {price}",
+    "priceUnsetAria": "料金 未定",
+    "general": "一般",
+    "student": "学生",
+    "empty": "現在オンライン予約を受け付けていません。Instagram の DM でお問い合わせください",
+    "lead": "料金は税込です。学生料金は次の「お客様情報」でご職業に学生を選ぶと適用されます。",
+    "selected": "選択中",
+    "nextStep": "次: 日時を選ぶ",
+    "nextStepNote": "月カレンダーで空き時間を見て選べます",
+    "policyDigestTitle": "キャンセルポリシー（要点）",
+    "policyDigest": "ご来店の {hours} 時間前までは予約完了画面のリンクからキャンセルできます。それ以降は Instagram の DM（@{handle}）でご連絡ください。",
+    "summaryGeneral": "一般 {price}",
+    "summaryStudent": "（学生 {price}）",
+    "expired": "入力内容の有効期限が切れました。メニューから選び直してください"
   },
   "booking": {
     "steps": {
-      "menu": "1. メニューを選ぶ",
-      "time": "2. 日時を選ぶ",
-      "info": "3. お客様情報",
-      "confirm": "4. 確認",
-      "toTime": "空き時間を見て予約する"
+      "menu": "メニューを選ぶ",
+      "time": "日時を選ぶ",
+      "info": "お客様情報",
+      "confirm": "確認",
+      "toTime": "空き時間を見て予約する",
+      "doneSr": "（完了）",
+      "live": "ステップ {n}/4: {name}"
     },
     "form": {
-      "selection": "ご予約内容",
+      "selection": "選んだ内容",
+      "heading": "お客様情報",
+      "lead": "ご予約の管理と、当日のご連絡にだけ使います。",
+      "sectionName": "お名前・ふりがな",
+      "sectionOccupation": "ご職業",
+      "sectionPhone": "電話番号",
+      "sectionDoneSr": "（入力済み）",
+      "stepOf": "{n}/3",
+      "editAria": "{section}を変更",
       "name": "お名前",
       "nameHint": "例: 山田 太郎",
       "kana": "ふりがな",
       "kanaHint": "例: やまだ たろう",
+      "kanaHelp": "カタカナで入力しても、ひらがなに直して受け付けます",
       "occupation": "ご職業",
+      "occupationHelp": "学生料金の判定に使用します",
       "student": "学生",
       "worker": "社会人",
       "phone": "電話番号",
+      "phoneHelp": "当日の連絡にのみ使います。例: 09012345678",
       "phoneHint": "例: 09012345678",
-      "note": "ご要望（任意）",
-      "noteCount": "残り {count} 文字",
-      "toConfirm": "確認へ"
+      "note": "ご要望・ご相談",
+      "notePlaceholder": "例: サイドは短めに、上は長さを残したいです",
+      "addNote": "ご要望を追加（任意）",
+      "noteCount": "{count} / 500",
+      "noteCountSr": "入力した文字数 ",
+      "next": "次へ",
+      "toConfirm": "確認へ進む",
+      "changeMenu": "メニューを変更",
+      "changeTime": "日時を変更",
+      "kanaSummary": "（{kana}）",
+      "generalPriceLine": "・一般 {price}",
+      "studentPriceLine": "・学生 {price}"
     },
     "errors": {
       "menuRequired": "メニューを選んでください",
@@ -76,33 +168,58 @@
       "phoneRequired": "電話番号を入力してください（例: 09012345678）",
       "phoneInvalid": "電話番号を正しい形式で入力してください（例: 09012345678）",
       "noteTooLong": "備考は 500 文字以内で入力してください",
-      "consentRequired": "ポリシーへの同意が必要です",
+      "consentRequired": "プライバシーポリシーとキャンセルポリシーへの同意にチェックしてください",
       "startsAtInvalid": "日時を選び直してください",
       "invalid": "入力内容をご確認ください",
       "botCheckFailed": "確認に失敗しました。もう一度お試しください",
       "notBookable": "その時間は予約できません。日時を選び直してください",
-      "slotTaken": "申し訳ありません。その枠はたった今埋まりました",
-      "duplicate": "同じ内容のご予約がすでにあります",
-      "rateLimited": "短時間に操作が集中しました。しばらくしてからお試しください",
+      "slotTaken": "申し訳ありません。その枠はたった今埋まりました。別の時間をお選びください",
+      "duplicate": "同じ内容のご予約がすでにあります。完了画面を保存していない場合は Instagram の DM でご連絡ください",
+      "rateLimited": "送信が多すぎます。しばらくしてからお試しいただくか、Instagram の DM でご連絡ください。",
       "restricted": "お手数ですが、ご予約は Instagram の DM で承ります",
-      "error": "処理できませんでした。時間をおいてお試しいただくか、Instagram の DM でご連絡ください"
+      "error": "予約を確定できませんでした。時間をおいて再度お試しいただくか、Instagram の DM でご連絡ください",
+      "summaryTitle": "送信できませんでした"
     }
   },
   "availability": {
-    "legendOpen": "◎ 予約できます",
-    "legendClosed": "× 予約できません",
+    "legendOpen": "予約できます",
+    "legendClosed": "予約できません",
     "available": "◎",
+    "open": "予約できます",
+    "notOpen": "予約できません",
     "full": "満席",
     "deadline": "締切",
-    "closed": "定休日",
+    "closed": "定休",
     "closedOverride": "休業",
+    "past": "受付終了",
     "outOfRange": "受付期間外",
+    "today": "今日",
+    "selected": "選択中",
     "prevMonth": "前の月",
     "nextMonth": "次の月",
-    "noSlots": "この日は予約できる時間がありません",
+    "monthTo": "{label}（{month}）",
+    "monthOff": "{label}（予約できる期間外）",
+    "leadTime": "予約締切: 開始 {minutes} 分前まで",
     "jstNote": "",
-    "leadTime": "ご予約は開始 {minutes} 分前まで受け付けています",
-    "selectedDate": "{date} の空き時間",
+    "windowNote": "ご予約は {days} 日先（{date}）まで",
+    "selectedDate": "{date}の空き時間",
+    "noSlots": "この日は空きがありません",
+    "noSlotsHint": "ほかの日をカレンダーから選ぶか、次に空いている日をご覧ください。",
+    "nextAvailable": "次に空いている日へ",
+    "nextAvailableDate": "次に空いている日: {date}",
+    "nextMonthCta": "次の月を見る",
+    "pickDay": "カレンダーから日付を選んでください",
+    "noSlotsMonth": "この月は空きがありません",
+    "picked": "<b>{menu}（{minutes}分）</b>を予約します",
+    "changeMenu": "メニューを変更",
+    "proceed": "この日時で進む",
+    "proceedSummary": "{date} {time}",
+    "slotAria": "{time} 予約できます",
+    "slotSelectedAria": "{time} 選択中",
+    "slotUnavailableSr": "予約できません（{reason}）",
+    "takenTitle": "選んだ時間は埋まりました",
+    "takenBody": "申し訳ありません。その枠はたった今埋まりました。別の時間をお選びください。",
+    "loading": "空き状況を読み込んでいます",
     "weekdays": {
       "sun": "日",
       "mon": "月",
@@ -111,45 +228,96 @@
       "thu": "木",
       "fri": "金",
       "sat": "土"
+    },
+    "weekdaysLong": {
+      "sun": "日曜日",
+      "mon": "月曜日",
+      "tue": "火曜日",
+      "wed": "水曜日",
+      "thu": "木曜日",
+      "fri": "金曜日",
+      "sat": "土曜日"
     }
   },
   "confirm": {
     "heading": "ご予約内容の確認",
-    "date": "日時",
+    "lead": "内容を確認し、よろしければ確定してください。",
     "menu": "メニュー",
     "price": "料金",
-    "consent": "ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。プライバシーポリシーとキャンセルポリシーに同意します",
-    "submit": "予約を確定する",
-    "submitting": "送信しています…",
+    "duration": "所要時間",
+    "date": "日時",
+    "name": "お名前",
+    "occupation": "ご職業",
+    "phone": "電話番号",
+    "note": "備考",
+    "noteNone": "なし",
+    "jst": "（日本時間）",
+    "studentRate": "学生料金",
+    "studentApplied": "一般 {price} から学生料金を適用",
+    "changeAria": "{item}を変更",
+    "digestTitle": "キャンセルについて",
+    "digest": "ご来店の {hours} 時間前（<b>{deadline}</b>）までは、予約完了画面のリンクからキャンセルできます。それ以降は Instagram の DM（@{handle}）でご連絡ください。",
+    "readPolicy": "キャンセルポリシー全文を読む",
+    "privacy": "ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。",
+    "readPrivacy": "プライバシーポリシー全文を読む",
+    "consent": "プライバシーポリシーとキャンセルポリシーに同意します",
+    "submit": "この内容で予約を確定する",
+    "submitting": "確定しています…",
+    "hintReady": "確定するとすぐに予約が成立します（承認待ちはありません）",
+    "hintUnchecked": "同意にチェックすると確定できます",
     "honeypot": "このフィールドは空のままにしてください",
-    "turnstileDev": "（開発環境: Bot 確認は無効です）",
+    "turnstileTitle": "Cloudflare Turnstile",
+    "turnstileDev": "自動の確認（開発環境では無効です）",
     "missingDraft": "ご予約内容が見つかりません。メニューから選び直してください"
   },
   "done": {
-    "heading": "ご予約が確定しました",
+    "stamp": "予約確定",
+    "stampEn": "CONFIRMED",
+    "heading": "ご予約を承りました",
     "screenshot": "この画面をスクリーンショットで保存してください（確認メールは送信されません）",
+    "cardLabel": "予約内容",
     "publicCode": "予約番号",
-    "date": "日時",
     "menu": "メニュー",
-    "price": "料金",
-    "student": "学生料金",
+    "stylist": "担当",
     "shop": "店舗",
-    "addToCalendar": "カレンダーに追加（.ics）",
-    "cancelLink": "キャンセル・変更用リンク",
-    "cancelHelp": "ご来店の {hours} 時間前までキャンセルできます。カレンダーの予定からもキャンセルできます",
-    "notFound": "この予約は見つかりません"
+    "student": "学生料金",
+    "openMap": "地図を開く",
+    "addToCalendar": "カレンダーに追加",
+    "addToCalendarSub": "iPhone・Google・Outlook（.ics）",
+    "cancelLabel": "キャンセル用リンク（ご来店の {hours} 時間前まで）",
+    "cancelFromCalendar": "カレンダーの予定からもキャンセルできます",
+    "shareTitle": "Neuer Barber のご予約",
+    "shareText": "ご予約のキャンセル用リンク（予約番号 {code}）",
+    "cancelPolicy": "キャンセルポリシー",
+    "notFound": "この予約は見つかりません",
+    "notFoundBody": "リンクが正しくないか、すでにキャンセル・来店済み、または表示期限が過ぎている可能性があります。"
   },
   "cancel": {
     "heading": "ご予約のキャンセル",
-    "deadline": "キャンセルは {deadline} まで",
+    "cardLabel": "予約内容",
+    "deadline": "キャンセルは <nw>{deadline}</nw> まで<nw>受け付けます</nw>",
     "button": "この予約をキャンセルする",
-    "confirmQuestion": "本当にキャンセルしますか？ この操作は取り消せません。",
-    "confirmButton": "キャンセルする",
-    "back": "戻る",
-    "done": "キャンセルしました",
+    "dialogTitle": "この予約を取り消しますか？",
+    "dialogBody": "<b>{summary}</b> のご予約を取り消します。この操作は元に戻せません。",
+    "keep": "予約を残す",
+    "confirmButton": "予約を取り消す",
+    "submitting": "取り消しています…",
+    "changeHint": "日時の変更は、キャンセル後にもう一度ご予約ください。",
+    "stamp": "取り消し済み",
+    "stampEn": "CANCELLED",
+    "doneHeading": "予約を取り消しました",
+    "doneBody": "<nw>{summary}</nw> のご予約を取り消しました。",
+    "notified": "店主に通知しました。ご連絡は不要です。",
+    "status": "状態",
+    "statusCancelled": "取り消し済み",
     "bookAgain": "もう一度予約する",
-    "changeHint": "日時の変更は、キャンセル後にもう一度ご予約ください",
-    "notFound": "この予約は見つかりません"
+    "bookAgainNote": "日時を変えたい場合も、こちらからご予約ください。",
+    "pastDeadlineTitle": "キャンセル締切を過ぎています。Instagram の DM でご連絡ください。",
+    "pastDeadlineSub": "締切: ご来店の {hours} 時間前（{deadline}）",
+    "hours": "受付 {hours}",
+    "notFound": "この予約は見つかりません",
+    "notFoundBody": "リンクが正しくないか、すでにキャンセル・来店済み、または表示期限が過ぎている可能性があります。",
+    "failed": "処理できませんでした。時間をおいてお試しいただくか、Instagram の DM でご連絡ください"
   },
   "ics": {
     "summary": "{menu}｜{shop}",
@@ -158,8 +326,264 @@
   },
   "errors": {
     "notFound": "ページが見つかりません",
+    "notFoundBody": "URL が間違っているか、ページが移動・削除された可能性があります。",
+    "notFoundCaps": "NOT FOUND",
     "generic": "問題が発生しました",
+    "genericBody": "時間をおいて再度お試しください。解決しない場合は Instagram の DM でご連絡ください。",
+    "errorCaps": "ERROR",
+    "errorId": "エラー ID: {digest}",
     "retry": "もう一度試す",
     "toTop": "トップへ戻る"
+  },
+  "docs": {
+    "toc": "目次",
+    "toTop": "ページの先頭へ",
+    "version": "版 {version} ／ 改定日 {date}"
+  },
+  "privacy": {
+    "caps": "Privacy Policy",
+    "title": "プライバシーポリシー",
+    "version": "1.0",
+    "date": "2026年11月1日",
+    "intro": "Neuer Barber 長田（以下「当店」）は、ご予約のためにお預かりする個人情報を、次のとおり取り扱います。",
+    "sections": [
+      {
+        "id": "owner",
+        "title": "事業者の氏名・住所",
+        "body": ["本サイトは、長田 健豊（個人事業主）が運営しています。"],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": [
+          {
+            "k": "事業者",
+            "v": "長田 健豊"
+          },
+          {
+            "k": "所在地",
+            "v": "大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）"
+          },
+          {
+            "k": "店舗名",
+            "v": "Neuer Barber"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "title": "取得する情報",
+        "body": ["ご予約の際に、次の情報をお預かりします。"],
+        "items": [
+          "お名前・ふりがな",
+          "電話番号",
+          "ご職業の区分（学生・社会人）",
+          "備考（ご要望・ご相談）",
+          "ご予約の内容（メニュー・日時）",
+          "予約時の IP アドレス・ブラウザの情報（同意の記録と不正利用の防止のため）"
+        ],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "purpose",
+        "title": "利用目的",
+        "body": [],
+        "items": [
+          "ご予約の管理と、確認のためのご連絡",
+          "学生料金の適用",
+          "当日キャンセル・無断キャンセルなどの運用管理",
+          "サービス改善のための統計（個人を識別しない形）"
+        ],
+        "after": ["16 歳未満の方は、保護者の方の同意のもとでご予約ください。"],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "third",
+        "title": "第三者提供",
+        "body": ["法令に基づく場合を除き、お預かりした情報を第三者に提供しません。"],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "vendor",
+        "title": "委託先",
+        "body": [
+          "Bot の判定（Cloudflare Turnstile）、エラーの監視（Sentry）、通知の配信（Apple・Google）など、内容を処理するサービスを利用します。"
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "security",
+        "title": "安全管理措置（外国のクラウド事業者の利用）",
+        "body": [
+          "通信の暗号化、管理者だけがパスキーでログインできるアクセス制限、ログに個人情報を残さない運用、バックアップの暗号化を行っています。"
+        ],
+        "items": [],
+        "after": [],
+        "aside": "本サイトは米国のクラウド事業者 Vercel Inc.・Neon Inc. を利用しており、サーバは米国にあります。契約上、これらの事業者はお客様の個人データを取り扱いません。米国の個人情報保護制度を把握したうえで、上記の措置を講じています。",
+        "rows": []
+      },
+      {
+        "id": "retention",
+        "title": "保存期間",
+        "body": ["最後のご来店から 3 年が経った情報は、個人を識別できない形にします。"],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "request",
+        "title": "開示・訂正・利用停止・削除の手続",
+        "body": [
+          "ご本人であることを電話番号で確認したうえで、遅滞なく（目安 7 日以内）対応します。手数料はいただきません。ご請求は Instagram の DM でお送りください。"
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "contact",
+        "title": "苦情の申出先",
+        "body": ["Instagram の DM（@{handle}）で承ります。"],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "cookie",
+        "title": "Cookie 等",
+        "body": [
+          "表示言語の選択を保存する Cookie と、個人を識別しないアクセス解析（Vercel Web Analytics）を使用します。"
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "revision",
+        "title": "改定",
+        "body": [
+          "内容を改定するときは、このページで改定日と版を示します。ご予約時の同意は、その時点の版で記録します。"
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      }
+    ]
+  },
+  "policy": {
+    "caps": "Cancellation Policy",
+    "title": "キャンセルポリシー",
+    "version": "1.0",
+    "date": "2026年11月1日",
+    "intro": "ご予約のキャンセル・変更と、ご来店時のお願いです。ご予約の確定時に、この内容への同意をいただいています。",
+    "sections": [
+      {
+        "id": "cancel",
+        "title": "キャンセル・変更",
+        "body": [],
+        "items": [
+          "ご予約の変更・キャンセルは、予約完了画面（またはカレンダーの予定）のリンクから、ご予約時刻の {hours} 時間前までにお願いします。",
+          "日時を変更したい場合は、キャンセルしたうえで、もう一度ご予約ください。",
+          "締切を過ぎてからのキャンセルは、Instagram の DM（@{handle}）でご連絡ください。"
+        ],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "late",
+        "title": "遅刻について",
+        "body": [],
+        "items": [
+          "ご連絡なく 15 分以上遅れた場合、施術内容を短縮・変更させていただくことがあります。",
+          "30 分を過ぎた場合は、キャンセル扱いとなることがあります。"
+        ],
+        "after": [],
+        "aside": "",
+        "rows": []
+      },
+      {
+        "id": "repeat",
+        "title": "当日キャンセル・無断キャンセルが続いた場合",
+        "body": ["次回以降のご予約を、Instagram の DM のみでの受付とさせていただくことがあります。"],
+        "items": [],
+        "after": [],
+        "aside": "体調不良など、やむを得ない事情の場合はお気軽にご連絡ください。",
+        "rows": []
+      },
+      {
+        "id": "terms",
+        "title": "ご予約について",
+        "body": [
+          "このサイトでのご予約は、確定ボタンを押した時点で成立します（承認待ちはありません）。確認メールは送信されないため、予約完了画面を保存してください。キャンセル料はいただいていません。"
+        ],
+        "items": [],
+        "after": [],
+        "aside": "",
+        "rows": []
+      }
+    ]
+  },
+  "tokusho": {
+    "caps": "Legal Notice",
+    "title": "特定商取引法に基づく表記",
+    "version": "1.0",
+    "date": "2026年11月1日",
+    "intro": "Neuer Barber のオンライン予約に関する表記です。",
+    "rows": [
+      {
+        "k": "事業者",
+        "v": "長田 健豊（個人事業主）"
+      },
+      {
+        "k": "店舗名",
+        "v": "Neuer Barber"
+      },
+      {
+        "k": "所在地",
+        "v": "大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）"
+      },
+      {
+        "k": "電話番号",
+        "v": "ご請求があれば遅滞なく開示します（Instagram の DM @{handle} でご請求ください）"
+      },
+      {
+        "k": "連絡先",
+        "v": "Instagram の DM（@{handle}）"
+      },
+      {
+        "k": "販売価格",
+        "v": "各メニューの料金（税込）は、予約ページのメニューに表示しています"
+      },
+      {
+        "k": "商品代金以外の必要料金",
+        "v": "ありません"
+      },
+      {
+        "k": "支払方法・時期",
+        "v": "ご来店時のお支払い（方法は確認中）"
+      },
+      {
+        "k": "役務の提供時期",
+        "v": "ご予約いただいた日時"
+      },
+      {
+        "k": "キャンセル",
+        "v": "キャンセルポリシーのとおり（ご来店の {hours} 時間前まで予約完了画面のリンクから）"
+      }
+    ]
   }
 }
