@@ -87,7 +87,7 @@
 | Framework Preset | Next.js（自動検出） |
 | Root Directory | `./`（リポジトリ直下） |
 | Build Command / Install Command / Output | 既定のまま（`npm run build` / `npm ci` 相当 / `.next`） |
-| Node.js Version | **24.x**（Settings → Build and Deployment）。`.nvmrc` は `24`、`package.json` の `engines.node` は `>=22.12.0` |
+| Node.js Version | **24.x**（Settings → Build and Deployment）。`.nvmrc` は `24`、`package.json` の `engines.node` は `>=22.13.0` |
 | Production Branch | `main` |
 | Function Region | Neon と同じ地域にそろえる（§4 の結果に合わせ、Singapore なら `sin1`）【要実機確認: Hobby で変更できるか】 |
 
@@ -122,7 +122,7 @@ DATABASE_URL="$PROD_DB_URL" DATABASE_URL_UNPOOLED="$PROD_DB_URL" npm run db:migr
 ```
 
 - `scripts/load-env.ts` は既に設定済みの環境変数を上書きしないため、上のように渡せば `.env.local`（ローカル DB）より優先される。`DATABASE_URL` と `DATABASE_URL_UNPOOLED` の**両方**を渡す（`.env.local` に空の `DATABASE_URL_UNPOOLED=` があると、片方だけでは空文字が使われる）。
-- 適用されるのは `0000_extensions`（`btree_gist`, `pg_trgm`）→ `0001_init` → `0002_constraints`（排他制約・トリガ）→ `0003_auth` の 4 本。確認は `02_prelaunch_checklist.md` B 群の SQL で行う。
+- 適用されるのは `0000_extensions`（`btree_gist`, `pg_trgm`）→ `0001_init` → `0002_constraints`（排他制約・トリガ）→ `0003_auth` → `0004_consent_ip_hash`（同意記録の IP を HMAC 化）の 5 本。確認は `02_prelaunch_checklist.md` B 群の SQL で行う。
 - 将来のマイグレーションも同じ手順で、**アプリのデプロイより先に**適用する。マイグレーションは追加的（列追加・テーブル追加）に保ち、1 つ前のデプロイでも動くようにする（ロールバック方針: `03_rollback_and_incident.md` §2）。
 
 ### 5.2 初期データ（メニュー・営業時間・設定）
