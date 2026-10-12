@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs'
+import { defineConfig, globalIgnores } from 'eslint/config'
 import nextVitals from 'eslint-config-next/core-web-vitals'
 import nextTs from 'eslint-config-next/typescript'
-import { defineConfig, globalIgnores } from 'eslint/config'
 
 /*
  * Minimal ESLint next to Biome (DES-00 §5.1, research 06 §4): Biome formats and does the

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
 import { isDateString, isMonthString, jstDate, monthOf } from '@/domain/time'
@@ -43,6 +44,8 @@ export default async function BookTimePage({ searchParams }: PageProps<'/[locale
 }
 
 async function AvailabilityHole({ searchParams }: Pick<PageProps<'/[locale]/book/time'>, 'searchParams'>) {
+  // Request-time only: "today", lead time and live bookings must never be prerendered.
+  await connection()
   const sp = await searchParams
   const locale = await getLocale()
   const menuSlug = typeof sp.menu === 'string' ? sp.menu : ''

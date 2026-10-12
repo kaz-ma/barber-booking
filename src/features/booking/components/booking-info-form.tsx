@@ -2,9 +2,9 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { Link, useRouter } from '@/lib/i18n/navigation'
-import { type Draft, loadDraft, saveDraft } from '../draft'
+import { type Draft, saveDraft, useDraft } from '../draft'
 import { asErrorKey } from '../messages'
 import { bookingDraftSchema } from '../schema'
 import { SelectionSummary } from './selection-summary'
@@ -20,26 +20,11 @@ const EMPTY: Omit<Draft, 'menuSlug' | 'startsAt'> = { name: '', nameKana: '', oc
  */
 export function BookingInfoForm({ menus }: { menus: BookingMenu[] }) {
   const t = useTranslations('booking')
-  const locale = useLocale()
-  const router = useRouter()
   const params = useSearchParams()
+  const draft = useDraft()
   const menuSlug = params.get('menu') ?? ''
   const startsAt = params.get('startsAt') ?? ''
   const menu = menus.find((m) => m.slug === menuSlug)
-  const [values, setValues] = useState(EMPTY)
-  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
-
-  useEffect(() => {
-    const draft = loadDraft()
-    if (draft)
-      setValues({
-        name: draft.name,
-        nameKana: draft.nameKana,
-        occupation: draft.occupation,
-        phone: draft.phone,
-        note: draft.note,
-      })
-  }, [])
 
   if (!menu || !startsAt) {
     return (
@@ -50,6 +35,29 @@ export function BookingInfoForm({ menus }: { menus: BookingMenu[] }) {
       </p>
     )
   }
+  // Wait for the client snapshot so a restored draft becomes the initial state (no effect).
+  if (draft === undefined) return null
+  const initial = draft
+    ? { name: draft.name, nameKana: draft.nameKana, occupation: draft.occupation, phone: draft.phone, note: draft.note }
+    : EMPTY
+  return <InfoFields menu={menu} startsAt={startsAt} initial={initial} />
+}
+
+function InfoFields({
+  menu,
+  startsAt,
+  initial,
+}: {
+  menu: BookingMenu
+  startsAt: string
+  initial: Omit<Draft, 'menuSlug' | 'startsAt'>
+}) {
+  const t = useTranslations('booking')
+  const locale = useLocale()
+  const router = useRouter()
+  const menuSlug = menu.slug
+  const [values, setValues] = useState(initial)
+  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
 
   const set = (field: Field) => (e: { target: { value: string } }) =>
     setValues((v) => ({ ...v, [field]: e.target.value }))

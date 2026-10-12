@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      # Official image ships contrib extensions (btree_gist, pg_trgm).
+      # TODO: pin by digest (postgres:16@sha256:...) once resolved from a networked machine.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: barber_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      # Tests truncate barber_test; the build reads cached menus/settings from barber_build.
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/barber_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/barber_build
+      SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Unit, component and DB integration tests
+        run: npm test
+      - name: Prepare build database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -c 'CREATE DATABASE barber_build'
+          npm run db:migrate
+          npm run db:seed
+      - run: npm run build

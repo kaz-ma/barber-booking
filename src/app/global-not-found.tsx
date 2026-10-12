@@ -1,5 +1,6 @@
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: '404 | Neuer Barber', robots: { index: false } }
 
@@ -12,13 +13,13 @@ export default function GlobalNotFound() {
           <h1 className="text-2xl font-bold">ページが見つかりません</h1>
           <p lang="en">Page not found</p>
           <p>
-            <a href="/ja/book" className="underline">
+            <Link href="/ja/book" className="underline">
               予約する
-            </a>{' '}
-            ／{' '}
-            <a href="/en/book" lang="en" className="underline">
+            </Link>
+            {' ／ '}
+            <Link href="/en/book" lang="en" className="underline">
               Book
-            </a>
+            </Link>
           </p>
         </main>
       </body>

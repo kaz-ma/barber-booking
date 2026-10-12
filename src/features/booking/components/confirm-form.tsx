@@ -8,7 +8,7 @@ import { InstagramLink } from '@/components/ui/instagram-link'
 import { shop } from '@/config/shop'
 import { Link, useRouter } from '@/lib/i18n/navigation'
 import { type CreateBookingState, createBooking } from '../actions'
-import { clearDraft, type Draft, loadDraft, submissionNonce } from '../draft'
+import { clearDraft, loadDraft, useDraft, useSubmissionNonce } from '../draft'
 import { asErrorKey, resultMessageKey } from '../messages'
 import { SelectionSummary } from './selection-summary'
 import { TurnstileWidget } from './turnstile-widget'
@@ -23,15 +23,10 @@ export function ConfirmForm({ menus, turnstileSiteKey }: { menus: BookingMenu[];
   const locale = useLocale()
   const router = useRouter()
   const nextRouter = useNextRouter()
-  const [draft, setDraft] = useState<Draft | null | undefined>(undefined)
-  const [nonce, setNonce] = useState('')
+  const draft = useDraft()
+  const nonce = useSubmissionNonce()
   const [turnstileToken, setTurnstileToken] = useState(turnstileSiteKey ? '' : DEV_TURNSTILE_TOKEN)
   const [state, formAction, pending] = useActionState<CreateBookingState, FormData>(createBooking, null)
-
-  useEffect(() => {
-    setDraft(loadDraft())
-    setNonce(submissionNonce())
-  }, [])
 
   useEffect(() => {
     if (state?.status === 'ok') {
@@ -45,6 +40,8 @@ export function ConfirmForm({ menus, turnstileSiteKey }: { menus: BookingMenu[];
     }
   }, [state, nextRouter, router])
 
+  // After success the draft is cleared while navigation is in flight: keep a neutral state.
+  if (state?.status === 'ok') return <p role="status">{t('confirm.submitting')}</p>
   if (draft === undefined) return null
   if (draft === null) {
     return (

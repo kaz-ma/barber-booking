@@ -4,14 +4,30 @@ import { db } from '@/lib/db'
 import { menus } from '@/lib/db/schema'
 import { seedReferenceData } from '@/lib/db/seed'
 
-/** Truncate everything and re-seed reference data with bookable menus. */
+/**
+ * Clear all rows and re-seed reference data with bookable menus. DELETE (not TRUNCATE): on
+ * tiny tables it is an order of magnitude faster and needs no ACCESS EXCLUSIVE locks.
+ */
 export async function resetDb(): Promise<void> {
-  await db.execute(sql`
-    TRUNCATE consents, notification_log, bookings, customers, time_blocks,
-             business_hour_overrides, audit_log, rate_limits, daily_digests,
-             push_subscriptions, menus, business_hours, settings
-    RESTART IDENTITY CASCADE
-  `)
+  await db.transaction(async (tx) => {
+    for (const table of [
+      'consents',
+      'notification_log',
+      'bookings',
+      'customers',
+      'time_blocks',
+      'business_hour_overrides',
+      'audit_log',
+      'rate_limits',
+      'daily_digests',
+      'push_subscriptions',
+      'menus',
+      'business_hours',
+      'settings',
+    ]) {
+      await tx.execute(sql.raw(`DELETE FROM ${table}`))
+    }
+  })
   await seedReferenceData(db, { activateMenus: true })
   await db.execute(sql`UPDATE menus SET price_jpy = 5000, price_student_jpy = 4000 WHERE slug = 'cut'`)
 }
