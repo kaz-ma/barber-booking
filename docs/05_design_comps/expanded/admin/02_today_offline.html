@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4ecdd">
+<title>今日 10/10（土）オフライン｜予約管理</title>
+<!-- Expanded comp S-A-02 今日 — オフライン（読み取り専用、FR-A-17）。FAB・未確認は無効、tel: は有効 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../tokens.css">
+<style>
+/* @shared:start */
+/* ---- Admin PWA shared CSS (DG-001 + expanded admin comps). Source of truth: tools/expanded_admin_shared.css,
+   injected into each page by tools/sync_expanded_admin.py so every page stays self-contained.
+   Components reference semantic tokens only. Admin-local aliases below fill token gaps (see README). ---- */
+:root{
+  --info: var(--status-open);          /* gap: --info (未確認・情報バナー・空き時刻) */
+  --on-info: var(--bg-card);
+  --inverse: var(--fg);                /* gap: --inverse-surface (トースト) */
+  --on-inverse: var(--bg);
+  --hatch: var(--border-subtle);       /* gap: --block-hatch */
+  --accent-line: rgb(244 236 221 / .4);/* primary の内側の細線（ライト） */
+  --scrim: rgb(25 25 25 / .5);         /* gap: --scrim */
+  --tabbar-h: 72px;
+  --row: 28px;                         /* タイムライン 15 分 = 28px */
+  /* カンプだけの安全領域の模擬（本番は env(safe-area-inset-*)） */
+  --sim-safe-top: 47px; --sim-safe-bottom: 34px;
+  --safe-bottom: max(var(--sim-safe-bottom), env(safe-area-inset-bottom));
+}
+[data-theme="dark"]{ --accent-line: rgb(25 25 25 / .35); --scrim: rgb(0 0 0 / .6); }
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background-color:var(--bg);font-family:var(--font-sans);font-size:var(--text-16);line-height:var(--leading-body);letter-spacing:var(--tracking-body);color:var(--fg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ol,ul,dl,dd,figure,fieldset,legend{margin:0;padding:0}
+fieldset{border:0;min-width:0}
+li{list-style:none}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit;margin:0}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.sbi{height:12px;width:auto;fill:currentColor;stroke:none}
+.vh,.vh-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0;padding:0;border:0}
+.caps{font:700 var(--text-12)/var(--text-12--lh) var(--font-lato);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--fg-muted)}
+.cap{font-size:var(--text-12);line-height:var(--text-12--lh);color:var(--fg-muted)}
+.muted{color:var(--fg-muted)}
+.wrap{width:100%;max-width:640px;margin:0 auto;padding:0 var(--gutter)}
+
+/* ---- device chrome (模擬: standalone の状態バーとホームインジケーター) ---- */
+.sb{display:flex;align-items:center;justify-content:space-between;height:var(--sim-safe-top);padding:6px 26px 0 34px;font:700 15px/1 var(--font-lato);letter-spacing:0}
+.sb-i{display:flex;align-items:center;gap:6px}
+.hi{position:fixed;left:50%;bottom:8px;z-index:90;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--fg);pointer-events:none}
+
+/* ---- buttons ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:48px;padding:0 var(--space-4);border-radius:var(--radius-sm);font:700 var(--text-16)/1.25 var(--font-sans);letter-spacing:.04em;text-decoration:none;text-align:center;cursor:pointer;transition:background-color var(--duration-short2) var(--ease-standard),transform var(--duration-short2) var(--ease-standard)}
+.btn:active{transform:translateY(1px)}
+.btn-block{display:flex;width:100%}
+.btn-primary{min-height:var(--target-cta);background:var(--accent);color:var(--on-accent);letter-spacing:.06em;box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 4px var(--accent-line)}
+.btn-primary:hover{background:var(--accent-pressed);box-shadow:inset 0 0 0 3px var(--accent-pressed),inset 0 0 0 4px var(--accent-line)}
+.btn-secondary{background:var(--bg-card);color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg-sunken)}
+.btn-sm{min-height:var(--target-min);padding:0 var(--space-3);font-size:var(--text-14)}
+.btn-sm .ic{width:16px;height:16px}
+.btn-primary.btn-sm{min-height:var(--target-min);box-shadow:inset 0 0 0 2px var(--accent),inset 0 0 0 3px var(--accent-line)}
+.btn-ghost{min-height:var(--target-min);padding:0 var(--space-2);font-size:var(--text-14);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.btn[aria-disabled="true"].is-off,.is-off{background:transparent;border:1px dashed var(--fg-subtle);color:var(--fg-subtle);box-shadow:none;cursor:default}
+.icon-btn{display:grid;place-items:center;flex:none;width:var(--target-min);height:var(--target-min);border-radius:var(--radius-sm);text-decoration:none;color:var(--fg)}
+.icon-btn.boxed{background:var(--bg-card);border:1px solid var(--border)}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
+
+/* ---- app header ---- */
+.ah{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:var(--space-1);min-height:56px;padding:0 var(--space-2);border-bottom:1px solid var(--border)}
+.ah h1{flex:1;min-width:0;font-size:var(--text-16);line-height:1.25;font-weight:700;letter-spacing:.08em}
+.ah .end{margin-left:auto;margin-right:var(--space-2)}
+
+/* ---- chips (状態) / pills (経路) ---- */
+.chip{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 var(--space-2);border:1px solid var(--border);border-radius:var(--radius-full);font:700 var(--text-12)/16px var(--font-sans);letter-spacing:.04em;white-space:nowrap;color:var(--fg);background:var(--bg-card)}
+.chip .ic{width:12px;height:12px;stroke-width:2.5}
+.chip-fill{background:var(--fg);border-color:var(--fg);color:var(--bg-card)}
+.chip-info{border-color:var(--info);color:var(--info)}
+.chip-muted{border-color:var(--fg-subtle);color:var(--fg-muted)}
+.chip-cancel{border-style:dashed;border-color:var(--fg-subtle);color:var(--fg-muted)}
+.pill{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:var(--radius-sm);background:var(--bg-sunken);color:var(--fg);font:700 var(--text-12)/16px var(--font-sans);letter-spacing:.02em;white-space:nowrap}
+
+/* ---- tab bar (72px + safe area) ---- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg-card);border-top:1px solid var(--border);padding-bottom:var(--safe-bottom)}
+.tabbar ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:var(--tabbar-h);max-width:640px;margin:0 auto;padding:var(--space-2) var(--space-1)}
+.tab{position:relative;display:grid;justify-items:center;align-content:center;gap:2px;height:56px;border-radius:var(--radius-sm);font-size:var(--text-12);line-height:16px;font-weight:700;letter-spacing:.04em;color:var(--fg-muted);text-decoration:none}
+.tab .ic{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--fg)}
+.tab[aria-current="page"]::before{content:"";position:absolute;top:-9px;left:25%;right:25%;height:3px;background:var(--fg);border-radius:0 0 2px 2px}
+.tbadge{position:absolute;top:2px;left:calc(50% + 6px);display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:var(--radius-full);background:var(--info);color:var(--on-info);font:700 var(--text-12)/1 var(--font-num);letter-spacing:0}
+.has-tabbar{padding-bottom:calc(var(--tabbar-h) + var(--sim-safe-bottom) + var(--space-6))}
+.has-fab{padding-bottom:calc(var(--tabbar-h) + var(--sim-safe-bottom) + 56px + var(--space-8))}
+
+/* ---- FAB（拡張 FAB「＋ 追加」56px、CW-20） ---- */
+.fab{position:fixed;right:var(--gutter);bottom:calc(var(--tabbar-h) + var(--sim-safe-bottom) + var(--space-4));z-index:21;display:inline-flex;align-items:center;gap:var(--space-2);height:56px;padding:0 var(--space-6) 0 var(--space-4);border-radius:var(--radius-lg);background:var(--accent);color:var(--on-accent);font:700 var(--text-16)/1 var(--font-sans);letter-spacing:.06em;box-shadow:inset 0 0 0 3px var(--accent),inset 0 0 0 4px var(--accent-line),var(--shadow-2)}
+.fab .ic{width:24px;height:24px;stroke-width:2.25}
+/* トースト表示中は FAB をトーストの上へ逃がす（M3 の snackbar と同じ） */
+.fab.lifted{bottom:calc(var(--tabbar-h) + var(--sim-safe-bottom) + var(--space-3) + 88px)}
+.fab.is-off{background:var(--bg);border:1px dashed var(--fg-subtle);color:var(--fg-subtle);box-shadow:none}
+
+/* ---- forms ---- */
+.field{display:grid;gap:6px;min-width:0}
+.label{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 var(--space-2);font-size:var(--text-14);line-height:var(--text-14--lh);font-weight:700}
+.req{font-size:var(--text-12);line-height:16px;font-weight:500;color:var(--fg-muted)}
+.help{font-size:var(--text-14);line-height:1.6;color:var(--fg-muted)}
+.input{display:block;width:100%;min-width:0;height:48px;padding:0 var(--space-3);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--fg);font-size:var(--text-16);line-height:1.5}
+.input::placeholder{color:var(--fg-muted);opacity:1}
+textarea.input{height:auto;min-height:88px;padding:var(--space-3);resize:vertical}
+.input[aria-invalid="true"],.input.is-changed{border-width:2px;padding:0 calc(var(--space-3) - 1px)}
+.select{position:relative;display:block;min-width:0}
+.select select{appearance:none;-webkit-appearance:none;padding-right:36px;cursor:pointer}
+.select .ic{position:absolute;right:10px;top:50%;width:18px;height:18px;margin-top:-9px;pointer-events:none;color:var(--fg)}
+.select select.is-empty{color:var(--fg-muted)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)}
+.prefix{position:relative;display:block}
+.prefix>span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font:400 var(--text-16)/1 var(--font-num);color:var(--fg-muted);pointer-events:none}
+.prefix .input{padding-left:28px}
+
+/* segmented control（ラジオ。選択中 = インクの塗り） */
+.seg-row{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.seg-row label{position:relative;flex:1 1 auto;display:block;min-width:0}
+.seg-row label>span{display:flex;align-items:center;justify-content:center;gap:4px;min-height:var(--target-min);padding:0 var(--space-3);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);font-size:var(--text-14);line-height:1.2;font-weight:700;white-space:nowrap;cursor:pointer}
+.seg-row input:checked+span{background:var(--fg);border-color:var(--fg);color:var(--bg-card)}
+.seg-row input:checked+span::before{content:"✓";font-size:12px}
+.seg-row input:focus-visible+span{outline:2px solid var(--ring);outline-offset:2px}
+
+/* switch（52×32、タップ領域 44px 以上） */
+.sw{position:relative;display:inline-grid;place-items:center;flex:none;min-width:56px;min-height:var(--target-min);cursor:pointer}
+.sw .track{position:relative;width:52px;height:32px;border-radius:var(--radius-full);background:var(--bg-sunken);border:1px solid var(--fg-subtle);transition:background-color var(--duration-short3) var(--ease-standard)}
+.sw .track::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--fg-subtle);transition:transform var(--duration-short3) var(--ease-standard)}
+.sw input:checked+.track{background:var(--fg);border-color:var(--fg)}
+.sw input:checked+.track::after{transform:translateX(20px);background:var(--bg-card)}
+.sw input:focus-visible+.track{outline:2px solid var(--ring);outline-offset:2px}
+
+/* 空き時刻チップ（◎ と同じ青枠。タップで開始に入る） */
+.chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.time-chip{display:inline-flex;align-items:center;justify-content:center;min-width:72px;min-height:var(--target-min);padding:0 10px;border:1px solid var(--status-open);border-radius:var(--radius-sm);background:var(--bg-card);font:700 var(--text-16)/1 var(--font-num);letter-spacing:.02em;color:var(--fg)}
+.time-chip::before{content:"◎";margin-right:4px;font:700 var(--text-14)/1 var(--font-sans);color:var(--status-open)}
+
+/* ---- cards, lists, sections ---- */
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);box-shadow:var(--shadow-1)}
+.sunken{background:var(--bg-sunken);border-radius:var(--radius-sm)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2);margin:var(--space-8) 0 var(--space-3);font-size:var(--text-16);line-height:1.4;font-weight:700;letter-spacing:.04em;font-feature-settings:"palt"}
+.sec-h.first{margin-top:var(--space-4)}
+.list{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);box-shadow:var(--shadow-1)}
+.list>li+li{border-top:1px solid var(--border-subtle)}
+.row-link{display:flex;align-items:center;gap:var(--space-3);min-height:56px;padding:var(--space-2) var(--space-3) var(--space-2) var(--space-4);text-decoration:none}
+.row-link .grow{flex:1;min-width:0}
+.row-link>.ic:last-child{color:var(--fg-muted)}
+
+/* banners: info = 青の左罫＋i、warn = 太枠＋「!」（えんじは使わない） */
+.banner{display:flex;gap:var(--space-3);padding:var(--space-3) var(--space-4) var(--space-3) var(--space-3);background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:var(--text-14);line-height:1.6}
+.banner>.ic{margin-top:1px}
+.banner b{display:block;font-size:var(--text-16);line-height:1.5}
+.banner.info{box-shadow:inset 4px 0 0 var(--info)}
+.banner.info>.ic{color:var(--info)}
+.banner.warn,.alert{border:2px solid var(--fg);box-shadow:inset 4px 0 0 var(--fg)}
+.alert{display:grid;gap:var(--space-2);padding:var(--space-3) var(--space-4) var(--space-4) calc(var(--space-4) + 4px);background:var(--bg-card);border-radius:var(--radius-sm)}
+.alert-ttl{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-16);line-height:1.5;font-weight:700}
+
+/* ---- toast（role="status"、反転面） ---- */
+.toast{position:fixed;left:var(--gutter);right:var(--gutter);bottom:calc(var(--sim-safe-bottom) + var(--space-4));z-index:60;display:flex;align-items:center;gap:var(--space-2);min-height:56px;max-width:608px;margin:0 auto;padding:var(--space-2) var(--space-2) var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--inverse);color:var(--on-inverse);box-shadow:var(--shadow-2);font-size:var(--text-14);line-height:1.45;font-weight:700}
+.toast .msg{flex:1;min-width:0}
+.toast .msg small{display:block;font-size:var(--text-12);line-height:16px;font-weight:500}
+.toast .ic{color:var(--on-inverse)}
+.toast.above-tabs{bottom:calc(var(--tabbar-h) + var(--sim-safe-bottom) + var(--space-3))}
+.toast.top{top:calc(var(--sim-safe-top) + var(--space-2));bottom:auto}
+.undo{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:var(--target-min);padding:0 10px;border:1px solid var(--on-inverse);border-radius:var(--radius-sm);color:var(--on-inverse);background:var(--inverse);font:700 var(--text-14)/1 var(--font-sans);letter-spacing:.04em}
+.count{position:relative;display:grid;place-items:center;width:24px;height:24px;font:700 var(--text-12)/1 var(--font-num)}
+.count svg{position:absolute;inset:0;width:24px;height:24px;transform:rotate(-90deg);fill:none;stroke:currentColor;stroke-width:2}
+
+/* ---- bottom sheet ---- */
+.scrim{position:fixed;inset:0;z-index:40;background:var(--scrim)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:calc(100vh - var(--sim-safe-top) - var(--space-2));overflow:auto;max-width:640px;margin:0 auto;padding:var(--space-2) var(--gutter) calc(var(--safe-bottom) + var(--space-4));background:var(--bg-card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:var(--shadow-2)}
+.grip{width:36px;height:4px;margin:0 auto var(--space-2);border-radius:2px;background:var(--fg-subtle)}
+.sheet-head{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)}
+.sheet-head h2{flex:1;font-size:var(--text-20);line-height:var(--text-20--lh);font-weight:700;font-feature-settings:"palt"}
+
+/* ---- fixed CTA bar ---- */
+.cta-bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:var(--space-3) var(--gutter) calc(var(--safe-bottom) + var(--space-2));background:var(--bg-card);border-top:1px solid var(--border)}
+.cta-bar>*{max-width:608px;margin-left:auto;margin-right:auto}
+.cta-bar .cap{margin-bottom:var(--space-2);text-align:center}
+.cta-bar.above-tabs{bottom:calc(var(--tabbar-h) + var(--sim-safe-bottom) + 1px);padding-bottom:var(--space-3);border-bottom:0}
+.has-cta{padding-bottom:calc(56px + var(--sim-safe-bottom) + var(--space-12))}
+
+/* ---- settings segment nav ---- */
+.segnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-1);margin:var(--space-3) 0 0;padding:3px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card)}
+.segnav a{display:grid;place-items:center;min-height:var(--target-min);border-radius:2px;font-size:var(--text-14);font-weight:700;text-decoration:none;color:var(--fg-muted)}
+.segnav a[aria-current="page"]{background:var(--fg);color:var(--bg-card)}
+
+/* ---- timeline (S-A-02) ---- */
+.dayhead h1{display:flex;align-items:center;justify-content:center;gap:var(--space-2);font-size:var(--text-20);line-height:var(--text-20--lh);letter-spacing:.02em;font-feature-settings:"palt";white-space:nowrap}
+.dayhead h1 .num{font-size:1.1em}
+.inbox-btn{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:var(--target-min);padding:0 var(--space-2) 0 var(--space-3);margin-left:var(--space-1);border:1px solid var(--info);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--info);font-size:var(--text-14);font-weight:700;text-decoration:none;white-space:nowrap}
+.inbox-btn b{display:grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:var(--radius-full);background:var(--info);color:var(--on-info);font:700 var(--text-14)/1 var(--font-num)}
+.inbox-btn.is-off{border-style:dashed;border-color:var(--fg-subtle);color:var(--fg-subtle);background:transparent}
+.daysum{display:flex;flex-wrap:wrap;gap:0 var(--space-3);padding:var(--space-2) var(--gutter);border-bottom:1px solid var(--border-subtle);font-size:var(--text-14);line-height:var(--text-14--lh);color:var(--fg-muted)}
+.daysum b{font:700 var(--text-14)/1 var(--font-num);color:var(--fg)}
+.tl{display:grid;grid-template-columns:52px minmax(0,1fr);padding:var(--space-4) var(--gutter) 0 0}
+.tl-hours{position:relative;height:calc(24 * var(--row))}
+.tl-hours span{position:absolute;right:8px;transform:translateY(-50%);font:400 var(--text-12)/16px var(--font-num);color:var(--fg-muted);letter-spacing:0}
+.tl-hours span.h{font-weight:700;color:var(--fg)}
+.lane{position:relative;height:calc(24 * var(--row));border-left:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);background:linear-gradient(to bottom,var(--border-subtle) 0 1px,transparent 1px) 0 0/100% calc(4 * var(--row)) repeat-y}
+.lane::before,.lane::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to right,var(--border-subtle) 0 4px,transparent 4px 8px)}
+.lane::before{-webkit-mask:repeating-linear-gradient(to bottom,transparent 0 calc(2 * var(--row)),#000 calc(2 * var(--row)) calc(2 * var(--row) + 1px),transparent calc(2 * var(--row) + 1px) calc(4 * var(--row)));mask:repeating-linear-gradient(to bottom,transparent 0 calc(2 * var(--row)),#000 calc(2 * var(--row)) calc(2 * var(--row) + 1px),transparent calc(2 * var(--row) + 1px) calc(4 * var(--row)))}
+.lane::after{background:repeating-linear-gradient(to right,var(--border-subtle) 0 1px,transparent 1px 6px);-webkit-mask:repeating-linear-gradient(to bottom,transparent 0 var(--row),#000 var(--row) calc(var(--row) + 1px),transparent calc(var(--row) + 1px) calc(2 * var(--row)));mask:repeating-linear-gradient(to bottom,transparent 0 var(--row),#000 var(--row) calc(var(--row) + 1px),transparent calc(var(--row) + 1px) calc(2 * var(--row)))}
+.agenda{position:absolute;inset:0}
+.slot-pos{position:absolute;left:var(--space-2);right:0;top:calc(var(--s) * var(--row) + 1px);height:calc(var(--d) * var(--row) - 2px)}
+/* 空き区間（CW-26）: 沈み面＋薄い「＋」。ポインター用の補助（同じ操作は FAB から） */
+.free{display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-3);border-radius:var(--radius-sm);background:var(--bg-sunken);color:var(--fg-muted);font-size:var(--text-12);line-height:16px;font-weight:700;z-index:1}
+.free .ic{width:20px;height:20px;stroke-width:2}
+/* BookingCard ≥ 56px */
+.bk{z-index:2;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border-subtle);box-shadow:var(--shadow-1)}
+/* 左の 4px 罫は疑似要素で描く（ダークの --shadow-1: none は box-shadow の複数指定に入れられない） */
+.bk::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:4px;border-radius:var(--radius-sm) 0 0 var(--radius-sm);background:var(--fg)}
+.bk-main{position:absolute;inset:0;display:flex;flex-direction:column;gap:2px;padding:6px 60px 6px 14px;border-radius:var(--radius-sm);text-decoration:none;overflow:hidden}
+.bk-time{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-size:var(--text-14);line-height:20px}
+.bk-time .num{font-weight:700;letter-spacing:.01em}
+.bk-name{font-size:var(--text-14);line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-name b{font-size:var(--text-16);font-feature-settings:"palt"}
+.bk-name .kana{color:var(--fg-muted);font-size:var(--text-12)}
+.bk-meta{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-size:var(--text-14);line-height:20px}
+.bk-meta .ic{width:16px;height:16px;color:var(--fg)}
+.bk .tel{position:absolute;top:6px;right:8px;z-index:3;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--fg)}
+.bk .tel .ic{width:20px;height:20px}
+.bk.is-done{background:var(--bg-sunken)}
+.bk.is-done::before{background:var(--fg-subtle)}
+.bk.is-done .bk-time .num{color:var(--fg-muted)}
+.unread{color:var(--info);font-weight:700}
+/* BlockCard: 斜線＋破線枠 */
+.blk{z-index:2;display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-3);border:1px dashed var(--fg-subtle);border-radius:var(--radius-sm);background:repeating-linear-gradient(-45deg,var(--hatch) 0 2px,transparent 2px 9px);text-decoration:none}
+.blk .lbl{display:inline-flex;align-items:center;gap:6px;padding:1px 6px;border-radius:2px;background:var(--bg);font-size:var(--text-14);line-height:20px}
+.blk .lbl b{font-weight:700}
+/* NowLine（えんじ） */
+.now{position:absolute;left:-5px;right:0;top:calc(var(--m) * var(--row) / 15 - 1px);height:2px;background:var(--accent);z-index:4;pointer-events:none}
+.now::before{content:"";position:absolute;left:0;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.now-label{position:absolute;right:2px;z-index:4;top:calc(var(--m) * var(--row) / 15);transform:translateY(-50%);padding:1px 4px;border-radius:var(--radius-sm);background:var(--accent);color:var(--on-accent)!important;font:700 var(--text-12)/16px var(--font-num)!important}
+/* @shared:end */
+/* ---- page-local ---- */
+@media (max-width:359px){.dayhead h1{font-size:var(--text-18)}.inbox-btn .t{display:none}.inbox-btn{padding:0 var(--space-2)}}
+.end-btn{margin-left:var(--space-1)}
+</style>
+</head>
+<body class="paper has-tabbar has-fab">
+<!-- @sprite:start -->
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h3.2l1.8 4.6-2.3 1.5a11 11 0 0 0 6.2 6.2l1.5-2.3 4.6 1.8V19a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v11l-5 5H5z"/><path d="M14 20v-5h5M8.5 8.5h7M8.5 12h4"/></symbol>
+<symbol id="i-today" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><rect x="7.5" y="13" width="4" height="4" rx=".5"/></symbol>
+<symbol id="i-week" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h2M11 14h2M15 14h2M7 17.5h2M11 17.5h2"/></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13l3-8h12l3 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5h.01"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+<symbol id="i-faceid" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1.5M15 9v1.5M12.5 9v4h-1M9 15.5a4.5 4.5 0 0 0 6 0"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5L12 3l4.5 4.5M8.5 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2.5"/></symbol>
+<symbol id="i-addsq" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-userplus" viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"/></symbol>
+<symbol id="i-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></symbol>
+<symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M3 3l18 18M8.5 16.4a5 5 0 0 1 7 0M5 12.6a10 10 0 0 1 4.3-2.4M19 12.6a10 10 0 0 0-2.6-1.8M2 8.9a15 15 0 0 1 4.2-2.6M22 8.9a15 15 0 0 0-11.4-3.8M12 20h.01"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+<symbol id="i-belloff" viewBox="0 0 24 24"><path d="M8.3 5.9A6 6 0 0 1 18 11v4M6 11v5l-2 2h14M10 20.5a2 2 0 0 0 4 0M3 3l18 18"/></symbol>
+<symbol id="i-phone-dev" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></symbol>
+<symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4.5" y="3" width="15" height="18" rx="2"/><path d="M11 18h2"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="10" rx="1"/><path d="M3 19h18"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M16 16l4-4-4-4M20 12H10"/></symbol>
+<symbol id="i-reorder" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z"/><path d="M11.5 13.5L20 4"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></symbol>
+<symbol id="sb-signal" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></symbol>
+<symbol id="sb-wifi" viewBox="0 0 16 12"><path d="M8 2.2a9.6 9.6 0 0 1 6.7 2.7l1.2-1.2A11.3 11.3 0 0 0 8 .5 11.3 11.3 0 0 0 .1 3.7l1.2 1.2A9.6 9.6 0 0 1 8 2.2zm0 3.4a6.2 6.2 0 0 1 4.3 1.7l1.2-1.2A7.9 7.9 0 0 0 8 3.9a7.9 7.9 0 0 0-5.5 2.2l1.2 1.2A6.2 6.2 0 0 1 8 5.6zm0 3.4a2.8 2.8 0 0 1 1.9.8L8 11.7 6.1 9.8A2.8 2.8 0 0 1 8 9z"/></symbol>
+<symbol id="sb-batt" viewBox="0 0 27 12"><path d="M3 .5h19a2.5 2.5 0 0 1 2.5 2.5v6A2.5 2.5 0 0 1 22 11.5H3A2.5 2.5 0 0 1 .5 9V3A2.5 2.5 0 0 1 3 .5z" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="8" rx="1.3"/><path d="M25.5 4v4a2 2 0 0 0 0-4z" opacity=".5"/></symbol>
+<symbol id="sb-plane" viewBox="0 0 16 14"><path d="M15 6.2c0-.6-.5-1-1.1-1H10L6.3.2H4.6l1.8 5H3L1.8 3.6H.5l.8 3.4-.8 3.4h1.3L3 8.8h3.4l-1.8 5h1.7L10 8.8h3.9c.6 0 1.1-.4 1.1-1z"/></symbol>
+</svg>
+<!-- @sprite:end -->
+<div class="sb" aria-hidden="true"><span class="num">19:40</span><span class="sb-i"><svg class="sbi" viewBox="0 0 16 14" style="height:13px"><use href="#sb-plane"/></svg><svg class="sbi" viewBox="0 0 27 12" style="height:13px"><use href="#sb-batt"/></svg></span></div>
+<header class="ah dayhead paper"><a class="icon-btn" href="#prev" aria-label="前の日（10月9日）"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chev-l"/></svg></a><h1><span class="num">10/10</span>（土）<span class="chip chip-fill">今日</span></h1><a class="icon-btn" href="#next" aria-label="次の日（10月11日）"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chev-r"/></svg></a><span class="inbox-btn is-off" role="link" aria-disabled="true" aria-label="未確認 件数はオフラインのため取得できません"><span class="t">未確認</span><b class="num" style="background:transparent;color:inherit">–</b></span></header>
+<div class="wrap" style="padding-top:var(--space-3)"><div class="banner info" role="status"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wifioff"/></svg><div><b>オフラインです</b>最後に取得した内容を表示しています（<span class="num">10/10 19:05</span>）。読み取り専用のため、追加・状態の変更はできません。電話はかけられます。</div></div></div>
+<p class="daysum"><span>予約 <b>4</b> 件</span><span>ブロック <b>1</b></span><span>空き 計 <b>30</b> 分</span></p>
+<main>
+<div class="tl"><div class="tl-hours" aria-hidden="true"><span class="now-label" style="--m:100"><span class="vh">現在 </span>19:40</span><span class="h" style="top:calc(0 * var(--row))">18:00</span><span style="top:calc(2 * var(--row))">18:30</span><span class="h" style="top:calc(4 * var(--row))">19:00</span><span style="top:calc(6 * var(--row))">19:30</span><span class="h" style="top:calc(8 * var(--row))">20:00</span><span style="top:calc(10 * var(--row))">20:30</span><span class="h" style="top:calc(12 * var(--row))">21:00</span><span style="top:calc(14 * var(--row))">21:30</span><span class="h" style="top:calc(16 * var(--row))">22:00</span><span style="top:calc(18 * var(--row))">22:30</span><span class="h" style="top:calc(20 * var(--row))">23:00</span><span style="top:calc(22 * var(--row))">23:30</span><span class="h" style="top:calc(24 * var(--row))">24:00</span></div><div class="lane"><div class="slot-pos free " style="--s:14;--d:1" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"/></svg><span>空き</span></div><div class="slot-pos free " style="--s:19;--d:1" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"/></svg><span>空き</span></div><ol class="agenda" aria-label="10月10日（土）の予定（時刻順）"><li class="slot-pos bk is-done" style="--s:0;--d:4"><a class="bk-main" href="03_detail.html"><span class="bk-time"><span class="num">18:00<span aria-hidden="true">–</span><span class="vh">から</span>19:00</span><span class="chip chip-muted"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>完了</span></span><span class="bk-name"><b>木村 蒼</b><span class="kana">（きむら あおい）</span></span><span class="bk-meta">カット <span class="pill">電話</span></span></a><a class="tel" href="tel:+819011112222" aria-label="木村 蒼様に電話する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-phone"/></svg></a></li><li class="slot-pos bk" style="--s:4;--d:8"><a class="bk-main" href="03_detail.html"><span class="bk-time"><span class="num">19:00<span aria-hidden="true">–</span><span class="vh">から</span>21:00</span><span class="chip chip-fill">施術中</span></span><span class="bk-name"><b>山田 太郎</b><span class="kana">（やまだ たろう）</span></span><span class="bk-meta">カットパーマ <span class="pill">Instagram</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"/></svg><span class="vh">備考あり</span></span></a><a class="tel" href="tel:+819012345678" aria-label="山田 太郎様に電話する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-phone"/></svg></a></li><li class="slot-pos blk-wrap" style="--s:12;--d:2"><a class="blk" href="#block" style="position:absolute;inset:0"><span class="lbl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-block"/></svg><b>休憩</b><span class="num">21:00–21:30</span><span class="muted">夕食</span></span><span class="vh">（ブロック。タップで編集・削除）</span></a></li><li class="slot-pos bk" style="--s:15;--d:4"><a class="bk-main" href="03_detail.html"><span class="bk-time"><span class="num">21:45<span aria-hidden="true">–</span><span class="vh">から</span>22:45</span><span class="chip">確定</span><span class="chip chip-info"><span aria-hidden="true">●</span>未確認</span></span><span class="bk-name"><b>鈴木 一郎</b><span class="kana">（すずき いちろう）</span></span><span class="bk-meta">カット（学生） <span class="pill">web</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"/></svg><span class="vh">備考あり</span></span></a><a class="tel" href="tel:+819023456789" aria-label="鈴木 一郎様に電話する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-phone"/></svg></a></li><li class="slot-pos bk" style="--s:20;--d:4"><a class="bk-main" href="03_detail.html"><span class="bk-time"><span class="num">23:00<span aria-hidden="true">–</span><span class="vh">から</span>24:00</span><span class="chip">確定</span><span class="chip chip-info"><span aria-hidden="true">●</span>未確認</span></span><span class="bk-name"><b>高橋 翔</b><span class="kana">（たかはし しょう）</span></span><span class="bk-meta">リタッチ <span class="pill">web</span></span></a><a class="tel" href="tel:+819034567890" aria-label="高橋 翔様に電話する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-phone"/></svg></a></li></ol><div class="now" style="--m:100" data-ui="fill" aria-hidden="true"></div></div></div>
+</main>
+<button class="fab is-off" type="button" aria-disabled="true" aria-describedby="fab-off"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"/></svg>追加</button><p id="fab-off" class="vh">オフラインのため追加できません</p>
+<nav class="tabbar" aria-label="メイン"><ul><li><a class="tab" href="02_today.html" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-today"/></svg><span>今日</span></a></li><li><a class="tab" href="#week"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-week"/></svg><span>週</span></a></li><li><a class="tab" href="06_inbox.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-inbox"/></svg><span>受信箱</span></a></li><li><a class="tab" href="07_settings_hours.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-settings"/></svg><span>設定</span></a></li></ul></nav>
+<div class="hi" aria-hidden="true"></div>
+</body>
+</html>

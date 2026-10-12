@@ -1,0 +1,28 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# local postgres cluster (scripts/db-local.sh)
+/.local/
+
+# env files (only .env.example is committed)
+.env
+.env*.local
+.env.development
+.env.production
+
+# testing / tooling
+/coverage
+/test-results/
+/playwright-report/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel

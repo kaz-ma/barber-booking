@@ -1,0 +1,60 @@
+{
+  "name": "barber-booking",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome ci . && eslint . --max-warnings=0",
+    "format": "biome check --write .",
+    "test": "bash scripts/test.sh",
+    "test:unit": "vitest run --project unit",
+    "test:db": "bash scripts/test.sh --project db",
+    "db:start": "bash scripts/db-local.sh start",
+    "db:stop": "bash scripts/db-local.sh stop",
+    "db:status": "bash scripts/db-local.sh status",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:reset": "bash scripts/db-local.sh reset && npm run db:migrate && npm run db:seed -- --activate-menus"
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "0.13.11",
+    "@vercel/functions": "3.9.11",
+    "drizzle-orm": "0.45.4",
+    "next": "16.4.0",
+    "next-intl": "4.14.9",
+    "pg": "8.23.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "drizzle-kit": "0.31.11",
+    "eslint": "10.12.0",
+    "eslint-config-next": "16.4.0",
+    "happy-dom": "21.0.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  }
+}
