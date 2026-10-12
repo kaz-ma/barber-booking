@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-07 |
-| 版 | v0.5 |
+| 版 | v0.6 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.5（2026-10-12）: 実装との同期。2〜4 章の部品名・置き場所・props を実装に合わせ、設計名との対応を備考に記載（管理部品は `features/admin/components` に集約、予約下書きは `draft.ts`、TanStack Query は不使用）。5 章はトークン値の正本が `tokens.css`（DG-001）に移ったことと実装の `--danger`、5.3 を `globals.css` の `@theme inline` に合わせる。6 章の名前空間（`docs`・`tokusho` を追加、`admin`・`push` は messages に置かない）。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。`MenuCard` に情報表示の `variant="info"`（S-C-01、リンクなし・フォーカスなし）を追加し `MenuSummary` は 9 件すべてを表示、`BookCta` の文言を「予約する / Book」に固定し `menuSlug` を廃止（OI-25）、`MenuStep` の固定 CTA はメニュー選択後に表示、`MonthCalendar` の `selectedDate` 既定 = 今日（OI-24）、`InstagramLink` のアカウント確定（`@neuer.kento`、OI-23）と DM リンク `https://ig.me/m/neuer.kento`。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`WeekStrip` を廃止し `MonthCalendar`＋`DayCell`（月グリッド、ロービング tabindex）に置換（F2）、`PhoneFallback`・`phoneHref` を廃止し `InstagramLink` を追加（F3）、トップの `Hero`（写真のみ）・`AccessSection`（受付時間を統合）・`LanguagesNote` を明記（F1）、6 章の名前空間を更新。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。`ShareCopyButton`、`SlotList` の × 行（非活性の `SlotRow`）、`SelectionSummary`（S-C-02b）、`OtpFallbackForm`、ブロックのプリセット変更、ステップ順序の固定 |
+| 変更履歴 | v0.6（2026-10-12）: レビュー修正の反映。`BookingActions` に「直前の状態に戻す」、`HoursSettings` の日次サマリー時刻を表示のみに、`MenusSettings` の最終開始プレビューを枠刻みに揃える（03_screen_specs.md 11 章）。v0.5（2026-10-12）: 実装との同期。2〜4 章の部品名・置き場所・props を実装に合わせ、設計名との対応を備考に記載（管理部品は `features/admin/components` に集約、予約下書きは `draft.ts`、TanStack Query は不使用）。5 章はトークン値の正本が `tokens.css`（DG-001）に移ったことと実装の `--danger`、5.3 を `globals.css` の `@theme inline` に合わせる。6 章の名前空間（`docs`・`tokusho` を追加、`admin`・`push` は messages に置かない）。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。`MenuCard` に情報表示の `variant="info"`（S-C-01、リンクなし・フォーカスなし）を追加し `MenuSummary` は 9 件すべてを表示、`BookCta` の文言を「予約する / Book」に固定し `menuSlug` を廃止（OI-25）、`MenuStep` の固定 CTA はメニュー選択後に表示、`MonthCalendar` の `selectedDate` 既定 = 今日（OI-24）、`InstagramLink` のアカウント確定（`@neuer.kento`、OI-23）と DM リンク `https://ig.me/m/neuer.kento`。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`WeekStrip` を廃止し `MonthCalendar`＋`DayCell`（月グリッド、ロービング tabindex）に置換（F2）、`PhoneFallback`・`phoneHref` を廃止し `InstagramLink` を追加（F3）、トップの `Hero`（写真のみ）・`AccessSection`（受付時間を統合）・`LanguagesNote` を明記（F1）、6 章の名前空間を更新。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。`ShareCopyButton`、`SlotList` の × 行（非活性の `SlotRow`）、`SelectionSummary`（S-C-02b）、`OtpFallbackForm`、ブロックのプリセット変更、ステップ順序の固定 |
 | 関連要件 | FR-C-01〜16, FR-A-02〜18, NFR-PF-01, NFR-PF-02, NFR-EN-03〜07, AT-09, AT-10, AT-24, AT-25 |
 | 関連文書 | `02_screens.md`（画面ごとの使用コンポーネント）、`docs/05_design_comps/`（デザインガイド。トークン値の正本はデザインガイド確定後にそちら） |
 
@@ -98,10 +98,10 @@
 | `QuickSheet` | Client | 設計の `Fab`／`QuickActionSheet`。手動予約、プリセット「今から 1 時間 / 2 時間 / 今日はここまで」「期間を指定」。開いた時点で各行の重なりを取得し、範囲・保存する種別・顧客サイトへの影響を表示。重なりのない行は 2 タップで保存、重なりがあれば「それでも…」（`force`）。空き区間のタップで同じシートをその時刻から開く | S-A-02 | FR-A-05, 06, AT-21 |
 | `BlockRangeForm` | Client | 設計の `BlockForm`。種別（既定 `closed`）・開始・終了（5 分刻み、最大 60 日）・ラベル。有効予約と重なれば一覧を出し「それでもブロック」で保存 | S-A-06 | FR-A-06 |
 | `ManualBookingForm` | Client | `menus`, `initialDate`, `initialStart`。下書きは `sessionStorage['bb.draft.manual']`。顧客サジェスト（WAI-ARIA combobox、250 ms デバウンス）、空き開始時刻のチップ（`free-starts`）、重なりの事前確認（300 ms デバウンス）。重なり中の操作は「時間を変更」のみ（OI-11）。保存後は確認 URL のコピー（設計の `CustomerCombobox`・`OverlapAlert`・`SavedSheet` を内包） | S-A-05 | FR-A-05, 10 |
-| `BookingActions` | Client | 予約詳細の操作: 来店 → 施術開始 → 完了、3 種のキャンセル結果（即時実行＋5 秒 Undo トースト）、確認 URL の発行・再発行とコピー、店主メモ。表示時に既読化。設計の `StatusActions`・`ConfirmUrlPanel`・`OwnerNoteField`（予約内容と履歴はページで描画＝設計の `BookingDetail`・`AuditTrail`） | S-A-04 | FR-A-04, 05, 11 |
+| `BookingActions` | Client | 予約詳細の操作: 来店 → 施術開始 → 完了と「直前の状態に戻す」（`stepBackBookingStatusAction`）、3 種のキャンセル結果（即時実行＋5 秒 Undo トースト）、確認 URL の発行・再発行とコピー、店主メモ。表示時に既読化。設計の `StatusActions`・`ConfirmUrlPanel`・`OwnerNoteField`（予約内容と履歴はページで描画＝設計の `BookingDetail`・`AuditTrail`） | S-A-04 | FR-A-04, 05, 11 |
 | `InboxList` | Client | `unread`, `read`, `nowIso`。未確認を先に、「すべて確認済みにする」＋Undo | S-A-07 | FR-A-10, 11 |
-| `HoursSettings` | Client | 設計の `WeeklyHoursEditor`・`OverrideList`・`SlotRulesForm`。曜日テンプレートと枠ルールを 1 回で保存、オーバーライドは個別に追加・削除 | S-A-08 | FR-A-07, AT-22 |
-| `MenusSettings` | Client | 設計の `MenuList`・`MenuEditSheet`。公開スイッチ、上下ボタンの並べ替え（WCAG 2.5.7）、編集シート（「最終開始」のプレビュー） | S-A-09 | FR-A-08, AT-22 |
+| `HoursSettings` | Client | 設計の `WeeklyHoursEditor`・`OverrideList`・`SlotRulesForm`。曜日テンプレートと枠ルールを 1 回で保存、オーバーライドは個別に追加・削除。日次サマリーの時刻は読み取り専用の行（Hobby では変更不可） | S-A-08 | FR-A-07, AT-22 |
+| `MenusSettings` | Client | 設計の `MenuList`・`MenuEditSheet`。公開スイッチ、上下ボタンの並べ替え（WCAG 2.5.7）、編集シート（「最終開始」のプレビュー。代表的な営業時間と `slot_step_min` から `domain/hours.ts#lastStartMin` で枠刻みに揃えて計算） | S-A-09 | FR-A-08, AT-22 |
 | `NotificationsPanel` | Client | 設計の `PushOnboarding`・`PushStatusCard`・`TestPushPanel`・`DeviceList`・`LogoutOthersButton`。通知をオンにする → テスト通知 → 届いた / 届かない（作り直し）、端末一覧、この端末以外をログアウト、パスキーの追加、ログアウト | S-A-10 | FR-A-09, 12, 16 |
 | `SettingsNav` / `SettingsHeader` | Server | 設定のセグメント（営業時間・メニュー・通知・顧客） | S-A-08〜11 | FR-A-07 |
 | `LoginPanel` | Client | 設計の `PasskeyLoginButton`・`OtpFallbackForm`。主はパスキー、フォールバックは「確認コードを送る」（`requestAdminOtpAction`）と 1 欄のコード入力（`inputmode="numeric"`、`autocomplete="one-time-code"`、6 桁で `verifyAdminOtpAction`）。マジックリンクの UI は持たない | S-A-01 | FR-A-01 |

@@ -36,6 +36,8 @@ function buildConfig(env: Env): NextConfig {
     "manifest-src 'self'",
     `report-uri ${reportUri}`,
     ...(reportEndpoint ? ['report-to csp-endpoint'] : []),
+    // Only meaningful when enforced (browsers ignore it in Report-Only).
+    ...(env.CSP_ENFORCE === '1' ? ['upgrade-insecure-requests'] : []),
   ].join('; ')
   // CSP_ENFORCE=1 switches to enforcing after a clean Report-Only week (AT-26), no code change.
   const cspHeader = env.CSP_ENFORCE === '1' ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only'

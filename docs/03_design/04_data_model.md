@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-04 |
-| 版 | v0.4 |
+| 版 | v0.5 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.4（2026-10-12）: 実装との同期。マイグレーションを 4 本（0000 手書き・0001 生成・0002 手書き・0003 Better Auth の追加分）に、UNIQUE 制約名を drizzle-kit 生成名（`bookings_public_code_unique` 等）に、Better Auth テーブルの実列（`credential_id`＝JS キー `credentialID`、`auth_rate_limit`）を追記。空き計算 SQL の `generate_series` に `::int` キャスト（PostgreSQL 16 で smallint 版が曖昧）、日の状態に `closed`・`out_of_range` を加えた区別、冪等性と重なりはロック下の再検証が通常経路で SQLSTATE は最後の防衛線（3.1）、`booking_restriction` の判定位置、seed（`seed-admin`）、保存期間ジョブとハウスキーピングの実装（8 章）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`booking_restriction` の値 `phone_only` を `dm_only`（Instagram DM のみ受付）に変更（FR-A-13、F3）、月カレンダー用の日単位要約クエリ `getMonthAvailability(month)` を 6.1 に追加（FR-C-07、F2）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
+| 変更履歴 | v0.5（2026-10-12）: レビュー修正の反映（`docs/06_test/review/` の code_review_v1・security_review_v1 の対応状況）。`consents.ip`（inet）を `ip_hash`（HMAC。マイグレーション `0004_consent_ip_hash.sql` を追加し計 5 本）に、`bookings.is_student` を「学生価格を実際に適用したか」に、顧客キャンセル後も `cancel_token_hash` を残す（同じリンクの再送は「キャンセル済み」として冪等に応答）、3.1 の冪等性キー不一致を `conflict: slot_taken` に、空き計算 SQL が `allow_same_day` を判定し JIT をトランザクション単位で無効化（6 章）、同一リクエスト内の重複排除（6.1）、匿名化の基準を最終利用（`last_visit_at`・最終予約の終了・`created_at` のうち最も遅い日時）に、匿名化で `cancel_reason` の自由記述・`cancel_token_hash`・同意の `ip_hash`・`user_agent` も消去、ハウスキーピングを保存期間ジョブへ移動（8 章）。v0.4（2026-10-12）: 実装との同期。マイグレーションを 4 本（0000 手書き・0001 生成・0002 手書き・0003 Better Auth の追加分）に、UNIQUE 制約名を drizzle-kit 生成名（`bookings_public_code_unique` 等）に、Better Auth テーブルの実列（`credential_id`＝JS キー `credentialID`、`auth_rate_limit`）を追記。空き計算 SQL の `generate_series` に `::int` キャスト（PostgreSQL 16 で smallint 版が曖昧）、日の状態に `closed`・`out_of_range` を加えた区別、冪等性と重なりはロック下の再検証が通常経路で SQLSTATE は最後の防衛線（3.1）、`booking_restriction` の判定位置、seed（`seed-admin`）、保存期間ジョブとハウスキーピングの実装（8 章）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`booking_restriction` の値 `phone_only` を `dm_only`（Instagram DM のみ受付）に変更（FR-A-13、F3）、月カレンダー用の日単位要約クエリ `getMonthAvailability(month)` を 6.1 に追加（FR-C-07、F2）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。空き計算 SQL が × の候補も状態付きで返す（FR-C-07）、`auth_verification` の用途をワンタイムコードに（OI-12）、意図的重複の拡張点の扱い（OI-11 決定済み） |
 | 関連要件 | 10 章（10.1〜10.3）、FR-S-01, FR-S-02, FR-S-06, FR-S-07, FR-S-09, FR-C-08, FR-C-10, FR-C-11, FR-A-04〜08, FR-A-11〜14, NFR-PF-05, NFR-MG-02, NFR-SC-05, NFR-SC-07, NFR-EN-07 |
 | 関連 ADR | ADR-0002（Neon）、ADR-0003（EXCLUDE を生 SQL で）、ADR-0006（Better Auth テーブル）、ADR-0008（顧客スナップショットを持たない） |
 
@@ -20,8 +20,8 @@
 | M-01 | 時刻は `timestamptz`（UTC 格納） | 区間は `tstzrange` の半開区間 `[)`。暦日は JST の `date`、営業時間は「0 時からの分」（`smallint`、0〜1440） |
 | M-02 | 二重予約は制約で禁止 | `EXCLUDE USING gist (resource_id WITH =, during WITH &&) WHERE (status IN ('confirmed','arrived','in_progress'))` |
 | M-03 | 個人情報は `customers` のみ | 予約行は `customer_id` で参照し、氏名・電話のスナップショットを持たない（ADR-0008）。匿名化は `customers` 1 行の更新で完結 |
-| M-04 | 金額は確定時スナップショット | `bookings.price_jpy`・`is_student`・`buffer_min` を確定時に保存し、後のメニュー改定の影響を受けない |
-| M-05 | 秘密はハッシュのみ | キャンセルトークンは SHA-256（`bytea`）、レート制限キーと監査ログの電話番号は HMAC（`PII_HASH_SECRET`） |
+| M-04 | 金額は確定時スナップショット | `bookings.price_jpy`・`is_student`・`buffer_min` を確定時に保存し、後のメニュー改定の影響を受けない。`is_student` は職業ではなく「学生価格を適用したか」（学生価格のないメニューは学生でも false。`domain/pricing.ts#isStudentRateApplied`） |
+| M-05 | 秘密はハッシュのみ | キャンセルトークンは SHA-256（`bytea`）、レート制限キー・同意記録の IP・監査ログの電話番号は HMAC（`PII_HASH_SECRET`）。生の IP はどの表にも保存しない |
 | M-06 | 列挙は Postgres ENUM | 値の追加は `ALTER TYPE … ADD VALUE` で容易。削除は行わない |
 | M-07 | ソフトデリートは誤操作復旧用 | `deleted_at` は Undo（トースト 5 秒、サーバー側の有効期限 10 秒）のため。法的消去は `anonymized_at`（実データを消す） |
 | M-08 | 拡張点を先に置く | `resource_id`（複数席）、`customers.line_user_id`/`instagram_user_id`（Phase 2）、`consents.kind` の Phase 3 値 |
@@ -141,7 +141,7 @@ erDiagram
     text policy_version
     timestamptz accepted_at
     timestamptz revoked_at
-    inet ip
+    text ip_hash "HMAC, NULL after 1 year"
     text user_agent
   }
   push_subscriptions {
@@ -232,8 +232,9 @@ erDiagram
 | `drizzle/0001_init.sql` | `drizzle-kit generate`（`src/lib/db/schema.ts` から） | ENUM、全テーブル、CHECK、通常インデックス、部分 UNIQUE |
 | `drizzle/0002_constraints.sql` | `drizzle-kit generate --custom --name=constraints` に手書き | `EXCLUDE` 制約、DEFERRABLE FK、`updated_at` トリガー |
 | `drizzle/0003_auth.sql` | `drizzle-kit generate`（`src/lib/db/auth-schema.ts` から） | Better Auth 1.7.7 との突き合わせ。**追加のみ**: CLI が生成する FK・検索列の索引 5 本と `auth_rate_limit` 表（`rateLimit.storage: 'database'`） |
+| `drizzle/0004_consent_ip_hash.sql` | `drizzle-kit generate --custom --name=consent_ip_hash` に手書き | `consents.ip`（inet）を `ip_hash`（text、`HMAC-SHA256(PII_HASH_SECRET, ip)` の base64url 22 文字）に改名・型変更し、CHECK `consents_ip_hash_len`（32 文字以下）を追加。HMAC はアプリの秘密が要り SQL で変換できないため既存の生 IP は破棄（公開前のデータのみ）。部分索引 `consents_pii_purge_idx` は改名に追従（AGENTS.md 規則 5、SR-15） |
 
-以下は 4 ファイルを統合した論理 DDL（PostgreSQL 16 以上。本番の Neon は 17、ローカル・CI は 16）。列に付けた `UNIQUE` は、実際には drizzle-kit が `<表>_<列>_unique` の名前の表制約として生成する（例 `bookings_public_code_unique`、`bookings_cancel_token_hash_unique`、`menus_slug_unique`。PostgreSQL 既定の `_key` ではない）。
+以下は 5 ファイルを統合した論理 DDL（PostgreSQL 16 以上。本番の Neon は 17、ローカル・CI は 16）。列に付けた `UNIQUE` は、実際には drizzle-kit が `<表>_<列>_unique` の名前の表制約として生成する（例 `bookings_public_code_unique`、`bookings_cancel_token_hash_unique`、`menus_slug_unique`。PostgreSQL 既定の `_key` ではない）。
 
 ```sql
 -- ===== 0000_extensions.sql =====
@@ -345,12 +346,12 @@ CREATE TABLE consents (
   policy_version text NOT NULL CHECK (char_length(policy_version) <= 32),
   accepted_at    timestamptz NOT NULL DEFAULT now(),
   revoked_at     timestamptz,
-  ip             inet,                                                    -- 1 年で NULL 化
+  ip_hash        text CONSTRAINT consents_ip_hash_len CHECK (char_length(ip_hash) <= 32), -- 0004: HMAC(PII_HASH_SECRET, ip)。1 年で NULL 化
   user_agent     text CHECK (char_length(user_agent) <= 512),             -- 1 年で NULL 化
   created_at     timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX consents_customer_idx ON consents (customer_id, accepted_at DESC);
-CREATE INDEX consents_pii_purge_idx ON consents (accepted_at) WHERE ip IS NOT NULL OR user_agent IS NOT NULL;
+CREATE INDEX consents_pii_purge_idx ON consents (accepted_at) WHERE ip_hash IS NOT NULL OR user_agent IS NOT NULL;
 
 CREATE TABLE bookings (
   id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -363,13 +364,13 @@ CREATE TABLE bookings (
   source                  booking_source NOT NULL,
   locale                  locale_code NOT NULL DEFAULT 'ja',
   price_jpy               integer NOT NULL CHECK (price_jpy >= 0),        -- 適用価格スナップショット
-  is_student              boolean NOT NULL DEFAULT false,
+  is_student              boolean NOT NULL DEFAULT false,                 -- 学生価格を適用したか（職業区分ではない）
   buffer_min              smallint NOT NULL DEFAULT 0 CHECK (buffer_min >= 0), -- 表示上の終了 = upper(during) - buffer_min
   note                    text CHECK (char_length(note) <= 500),
   owner_note              text CHECK (char_length(owner_note) <= 500),
   idempotency_key         text CHECK (idempotency_key IS NULL OR idempotency_key ~ '^[0-9a-f]{64}$'),
   submission_nonce_hash   bytea,                                          -- 同一ブラウザ再送の判定（G-04）
-  cancel_token_hash       bytea UNIQUE CHECK (cancel_token_hash IS NULL OR octet_length(cancel_token_hash) = 32),
+  cancel_token_hash       bytea UNIQUE CHECK (cancel_token_hash IS NULL OR octet_length(cancel_token_hash) = 32), -- 顧客キャンセル後も保持。管理者キャンセル・削除・匿名化で NULL
   cancel_token_expires_at timestamptz,                                    -- セルフキャンセル締切
   cancelled_at            timestamptz,
   cancel_reason           text CHECK (char_length(cancel_reason) <= 200),
@@ -518,7 +519,7 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 | 制約・インデックス | SQLSTATE | アプリでの扱い（`lib/pg-errors.ts` は `constraint` 名で判別） | 関連 |
 |---|---|---|---|
 | `bookings_no_overlap` | `23P01` | `conflict: slot_taken`（顧客）／`conflict: overlap`（管理）／`conflict: undo_blocked`（Undo）。通常は advisory lock 下の再検証（顧客は空き計算 SQL、管理は `findOverlaps`）で先に検出して同じ結果を返すため、`23P01` はロックを経ない書き込みに対する最後の防衛線 | FR-C-10, FR-A-05 |
-| `bookings_idempotency_active_uidx` | `23505` | 通常はロック下で同じキーの有効な予約を `FOR UPDATE` で探して判定する（`submission_nonce` 一致 → トークンを再発行して `ok`、不一致 → `duplicate`）。`23505` は同時送信の競合時のみで、同じ判定をやり直す | FR-C-10, G-04 |
+| `bookings_idempotency_active_uidx` | `23505` | 通常はロック下で同じキーの有効な予約を `FOR UPDATE` で探して判定する（`submission_nonce` 一致 → トークンを再発行して `ok`、不一致 → 満席と同じ `conflict: slot_taken`。内部の理由はログ `booking.duplicate_rejected` のみ。SR-12）。`23505` は同時送信の競合時のみで、同じ判定をやり直す | FR-C-10, G-04 |
 | `bookings_public_code_unique`・`bookings_cancel_token_hash_unique` | `23505` | 生成し直して 1 回だけ再試行（衝突は実質発生しない） | — |
 | `menus_slug_unique` | `23505` | `upsertMenu` が `invalid`（`slug: slugTaken`）を返す | FR-A-08 |
 | `customers_phone_e164_uidx` | `23505` | upsert（`ON CONFLICT … DO UPDATE`）で発生させない | ADR-0008 |
@@ -566,16 +567,18 @@ CREATE TRIGGER time_blocks_updated_at BEFORE UPDATE ON time_blocks FOR EACH ROW 
 
 ## 6. 空き計算 SQL（FR-S-02）
 
-1 回のクエリで「期間内の各日の状態」と「候補開始時刻とその状態（`available` / `full` / `deadline`）の配列」を返す。日の状態はこの 3 値に `closed`（定休・休業）と `out_of_range`（予約可能期間外）を加えた 5 値（`DayStatus`）。実装は `src/lib/db/availability-sql.ts`（CTE を共有し、最終 SELECT だけを 6 章用と 6.1 用の 2 種にする。表示用の DAL と予約確定時の再検証の両方が使うため `lib/db` に置く）。JST で候補を生成 → `tstzrange` に変換 → リードタイム内を `deadline`、有効予約・未削除ブロックと `&&` で重なるものを `full` に分類する（v0.2: FR-C-07 の「× の行も表示し操作不可」に合わせ、埋まった候補も返す。閉店をまたぐ時刻は候補にしない）。
+1 回のクエリで「期間内の各日の状態」と「候補開始時刻とその状態（`available` / `full` / `deadline`）の配列」を返す。日の状態はこの 3 値に `closed`（定休・休業）と `out_of_range`（予約可能期間外）を加えた 5 値（`DayStatus`）。実装は `src/lib/db/availability-sql.ts`（CTE を共有し、最終 SELECT だけを 6 章用と 6.1 用の 2 種にする。表示用の DAL と予約確定時の再検証の両方が使うため `lib/db` に置く）。JST で候補を生成 → `tstzrange` に変換 → リードタイム内と、`settings.allow_same_day` が false のときの当日（JST 暦日）の候補を `deadline`、有効予約・未削除ブロックと `&&` で重なるものを `full` に分類する（v0.2: FR-C-07 の「× の行も表示し操作不可」に合わせ、埋まった候補も返す。閉店をまたぐ時刻は候補にしない）。
+
+実行は常にトランザクション内で、先に `SET LOCAL jit = off` を行う（表示側の DAL は `readAvailability()` の読み取り専用トランザクション、予約確定はロック取得直後の `disableJit(tx)`）。`generate_series` の行数見積りが過大で推定コストが `jit_above_cost` を超え、約 1 ms のクエリに JIT コンパイルで約 0.4 秒かかるため。ロール設定や接続の起動オプションではなく `SET LOCAL` にしたのは、Neon のトランザクションモードのプーラー経由でも効き、マイグレーションも要らないため（SR-04）。
 
 ```sql
 -- getAvailability: $1 menu_slug text, $2 from_date date (JST), $3 to_date date (JST), $4 now timestamptz
 WITH s AS (
-  SELECT slot_step_min, lead_time_min, max_advance_days FROM settings WHERE id = 1
+  SELECT slot_step_min, lead_time_min, max_advance_days, allow_same_day FROM settings WHERE id = 1
 ), m AS (
   SELECT duration_min, buffer_after_min FROM menus WHERE slug = $1 AND is_active
 ), p AS (
-  SELECT m.duration_min, m.buffer_after_min, s.slot_step_min,
+  SELECT m.duration_min, m.buffer_after_min, s.slot_step_min, s.allow_same_day,
          $4::timestamptz + make_interval(mins => s.lead_time_min)          AS not_before,
          ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date + s.max_advance_days AS last_date,
          ($4::timestamptz AT TIME ZONE 'Asia/Tokyo')::date                      AS today
@@ -606,11 +609,12 @@ WITH s AS (
   SELECT c.d, c.start_at,
          tstzrange(c.start_at,
                    c.start_at + make_interval(mins => p.duration_min + p.buffer_after_min), '[)') AS r,
-         c.start_at < p.not_before AS in_lead_time               -- リードタイム内（× 締切）
+         c.start_at < p.not_before AS in_lead_time,              -- リードタイム内（× 締切）
+         (NOT p.allow_same_day AND c.d <= p.today) AS same_day_off -- 当日の web 予約を受け付けない設定（× 締切。CR-02）
   FROM cand c CROSS JOIN p
 ), classified AS (
   SELECT sl.d, sl.start_at,
-         CASE WHEN sl.in_lead_time THEN 'deadline'
+         CASE WHEN sl.in_lead_time OR sl.same_day_off THEN 'deadline'
               WHEN EXISTS (SELECT 1 FROM bookings b
                            WHERE b.resource_id = 1
                              AND b.status IN ('confirmed', 'arrived', 'in_progress')
@@ -652,6 +656,9 @@ ORDER BY hr.d;
 | 臨時休業オーバーライド | `closed` | FR-A-07 |
 | 時間ブロック（`deleted_at` あり） | 影響しない | FR-A-06 |
 | JST 0:00 前後（UTC 15:00） | 日付の帰属が JST 暦日 | NFR-EN-07 |
+| `allow_same_day = false` | 今日の候補はすべて `deadline`（明日以降は影響なし）。予約確定時の再検証も同じ SQL のため `not_bookable` | FR-A-07 |
+| JIT（SR-04） | トランザクション内で `SHOW jit` = `off`、`EXPLAIN (ANALYZE, FORMAT JSON)` に JIT 節がなく、設定が接続に残らない | NFR-PF-03 |
+| 実在しない日付（`2026-11-31`） | DAL が `null`（`isDateString` は往復一致で判定。CR-10） | — |
 
 上表のケースは DB 統合テスト `src/features/availability/availability.db.test.ts` が実 Postgres で SQL の結果を期待値と直接照合する（v0.3 までの「TS 版 `src/domain/availability.ts` をオラクルにする」案は採らない。管理画面の重なり表示は `features/admin/calendar.ts` の `findOverlaps`、手動予約の空き開始時刻は `getFreeStarts` が担う）。予約確定時の再検証は同じ SQL を `$2 = $3 = 対象日` で実行し、`startsAt` が `slots` に含まれ、`deadline` でなく（`deadline` または未掲載 → `invalid: not_bookable`）、`full` でない（→ `conflict: slot_taken`）ことを確認する（トランザクション内・advisory lock 下。05_state_and_flows.md 2 章）。v0.3 で週ストリップを廃止したため、S-C-03 の時間枠リストも `getDayAvailability({ menuSlug, date })`（＝ `$2 = $3 = 選択日`）で呼ぶ。`getAvailability` は 1 回 14 日までに制限し、未知・非公開のメニューと不正な日付には `null` を返す。
 
@@ -681,7 +688,7 @@ ORDER BY hr.d;
 | 項目 | 内容 |
 |---|---|
 | コスト | 月表示 1 回につき 1 クエリ（最大 31 日 × 候補 11〜13 枠 ≒ 400 行の `&&` 判定。`bookings` / `time_blocks` の GiST 索引を使う）。週ストリップ時代の 14 日 × 1 クエリと同程度で、NFR-PF-03（p95 500 ms）の範囲内を想定。時間枠リスト用の 1 日分クエリと合わせて S-C-03 の表示は 2 クエリ |
-| キャッシュ | 空き状況のためリクエスト間キャッシュはしない（FR-S-12）。React `cache()` による同一リクエスト内の重複排除は**未実装**（DAL に TODO）。現状 S-C-03 は、指定月が範囲外のときの今月へのやり直しと「次に空いている日」探索で翌月を引くときに限り、1 リクエストで最大 3 回呼ぶ |
+| キャッシュ | 空き状況のためリクエスト間キャッシュはしない（FR-S-12、AGENTS.md 規則 3）。同じ引数（メニュー・月または日付・`now` のミリ秒）の呼び出しは React `cache()` で 1 リクエスト内だけ 1 回にまとめる（`getMonthAvailability`・`getAvailability`。リクエストをまたいで共有しない）。S-C-03 は、指定月が範囲外のときの今月へのやり直しと「次に空いている日」探索で翌月を引くときに限り、別の月を 1 リクエストで最大 3 回引く |
 | 範囲 | 今月から `today + max_advance_days` を含む月まで。範囲外・形式不正の `month` と未知・非公開のメニューは DAL が `null` を返し、ページは今月で取り直す（06_api.md 2.2） |
 | 契約テスト | 6 章の表に加え「月の途中で 61 日目を迎える月は以降が `out_of_range`」「今日より前の日は `out_of_range`」「同じ日の `day_status` が `getAvailability` の結果の集約と一致」 |
 
@@ -753,17 +760,18 @@ export const bookings = pgTable('bookings', {
 
 | 対象 | 契機 | 処理 | 残すもの | 関連 |
 |---|---|---|---|---|
-| 顧客（保存期間） | `last_visit_at < now() - interval '3 years'` かつ未来の有効予約なし（`/api/cron/retention`、毎日 18:00 UTC＝03:00 JST、Should。`features/notifications/retention.ts`）。`last_visit_at` は `completed` への遷移でのみ設定されるため、来店記録のない顧客（`last_visit_at IS NULL`）は対象にならない | 1 トランザクションで対象を `FOR UPDATE` し、`name, name_kana, phone_e164, phone_display, line_user_id, instagram_user_id` を NULL、`phone_hash = HMAC(phone_e164)`、`anonymized_at = now()`、その顧客の予約の `note`・`owner_note` を NULL。`audit_log` は 1 実行 1 行（`actor = system`、`customer.anonymize`、`entity_id = 'retention'`、`diff.count`） | 予約の日時・メニュー・状態・金額、`no_show_count` 等の統計、`consents` の事実 | FR-S-09 |
-| 顧客（削除依頼） | 管理者が S-A-11 で `anonymizeCustomer`（電話＋折り返しで本人確認後、7 日以内。電話がある顧客は下 4 桁の一致が必須） | 同上＋その顧客の `consents` の `ip`・`user_agent` を NULL＋`audit_log`（`customer.anonymize`、`diff.cancelledFutureBookings`）。未来の有効予約は先に `cancelled_by_owner`（`cancel_reason = 'anonymized'`、トークン NULL） | 同上 | FR-A-14, AT-30 |
-| 予約の備考 | 顧客匿名化と同時 | `bookings.note`、`owner_note` を NULL（自由記述に個人情報が混入しうるため） | — | 10.3 |
-| 同意記録の IP・UA | `accepted_at < now() - interval '1 year'`（日次サマリー cron の送信後のハウスキーピング） | `ip`, `user_agent` を NULL | 同意の種類・版・日時 | 10.3 |
+| 顧客（保存期間） | 最終利用 `GREATEST(last_visit_at, 最終予約の upper(during)（状態を問わない）, created_at) < now() - interval '3 years'` かつ未来の有効予約なし（`/api/cron/retention`、毎日 18:00 UTC＝03:00 JST、Should。`features/notifications/retention.ts`）。`last_visit_at` は `completed` への遷移でのみ設定されるため、キャンセル・無断キャンセルだけの顧客や完了の記録漏れでも個人情報が残り続けないよう、予約の終了と登録日時も基準に含める（SR-06、CR-04） | 1 トランザクションで対象を `FOR UPDATE` し、`name, name_kana, phone_e164, phone_display, line_user_id, instagram_user_id` を NULL、`phone_hash = HMAC(phone_e164)`、`anonymized_at = now()`、その顧客の予約の `note`・`owner_note`・`cancel_token_hash` と `cancel_reason` の自由記述（固定値 `deleted`・`anonymized` は残す）を NULL、その顧客の `consents` の `ip_hash`・`user_agent` を NULL。`audit_log` は 1 実行 1 行（`actor = system`、`customer.anonymize`、`entity_id = 'retention'`、`diff.count`） | 予約の日時・メニュー・状態・金額、`no_show_count` 等の統計、`consents` の事実 | FR-S-09 |
+| 顧客（削除依頼） | 管理者が S-A-11 で `anonymizeCustomer`（電話＋折り返しで本人確認後、7 日以内。電話がある顧客は下 4 桁の一致が必須） | 同上（予約の自由記述・トークンハッシュ、同意の `ip_hash`・`user_agent` を含む）＋`audit_log`（`customer.anonymize`、`diff.cancelledFutureBookings`）。未来の有効予約は先に `cancelled_by_owner`（`cancel_reason = 'anonymized'`、トークン NULL） | 同上 | FR-A-14, AT-30 |
+| 予約の備考 | 顧客匿名化と同時 | `bookings.note`、`owner_note`、`cancel_reason` の自由記述（`deleted`・`anonymized` 以外）を NULL（自由記述に個人情報が混入しうるため。CR-20） | — | 10.3 |
+| キャンセルトークンのハッシュ | 顧客キャンセル後も保持し（同じリンクの再送に「キャンセル済み」で冪等に答えるため。トークンで閲覧・操作できるのは `confirmed` の予約のみ）、管理者キャンセル・削除・顧客匿名化で NULL | `cancel_token_hash` を NULL | — | FR-S-06, CR-09 |
+| 同意記録の IP・UA | `accepted_at < now() - interval '1 year'`（保存期間ジョブの匿名化の後のハウスキーピング） | `ip_hash`, `user_agent` を NULL | 同意の種類・版・日時 | 10.3 |
 | `rate_limits` | `window_start < now() - interval '2 days'`（同上） | DELETE | — | FR-S-04 |
 | `notification_log` | `created_at` が 1 年超（同上） | DELETE | — | NFR-OP-02 |
 | `auth_verification` | `expires_at` から 1 日超（同上） | DELETE | — | FR-A-01 |
 | ソフトデリート | 5 秒 Undo 経過後もそのまま保持（履歴） | 予約: `deleted_at` を持つ行は一覧から除外。ブロック: 同 | — | FR-A-04 |
 | バックアップ | 30 世代で自動消滅 | 匿名化後も最大 30 日はバックアップに残る旨をプライバシーポリシーに記載 | — | FR-S-08 |
 
-匿名化は 1 トランザクションで行い、`customers_anonymized_clean` CHECK により部分的な匿名化をコミットできないようにする。ハウスキーピングは `features/notifications/digest.ts` の `housekeeping()` が日次サマリーの送信後に実行し、失敗してもサマリーの結果には影響させない（ログのみ）。
+匿名化は 1 トランザクションで行い、`customers_anonymized_clean` CHECK により部分的な匿名化をコミットできないようにする。ハウスキーピングは `features/notifications/retention.ts` の `runHousekeeping()` が保存期間ジョブ（`runRetention()`）の匿名化の後に実行し、失敗しても匿名化の結果には影響させない（ログは `errorFields()` の項目のみ）。v0.4 までは日次サマリーの送信後に実行していたが、サマリーの失敗で飛ばされうるため移した（SR-15）。
 
 ---
 

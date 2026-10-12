@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-01 |
-| 版 | v0.5 |
+| 版 | v0.6 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.5（2026-10-12）: 実装との同期。特商法表記を `/{locale}/tokusho` の別ページに、未定義パスはキャッチオール `[...rest]` でロケール別 404、ロケール外は `global-not-found`、`/admin/settings`（→ hours）・`/admin/customers/{id}` を追記、`/book/time`・`/admin/bookings/new`・`/admin/blocks/new` のクエリを実装に合わせる、`request.ts` は `next/root-params`、proxy.ts の Server Action POST の扱い、OGP・sitemap の実際の対象。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップから `/book/time` への直接リンクを置かないことを明記し、`/book` の `?menu=` はトップからは付けない（外部リンク用）。`/book/time` の `date` 未指定時は今日を選択（OI-24 決定済み）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-03 に月送りの `?month=` を追加（F2）、S-C-10 の電話リンクを Instagram リンクに変更、構造化データに `telephone` を出力しない（OI-10 決定済み、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
+| 変更履歴 | v0.6（2026-10-12）: レビュー修正の反映。4.2 の proxy.ts の matcher に `/admin`・`/admin/:path*`・`/:locale(ja\|en)/cancel/:path*`・`/:locale(ja\|en)/book/done/:path*` を明示（ドットを含むパスも proxy を通す）、完了ページも IP 制限の対象に、Server Action の POST は proxy で数えない（キャンセル操作はサービスで判定）。v0.5（2026-10-12）: 実装との同期。特商法表記を `/{locale}/tokusho` の別ページに、未定義パスはキャッチオール `[...rest]` でロケール別 404、ロケール外は `global-not-found`、`/admin/settings`（→ hours）・`/admin/customers/{id}` を追記、`/book/time`・`/admin/bookings/new`・`/admin/blocks/new` のクエリを実装に合わせる、`request.ts` は `next/root-params`、proxy.ts の Server Action POST の扱い、OGP・sitemap の実際の対象。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップから `/book/time` への直接リンクを置かないことを明記し、`/book` の `?menu=` はトップからは付けない（外部リンク用）。`/book/time` の `date` 未指定時は今日を選択（OI-24 決定済み）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-03 に月送りの `?month=` を追加（F2）、S-C-10 の電話リンクを Instagram リンクに変更、構造化データに `telephone` を出力しない（OI-10 決定済み、F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。予約ルートを日時先行に変更し `/book/info`（S-C-02b）を追加（OI-19）、構造化データに店名・住所（OI-09） |
 | 関連要件 | FR-C-01, FR-C-07, FR-C-11〜16, FR-A-01, FR-A-15, FR-S-10, FR-S-14, NFR-EN-05, NFR-EN-07, NFR-MG-01, S-C-01〜10, S-C-02b, S-A-01〜12 |
 | 関連 ADR | ADR-0001（ドメイン移行）、ADR-0005（i18n） |
 
@@ -85,8 +85,8 @@ flowchart TD
 | `/{locale}/book/time` | S-C-03 | 公開 | noindex | GET | `?menu={slug}&month=YYYY-MM&date=YYYY-MM-DD`。補助: `sel={startsAt}`（選択済みで戻ったときの固定バー）、`return=confirm`（確認画面からの日時変更）、`taken=1`（`slot_taken` で戻されたときの通知） | ステップ 2。月カレンダーの表示月（`month`）と選択日（`date`）は JST 暦日。`date` があれば `month` はその月、どちらも未指定は今月・今日を選択（OI-24 決定済み。今日が × でも今日を選択し空きなしの表示）。`month` だけを指定（月送り）したときは選択を解除。トップ（`/{locale}`）からはリンクしない（OI-25）。範囲外の `month` は今月で取り直す。メニュー未指定・未知・非公開なら `/book` へ戻す | FR-C-07, 08 |
 | `/{locale}/book/info` | S-C-02b | 公開 | noindex | GET | `?step=name\|occupation\|phone`（段階計測用、任意） | ステップ 3。段階は `history.state` が正。クエリは計測と再読込時の復元補助。メニュー・日時が下書きに無ければ `/book` または `/book/time` へ戻す | FR-C-01, 03〜06, FR-S-14 |
 | `/{locale}/book/confirm` | S-C-04 | 公開 | noindex | GET（確定は Server Action POST） | — | ステップ 4。下書きが無ければ `/book?expired=1` へ、日時・お客様情報が欠けていれば該当ステップへ戻す | FR-C-09, 10 |
-| `/{locale}/book/done/{token}` | S-C-05 | トークン保持者 | noindex | GET | — | トークンは 43 文字 base64url | FR-C-11 |
-| `/{locale}/cancel/{token}` | S-C-06 | トークン保持者 | noindex | GET（副作用なし）／キャンセルは Server Action POST | — | IP 10 回/分（proxy.ts＋WAF） | FR-C-12, FR-S-04 |
+| `/{locale}/book/done/{token}` | S-C-05 | トークン保持者 | noindex | GET | — | トークンは 43 文字 base64url。表示は IP 10 回/分（キャンセル・ICS と共通キー、proxy.ts） | FR-C-11, FR-S-04 |
+| `/{locale}/cancel/{token}` | S-C-06 | トークン保持者 | noindex | GET（副作用なし）／キャンセルは Server Action POST | — | IP 10 回/分（表示は proxy.ts、キャンセル操作は `cancelByToken`。＋WAF） | FR-C-12, FR-S-04 |
 | `/api/ics/{token}` | S-C-07 | トークン保持者 | noindex | GET | — | `text/calendar`。キャンセル URL と同じレート制限 | FR-C-11 |
 | `/{locale}/privacy` | S-C-08 | 公開 | index | GET | — | — | FR-C-15 |
 | `/{locale}/policy` | S-C-09 | 公開 | index | GET | — | キャンセルポリシー＋利用条件 | FR-C-15 |
@@ -165,7 +165,7 @@ export default getRequestConfig(async ({ locale: explicit }) => {
 
 ```mermaid
 flowchart TD
-  IN["リクエスト"] --> M{"matcher に一致?<br/>api, _next, _vercel, monitoring,<br/>sw.js, manifest.webmanifest, 拡張子付きを除外"}
+  IN["リクエスト"] --> M{"matcher に一致?<br/>api, _next, _vercel, monitoring,<br/>sw.js, manifest.webmanifest, 拡張子付きを除外<br/>admin と cancel と book/done は常に対象"}
   M -- "いいえ" --> PASS["素通り"]
   M -- "はい" --> AD{"/admin で始まる?"}
   AD -- "はい" --> PUBADM{"/admin/login または<br/>/admin/install または<br/>Server Action の POST ?"}
@@ -173,7 +173,7 @@ flowchart TD
   PUBADM -- "いいえ" --> CK{"セッション Cookie あり?"}
   CK -- "いいえ" --> RL["307 /admin/login?next=元のパス"]
   CK -- "はい" --> NONCE
-  AD -- "いいえ" --> CX{"/locale/cancel/ で始まる?"}
+  AD -- "いいえ" --> CX{"/locale/cancel/ または<br/>/locale/book/done/ で始まり<br/>Server Action の POST でない?"}
   CX -- "はい" --> RATE{"IP 10 回/分 以内?"}
   RATE -- "いいえ" --> R429["429 + Retry-After<br/>ロケール別の簡易 HTML"]
   RATE -- "はい" --> INTL["next-intl middleware"]
@@ -183,13 +183,13 @@ flowchart TD
 
 | 項目 | 仕様 | 関連 |
 |---|---|---|
-| matcher | `['/((?!api\|_next\|_vercel\|monitoring\|sw\\.js\|manifest\\.webmanifest\|.*\\..*).*)']`（表中の `\|` は区切り記号のエスケープ） | — |
+| matcher | `['/((?!api\|_next\|_vercel\|monitoring\|sw\\.js\|manifest\\.webmanifest\|.*\\..*).*)', '/admin', '/admin/:path*', '/:locale(ja\|en)/cancel/:path*', '/:locale(ja\|en)/book/done/:path*']`（表中の `\|` は区切り記号のエスケープ）。1 本目はドットを含むパスを静的ファイルとして除外するため、`/admin/bookings/a.b`・`/ja/cancel/x.y` のようなパスでも proxy を通るよう 2 本目以降を明示する（SR-01、SR-10） | FR-S-04, NFR-SC-02 |
 | 判定順 | パス → `NEXT_LOCALE` Cookie → `Accept-Language` → `ja` | FR-C-13 |
 | 自動リダイレクト | `/` のみ検出結果へ 307。`/ja`・`/en` を開いた人を別言語へ飛ばすことはしない | FR-C-13 |
 | 言語切替 | ヘッダー右上「EN」/「日本語」（相手言語名をネイティブ表記、国旗なし）。同じページの他ロケール URL へ遷移し、next-intl が `NEXT_LOCALE` を更新。予約フロー中は下書きを保持（下書きは `features/booking/draft.ts` の `sessionStorage` にあり、ロケールを切り替えても残る。`LocaleSwitch` はクエリ〔`menu`・`date` 等〕も引き継ぐ） | FR-C-13 |
 | `/admin` | next-intl を通さない。`<html lang="ja">` 固定。認証の本体は各 Server Action と DAL の `requireAdmin()`（proxy は楽観チェック）。Server Action の POST（`Next-Action` ヘッダー付き）はリダイレクトせず、Cookie が無ければアクションが `unauthorized` を返す。Cookie 名は `__Host-bb.session_token`（HTTP のローカルは `bb.session_token`） | FR-A-01, NFR-SC-02 |
 | `/api/ics/*` | matcher 外のため、Route Handler 内で同じレート制限関数を呼ぶ | FR-S-04 |
-| レート制限の DB 呼び出し | proxy は Node ランタイムなので `lib/rate-limit.ts` を直接使える。対象パスはキャンセルのみに限定し、他ページの遅延を増やさない | FR-S-04 |
+| レート制限の DB 呼び出し | proxy は Node ランタイムなので `lib/rate-limit.ts` を直接使える。対象はトークンページ（キャンセル・完了）の表示に限定し、他ページの遅延を増やさない。Server Action の POST は数えない（キャンセル操作は `cancelByToken` が同じキーで判定し、どの URL へ送られても数える。二重加算もしない。SR-01、SR-22） | FR-S-04 |
 
 ### 4.3 ロケール別の表示規則
 

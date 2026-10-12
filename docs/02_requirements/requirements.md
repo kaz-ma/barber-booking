@@ -5,7 +5,7 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | REQ-001 |
-| 版 | v0.6（ドラフト、決定事項 G1〜G4 を反映） |
+| 版 | v0.7（ドラフト、レビュー修正を反映） |
 | 作成日 | 2026-10-10 |
 | 作成者 | 開発者（フリーランス） |
 | 承認者 | 長田健豊 様 |
@@ -23,6 +23,7 @@
 | v0.4 | 2026-10-10 | WF 評価と決定事項の反映: ステップ順序、住所掲載、共有ボタン、× 表示規則、OTP フォールバック、ブロックプリセット（認知的ウォークスルー EVAL-001 の要件確認項目。FR-C-01/04/07/08/11/12/14/16、FR-A-01/05/06、US-01/02、UC-01、6.2、8.1、8.3、11 章、12 章、OI-09/11/12/19 決定済み、OI-20〜22 追加、AT-02/04/09/13/21。画面 S-C-02b を新設） |
 | v0.5 | 2026-10-12 | クライアントフィードバックの反映（決定 2026-10-12）。F1 トップ構成の簡素化（ヒーロー文言と単独の受付時間カードを廃止し、受付時間・定休・予約締切をアクセスに統合）、F2 日付選択を月カレンダー（HPB 型、Must）＋時間枠リストに変更し週ストリップを廃止、F3 顧客向けの電話導線を廃止し Instagram DM（`@neuer.kento`、仮）に置換・電話番号は非掲載、予約制限 `phone_only` → `dm_only`（4.1、US-01、6.2、6.3、FR-C-07/11/12/14/16/17、FR-A-13、8.1、NFR-AV-01、10.1、12.1、12.2、12.4、OI-09/16、OI-10 決定済み、OI-23/24 追加、AT-04/07） |
 | v0.6 | 2026-10-12 | 決定事項 G1〜G4（2026-10-12 確定）の反映。G1 **予約導線の 1 本化**: トップ →「1. メニューを選ぶ」（`/{locale}/book`）→ 日時 → お客様情報 → 確認の 1 本。トップの CTA（ヘッダー＋メニュー直後）は「予約する / Book」で `/book` へ、「空き時間を見て予約する / See available times」はメニュー段でメニュー選択後に出す CTA だけに使う。トップの「全 9 メニューと料金を見る」を廃止し、9 メニューを情報表示のカード（リンクなし）で掲載（FR-C-01/02/14、6.2、8.1、8.3、OI-25 追加・決定済み）。G2 Instagram アカウント `@neuer.kento` 確定（FR-C-11/12/16、12.1、12.2、OI-23 決定済み）。G3 特商法表記の電話番号は「請求があれば遅滞なく開示」方式で確定（12.4）。G4 月カレンダーの初期の選択日 = 今日（FR-C-07、OI-24 決定済み） |
+| v0.7 | 2026-10-12 | レビュー修正の反映（`docs/06_test/review/` の code_review_v1・security_review_v1 の対応、設計書 ADR-0009）。10.1・12.3 の `consents.ip` を `ip_hash`（HMAC）に、FR-S-06 にキャンセル済みリンクの冪等な再送を追記。NFR-EN-01/02 を実装のツールチェーン（TypeScript 6.0、Node 24 LTS・`engines.node >=22.13.0`・`.nvmrc` 24、日時は `Intl`、Playwright はスクリプトから利用）に、10.3・12 章の保存期間を「最終利用から 3 年」に、FR-S-04 にレート制限の詳細（電話の上限はロック下で判定、完了・キャンセルページ・ICS の IP 制限、WAF ルールの対象に `book/(confirm\|time)`）、FR-A-04 に「直前の状態に戻す」（実装済み）、FR-A-07 に日次サマリーの時刻は Hobby では表示のみ |
 
 ### 構成
 
@@ -246,10 +247,10 @@ ID 体系: `FR-C-xx` 顧客サイト、`FR-A-xx` 管理 PWA、`FR-S-xx` シス�
 | FR-A-01 | ログイン | Better Auth（Postgres アダプタ）＋パスキー（WebAuthn）を主とし、管理者 1 名のみ。サインアップは無効化し初回は seed で作成。フォールバックは**アプリ内で入力する 6 桁のワンタイムコード**（1 欄、`inputmode="numeric"`、`autocomplete="one-time-code"`）とする（OI-12 決定済み、2026-10-10）。マジックリンクは採らない（iOS のホーム画面アプリは Safari とストレージが分かれており、メールのリンクは Safari で開くため PWA にセッションが入らない。EVAL-001 論点 4）。コードの配信経路は Resend による管理者メール宛を既定とし、メールを使わない場合は事前に発行するリカバリーコードとする【要確認: OI-21 配信経路】。Cookie は `__Host-` 接頭辞、`HttpOnly; Secure; SameSite=Lax`、`Max-Age` 30 日ローリング。`/admin` 配下は未認証なら `/admin/login` へ | Must | PWA 内で Face ID によるログインができる。パスキーが使えない場合、PWA 内で 6 桁コードを入力してログインでき、Safari に切り替わらない。未認証で `/admin` にアクセスするとログイン画面に遷移する。Server Action は Cookie なしの直接 POST で 401 相当を返す | 統合レポート『管理者 1 名の認証は Better Auth + パスキー…』 |
 | FR-A-02 | 今日ビュー | `start_url`。受付時間（仮 18:00〜24:00）の縦タイムライン、15 分刻み、現在時刻ライン、予約カード高さ ≥ 56px、カードに氏名（ふりがな）・メニュー・`tel:` リンク・備考の有無。タップで詳細シート。ヘッダに「未確認 n 件」バッジ。日付の前後移動 | Must | 当日の予約・ブロックが時系列で表示され、カードから電話が発信できる | 統合レポート『ダッシュボードは「今日・週・受信箱・設定」のボトムタブと…』 |
 | FR-A-03 | 週ビュー | 7 列に日ごとの件数と空き枠数。セルタップで該当日の今日ビューへ。定休日・ブロックの表示 | Must | 週の各日に件数が表示され、タップで日ビューに遷移する | 同上 |
-| FR-A-04 | 予約詳細・状態変更 | 詳細シートに全項目、`source`、作成日時、同意版。状態変更（来店・施術開始・完了・無断キャンセル・管理者キャンセル・遅刻キャンセル）。キャンセル・削除は即時実行＋5 秒「取り消す」トースト（ソフトデリート＋復元）。standalone 用に明示的な「←」 | Must | 状態を `no_show` に変更すると顧客の `no_show_count` が +1 される。キャンセル直後 5 秒以内に取り消すと `confirmed` に戻る | 同上、研究ノート 08 Q1 |
+| FR-A-04 | 予約詳細・状態変更 | 詳細シートに全項目、`source`、作成日時、同意版。状態変更（来店・施術開始・完了・無断キャンセル・管理者キャンセル・遅刻キャンセル）。キャンセル・削除は即時実行＋5 秒「取り消す」トースト（ソフトデリート＋復元）。来店・施術開始・完了の押し間違いは「直前の状態に戻す」で 1 段ずつ戻せる（来店済み → 確定、施術中 → 来店済み、完了 → 施術中。監査ログに記録し、戻すと他の予約と重なる場合は戻さない。実装済み）。standalone 用に明示的な「←」 | Must | 状態を `no_show` に変更すると顧客の `no_show_count` が +1 される。キャンセル直後 5 秒以内に取り消すと `confirmed` に戻る。誤って「完了」にした予約を「直前の状態に戻す」と施術中に戻り、最終来店日も元に戻る | 同上、研究ノート 08 Q1 |
 | FR-A-05 | 手動予約 | FAB「+」→「手動予約」。氏名（必須）、電話（任意、`phone_unverified`）、メニュー、日時、`source`（phone / walk_in / instagram / line / manual）、メモ。電話番号完全一致・かな部分一致で既存顧客をサジェスト。サーバーで重なりを判定し「19:00–20:00 の○○様と重なります」を赤表示し、`[時間を変更]` のみを出す（重なる手動予約は保存しない）。Phase 1 は意図的な重複（掛け持ち）を許容しない（OI-11 決定済み、2026-10-10）。クライアントがパーマの放置時間などで意図して重ねる運用を求めた場合は、警告内の理由付き補助操作（audit_log に記録）として再検討する。保存後に顧客向け確認 URL（予約詳細＋キャンセルリンク）を生成しコピーできる。保存直後の入力ミスを取り消す手段（5 秒「取り消す」を統計に含めない）【要確認: OI-22】 | Must | 既存予約と重なる手動予約は警告なしには保存されない。保存後に確認 URL をコピーして DM に貼れる | 統合レポート『予防中心のキャンセル規定…』 |
 | FR-A-06 | 時間ブロック | FAB「+」→「時間をブロック」。プリセット「今から 1 時間 / 2 時間 / 今日はここまで（閉店まで） / 期間指定」（「今から 30 分」はリードタイム 60 分より短く顧客サイトに影響しないため置かない。EVAL-001 CW-19）、種別（休憩 / 私用 / 臨時休業。プリセットの既定は 1 時間・2 時間が休憩、今日はここまでが臨時休業で、行に「休憩として」のように出す。後から変更可）、ラベル。シートを開いた時点で確定済み予約との重なりを判定し、確定前にプリセット行へ「19:40–20:40・山田様と重なります」と表示する。保存時も同一トランザクション内で再確認し警告。シートとトーストに顧客サイトへの影響を 1 行で出す（例「20:00 までの受付を止めました」）。ブロック区間は空き枠から除外。削除は Undo 付き | Must | 2 タップで「今から 1 時間」をブロックできる。予約と重なるプリセットは、タップ前に重なりが行に表示される。「今から 2 時間」または「今日はここまで」をブロックすると、顧客サイトで開始が 60 分以上先の該当枠が ◎ から × に変わる | 同上 |
-| FR-A-07 | 営業時間・休業日設定 | 曜日ごとの受付開始・終了・定休（`business_hours`）、特定日の臨時休業・時間変更（`business_hour_overrides`）、`settings`（枠刻み、リードタイム、先行予約上限、セルフキャンセル締切）。祝日は表示のみで自動休業にしない（Should）。変更時に `updateTag` でメニュー・営業時間キャッシュを即時失効 | Must | 火曜を定休にすると顧客サイトで火曜が非活性になる。臨時休業日を登録するとその日の枠が消える | 統合レポート『空き計算は…』、研究ノート 08 Q1 |
+| FR-A-07 | 営業時間・休業日設定 | 曜日ごとの受付開始・終了・定休（`business_hours`）、特定日の臨時休業・時間変更（`business_hour_overrides`）、`settings`（枠刻み、リードタイム、先行予約上限、セルフキャンセル締切）。祝日は表示のみで自動休業にしない（Should）。変更時に `updateTag` でメニュー・営業時間キャッシュを即時失効。日次サマリーの時刻（`digest_hour_jst`）は Hobby の Cron が 1 日 1 回の固定時刻のため表示のみ（変更不可。Pro 移行時に再検討） | Must | 火曜を定休にすると顧客サイトで火曜が非活性になる。臨時休業日を登録するとその日の枠が消える | 統合レポート『空き計算は…』、研究ノート 08 Q1 |
 | FR-A-08 | メニュー管理 | 名称（JA/EN）、一般価格、学生価格、所要時間、バッファ、表示順、公開/非公開。価格・所要時間の初期値は第 2 回打ち合わせで確定【要確認】 | Must | 所要時間を 90 分に変えると、その日の最終開始時刻が 22:30 になる（24:00 終了時） | 同上 |
 | FR-A-09 | プッシュ購読・通知設定 | オンボーディングを「ホーム画面に追加 → アイコン起動 → ログイン → 設定『通知をオンにする』→ 許可」の一本道に。standalone でない場合は購読 UI を出さず追加手順を図解（iOS は共有メニュー、Android は `beforeinstallprompt`）。起動のたびに `getSubscription()` を確認し、null なら再購読バナー（iOS は設定で通知 OFF にしても `Notification.permission` が `"default"` を返すため、permission ではなく購読の有無を主条件にする）。`requestPermission()` がダイアログを出さない/`granted` 以外のときは「設定 > 通知 > <アプリ名>」への案内を表示。「テスト通知」ボタンはサーバーの APNs 応答（201）と端末受信を突き合わせ、届かない場合に購読を作り直す導線（unsubscribe → subscribe）を同じ画面に置く。端末一覧（`last_seen_at`）。管理者セッションは `Max-Age` 付き永続 Cookie 必須（WebKit 272325 がセッション Cookie をリセットする問題は未修正） | Must | Safari タブで `/admin` を開くと通知ボタンが出ず追加手順が表示される。standalone で通知をオンにすると `push_subscriptions` に 1 行入る。テスト通知が届く。iOS 設定で通知を OFF にして再起動すると設定への案内が出る。アプリを閉じて再度開いてもログイン状態が維持される | 統合レポート『iOS のプッシュは「ホーム画面追加・毎回通知表示・起動時再確認」で成立する』 |
 | FR-A-10 | 通知受信（新規予約・キャンセル） | 新規 web 予約、顧客キャンセルで即時プッシュ（`urgency: high`, `TTL: 6h`, `topic: booking-<id>`）。通知はタイトル＋本文＋`navigate`（該当予約の URL）＋`data` の最小構成（電話番号を含めない）。タップで該当予約の詳細を開く（`notificationclick` は `clients.matchAll` → 既存ウィンドウがあれば `client.navigate()`、なければ `openWindow()`）。SW は `push` 受信時に必ず `event.waitUntil(showNotification(...))` を呼ぶ。バックグラウンド復帰時のリロードで管理フォームの入力が失われないよう、手動予約・ブロックの下書きを `sessionStorage`/`IndexedDB` に保存 | Must | 顧客予約の確定から 10 秒以内に iOS/Android 実機に通知が届き、タップで詳細が開く。iOS では宣言的通知タップの `navigate` 遷移を「アプリ完全終了／バックグラウンド（端末スリープ後）／前面」の 3 状態で確認し、バックグラウンド時にルートへ戻る現象（WebKit 268797）が出た場合は起動時に未確認一覧へ誘導する UI で吸収する。`app_badge` がトップレベル・`notification` 内のどちらで反映されるかを iOS 26.x 実機で確認し、効いた側を残す。前面表示中に通知バナーが出ない場合はアプリ内トースト＋未確認バッジで代替 | 同上、『実装は app/manifest.ts + 手書き最小 SW + web-push…』 |
@@ -270,9 +271,9 @@ ID 体系: `FR-C-xx` 顧客サイト、`FR-A-xx` 管理 PWA、`FR-S-xx` シス�
 | FR-S-01 | 二重予約の DB 防止 | `bookings.during tstzrange` に `EXCLUDE USING gist (resource_id WITH =, during WITH &&) WHERE (status IN ('confirmed','arrived','in_progress'))`（`btree_gist`）。半開区間 `[)` を CHECK で強制。`idempotency_key = sha256(slotStart\|menuId\|phone)` を UNIQUE。分離レベルは READ COMMITTED | Must | 統合テストで同一枠に `Promise.all` で 2 件 INSERT すると 1 件が `23P01` で失敗する。19:00 終了と 19:00 開始は衝突しない | 統合レポート『二重予約は EXCLUDE USING gist…で最終防衛する』 |
 | FR-S-02 | 空き枠計算 | `generate_series(open, close - duration - buffer, step)` で JST 候補を生成し、`tstzrange` に変換、`bookings ∪ time_blocks` と `&&` で除外する SQL。フォームは ISO 文字列（`+09:00`）を送り、サーバー側でもリードタイム・上限・営業時間を再検証 | Must | 契約テスト（営業時間境界、定休日、60 分、バッファ、JST/UTC 日付境界）が全件パス。UI を迂回した直接 POST で営業時間外の枠が拒否される | 統合レポート『空き計算は…SQL 一発で行う』 |
 | FR-S-03 | Push 送信 | `web-push`（VAPID 固定）、`Promise.allSettled`、`timeout: 8000`。`WebPushError.statusCode` が 404/410 なら購読削除、`fail_count` 更新。ペイロードは出荷版 Declarative Web Push 形式の JSON: トップレベル `"web_push": 8030` ＋ `"notification": { title, body, lang, navigate（必須）, tag, data, app_badge }` ＋ トップレベル `app_badge`・`mutable: false`（`app_badge` は実機確認まで両方の位置に入れる）。Content-Type の変更は不要（web-push の既定 `application/octet-stream` + `aes128gcm` のまま送る）。iOS 18.4+ では SW を起動せず宣言的に表示され、それ以外では SW の `push` ハンドラが `notification` を `showNotification()` に転記する。`topic: booking-<id>` で未配信を置換（iOS では `tag` による置換は効かない）。`after()` で送信しレスポンスを遅らせない | Must | 失効エンドポイントに送ると購読行が削除される。送信失敗が予約確定を失敗させない | 統合レポート『実装は app/manifest.ts + 手書き最小 SW + web-push…』 |
-| FR-S-04 | レート制限 | `createBooking`: IP 5 回/10 分 ＋ 電話番号ハッシュ 3 件/日。`/cancel/[token]`: IP 10 回/分。ログイン試行制限。実装は Postgres `rate_limits` テーブル（追加サービスなし）。補完として Vercel WAF Rate Limiting（全プランで利用可。固定窓 10 秒〜10 分、キーは IP/JA4）で `/cancel/*` と予約 Server Action への IP 単位の粗い制限を前段に置く。Phase 1 の Hobby はルール 1 本のため両パスを 1 本のルールにまとめる（Pro 移行時は 40 ルールまで分割可） | Must | 11 回目のキャンセル URL 試行が 429 になる。同一電話番号で 4 件目の予約が拒否される | 統合レポート『管理者 1 名の認証は…キャンセルトークンは 256 bit をハッシュ保存する』 |
+| FR-S-04 | レート制限 | `createBooking`: IP 5 回/10 分 ＋ 電話番号ハッシュ 3 件/日。`/cancel/[token]`: IP 10 回/分。ログイン試行制限。実装は Postgres `rate_limits` テーブル（追加サービスなし）。電話番号の 3 件/日は予約確定のトランザクション内（カレンダーの advisory lock 下）で判定・加算し、同時送信でも超えない。IP 10 回/分は `/cancel/*`・`/book/done/*` のページ表示と `/api/ics/*` で共通のキーとし、キャンセル操作（Server Action）も同じキーでサーバー側が判定する（どの URL に送られても数える）。ログインコードの送信は IP 3 回/10 分＋全体 10 通/日。補完として Vercel WAF Rate Limiting（全プランで利用可。固定窓 10 秒〜10 分、キーは IP/JA4）で `/cancel/*`、予約 Server Action と空き表示（`/book/(confirm\|time)`。空き表示は毎回 DB を読むため）、`/api/ics/*` への IP 単位の粗い制限を前段に置く。Phase 1 の Hobby はルール 1 本のためこれらを 1 本のルールにまとめる（Pro 移行時は 40 ルールまで分割可） | Must | 11 回目のキャンセル URL 試行が 429 になる。同一電話番号で 4 件目の予約が拒否される | 統合レポート『管理者 1 名の認証は…キャンセルトークンは 256 bit をハッシュ保存する』 |
 | FR-S-05 | Bot 対策 | Cloudflare Turnstile（非対話型）を確定時に siteverify で検証（単回使用・300 秒）。ハニーポット `website` フィールド（非空なら成功を装って破棄）。CSP に `challenges.cloudflare.com` を許可 | Must | Turnstile トークンなし・再利用の POST が拒否される。ハニーポット入りの送信が DB に残らない | 統合レポート『セキュリティは「安価な検証を先に」…』 |
-| FR-S-06 | キャンセルトークン | `randomBytes(32)` base64url（43 文字）、DB は SHA-256 ハッシュのみ（`cancel_token_hash bytea UNIQUE`）、`timingSafeEqual` 照合、形式 `^[A-Za-z0-9_-]{43}$` で早期拒否。有効期限は予約開始の締切時刻まで、使用後は失効 | Must | DB ダンプに生トークンが含まれない。キャンセル後に同じ URL を開くと無効表示 | 同上 |
+| FR-S-06 | キャンセルトークン | `randomBytes(32)` base64url（43 文字）、DB は SHA-256 ハッシュのみ（`cancel_token_hash bytea UNIQUE`）、`timingSafeEqual` 照合、形式 `^[A-Za-z0-9_-]{43}$` で早期拒否。有効期限は予約開始の締切時刻まで、使用後は失効（キャンセル後はページ・ICS で無効。同じリンクからのキャンセルの再送だけは「キャンセル済み」として冪等に応答し、通知・記録を重ねない） | Must | DB ダンプに生トークンが含まれない。キャンセル後に同じ URL を開くと無効表示 | 同上 |
 | FR-S-07 | 監査ログ | `audit_log(actor, action, entity_type, entity_id, diff, created_at)` に予約作成・キャンセル・状態変更・手動変更・ブロック・設定変更・エクスポート・匿名化を記録（電話番号は末尾 4 桁ハッシュ） | Must | 手動キャンセルの履歴が `audit_log` から追える | 統合レポート『監視・バックアップ・ドメイン移行は…』 |
 | FR-S-08 | バックアップ | GitHub Actions で日次 `pg_dump --format=custom`、暗号化して 30 世代保存。復元手順書を `07_release/` に置く。Neon の 6 時間履歴は補助 | Must | 復元リハーサルで前日のダンプから staging に復元できる | 同上 |
 | FR-S-09 | 保存期間ジョブ | `last_visit_at < now() - 3 years` かつ未来予約なしの顧客を匿名化（氏名・ふりがな削除、電話ハッシュ化、統計は保持）。日次 cron または手動実行 | Should | 対象顧客の個人識別情報が消え、`anonymized_at` が記録される | 統合レポート『個人情報保護法は個人事業主にも…』 |
@@ -409,8 +410,8 @@ IPA 非機能要求グレードの 6 大項目に各 2〜5 行の目標値を置
 
 | ID | 項目 | 目標 |
 |---|---|---|
-| NFR-EN-01 | 実行環境 | Vercel Hobby（Phase 1 本番。規約上は Pro 相当だが、規約リスクを了承して Hobby で運用し、Vercel Pro／Cloudflare Workers Paid＋`@opennextjs/cloudflare` への移行可能性を担保: OI-18 決定済み。関数リージョン hnd1 東京、Node.js ランタイム統一、Fluid compute）、Neon Postgres（`btree_gist` 有効）、Node 24 LTS |
-| NFR-EN-02 | 技術スタック | Next.js 16.x App Router、React 19、TypeScript 7、next-intl 4、Drizzle ORM＋SQL マイグレーション、Zod 4、Better Auth、`web-push`、`temporal-polyfill`、Tailwind v4、Vitest 5、Playwright 1.64、Biome 2.5、ESLint 10（根拠: 統合レポート『バージョンと構成は 2026 年 10 月の実測値で固定する』） |
+| NFR-EN-01 | 実行環境 | Vercel Hobby（Phase 1 本番。規約上は Pro 相当だが、規約リスクを了承して Hobby で運用し、Vercel Pro／Cloudflare Workers Paid＋`@opennextjs/cloudflare` への移行可能性を担保: OI-18 決定済み。関数リージョン hnd1 東京、Node.js ランタイム統一、Fluid compute）、Neon Postgres（`btree_gist` 有効）、Node 24 LTS（本番・CI は `.nvmrc` の 24。開発環境のため `package.json` の `engines.node` は `>=22.13.0`。設計書 ADR-0009） |
+| NFR-EN-02 | 技術スタック | Next.js 16.x App Router、React 19、TypeScript 6.0（v0.6 までの TypeScript 7 は `typescript-eslint`・`eslint-config-next` の対応範囲外のため。対応後に移行）、next-intl 4、Drizzle ORM＋SQL マイグレーション、Zod 4、Better Auth、`web-push`、日時処理は `Intl`（IANA 名 `Asia/Tokyo`。v0.6 までの `temporal-polyfill` は使わない）、Tailwind v4、Vitest 5、Playwright（`@playwright/test` は依存にせず、E2E スクリプト `test/e2e/run.mjs` からライブラリを利用。CI は 1.56.1 を一時導入）、Biome 2.5、ESLint 10（根拠: 統合レポート『バージョンと構成は 2026 年 10 月の実測値で固定する』。実装時の差分は設計書 ADR-0009） |
 | NFR-EN-03 | 対応ブラウザ（顧客） | iOS Safari 17 以降、Android Chrome 最新 2 版、デスクトップ Chrome / Safari / Edge / Firefox 最新 2 版。320px 幅で横スクロールなし（WCAG 1.4.10） |
 | NFR-EN-04 | 対応環境（管理 PWA） | iOS 16.4 以降のホーム画面追加アプリ（推奨 iOS 26、検証は 17.x と 26）、Android Chrome 最新 2 版。クライアント端末（最近の iPhone）で実機検証 |
 | NFR-EN-05 | アクセシビリティ | WCAG 2.2 AA。ターゲット 44×44（下限 24×24＋4px 間隔）、フォーカス非遮蔽、再入力禁止、`lang` 切替、英語ページ内の日本語固有名詞に `lang="ja"`、ふりがなは `<ruby>`、axe で自動検出＋VoiceOver/NVDA で手動確認 |
@@ -433,7 +434,7 @@ IPA 非機能要求グレードの 6 大項目に各 2〜5 行の目標値を置
 | `time_blocks` | `id`, `during tstzrange`, `kind`（break / private / closed / holiday）, `label`, `created_at`, `deleted_at` | なし | 空き計算で `bookings` と同様に除外。厳密な相互排他が必要なら `calendar_items` に統合（ADR） |
 | `settings` | `slot_step_min`（30）, `lead_time_min`（60）, `max_advance_days`（60）, `cancel_deadline_min`（120）, `timezone`（Asia/Tokyo）, `allow_same_day`（true）, `digest_hour_jst`（21） | なし | すべて【要確認】 |
 | `push_subscriptions` | `id`, `endpoint`（UNIQUE）, `p256dh`, `auth`, `platform`, `user_agent`, `last_seen_at`, `last_success_at`, `fail_count`, `created_at` | なし | 404/410 で削除 |
-| `consents` | `id`, `customer_id`, `booking_id`, `kind`（booking_policy / privacy / health_notes / photo_karte / photo_sns / marketing）, `policy_version`, `accepted_at`, `revoked_at`, `ip`, `user_agent` | 同意記録 | Phase 1 は booking_policy＋privacy を 1 チェックで同時取得。Phase 3 用途は別チェック |
+| `consents` | `id`, `customer_id`, `booking_id`, `kind`（booking_policy / privacy / health_notes / photo_karte / photo_sns / marketing）, `policy_version`, `accepted_at`, `revoked_at`, `ip_hash`（IP の HMAC。生の IP は保存しない）, `user_agent` | 同意記録 | Phase 1 は booking_policy＋privacy を 1 チェックで同時取得。Phase 3 用途は別チェック |
 | `audit_log` | `id`, `actor`（owner / customer:<booking_id> / system）, `action`, `entity_type`, `entity_id`, `diff jsonb`, `created_at` | 個人情報を含めない | トリガーまたは DAL で挿入 |
 | `notification_log` | `id`, `booking_id`, `channel`（push）, `template`, `scheduled_for`, `sent_at`, `status`, `error` | なし | KPI-07 の計測 |
 | `rate_limits` | `key`, `window_start`, `count` | IP・電話ハッシュ | 追加サービス不要 |
@@ -502,10 +503,10 @@ erDiagram
 
 | 項目 | ルール |
 |---|---|
-| 保存期間 | 予約・来店記録は **最終来店から 3 年**で個人識別情報を匿名化（氏名・ふりがな削除、電話番号ハッシュ化、`line_user_id` 等削除）。日時・メニュー・状態・金額の統計は保持 |
+| 保存期間 | 予約・来店記録は **最終利用から 3 年**で個人識別情報を匿名化。最終利用は最終来店、最後の予約の終了（状態を問わない）、顧客登録のうち最も遅い日時で、来店記録のない顧客も対象にする（プライバシーポリシーの「最後のご来店（ご来店がない場合は最後のご予約日、ご予約もない場合は登録日）から 3 年」と同じ）。氏名・ふりがな削除、電話番号ハッシュ化、`line_user_id` 等削除、予約の備考・店主メモ・キャンセル理由の自由記述・キャンセル用トークンのハッシュ、同意記録の IP・UA も削除。日時・メニュー・状態・金額の統計は保持 |
 | 削除依頼 | 電話番号＋折り返し電話で本人確認し、**7 日以内**に匿名化。`audit_log` に記録 |
 | ソフトデリート | `deleted_at` は管理者の誤操作復旧用（5 秒 Undo）。法に基づく消去請求には `anonymized_at` を立てて実際に消す |
-| 同意記録 | `consents` は匿名化後も `customer_id` を残して保持（同意の事実の証跡）。IP・UA は 1 年で削除 |
+| 同意記録 | `consents` は匿名化後も `customer_id` を残して保持（同意の事実の証跡）。IP（HMAC で保存し生の値は持たない）・UA は 1 年で削除 |
 | ログ | Vercel/Sentry のログには個人情報を書かない。`notification_log` の `error` に電話番号を含めない |
 | バックアップ | 30 世代（約 30 日）。匿名化後もバックアップに残る期間を「最大 30 日」としてポリシーに明記 |
 
@@ -544,7 +545,7 @@ erDiagram
 | 第三者提供 | 行わない（法令に基づく場合を除く）。Vercel・Neon は契約上個人データを取り扱わないクラウド事業者であり、第三者提供にも委託にも当たらない（PPC Q&A Q7-53・Q12-3）ため外国第三者提供の同意・情報提供（法 28 条）は不要 |
 | 委託先 | Resend（メール送信、採用時）、Cloudflare Turnstile（Bot 判定）、Sentry（エラー監視）、Apple/Google（プッシュ配信）など、事業者側で内容を処理するサービスを列挙【要確認: 最終構成に合わせて更新】 |
 | 安全管理措置（法 32 条 1 項 4 号・政令 10 条 1 号） | 通信の暗号化、アクセス制限（管理者のみ・パスキー）、ログに個人情報を残さない、バックアップの暗号化。**外的環境の把握として、外国（米国）のクラウド事業者 Vercel Inc.・Neon Inc. を利用し、サーバ所在地が米国であること、契約上これらの事業者は個人データを取り扱わないこと、米国の個人情報保護制度を把握したうえで措置を講じていることを明記**（PPC Q&A Q10-25） |
-| 保存期間 | 最終来店から 3 年で匿名化（10.3）。美容師法に顧客記録の保存義務はないため事業者が自ら定める |
+| 保存期間 | 最終利用（最後のご来店、ご来店がない場合は最後のご予約日、ご予約もない場合は登録日）から 3 年で匿名化（10.3）。美容師法に顧客記録の保存義務はないため事業者が自ら定める |
 | 開示・訂正・利用停止・削除の手続（法 32 条 1 項 3 号） | 電話番号による本人確認のうえ「遅滞なく」対応（目安 7 日以内）。手数料は取らない旨を明記 |
 | 苦情の申出先（政令 10 条 2 号） | Instagram DM（`@neuer.kento`。OI-23 決定済み）またはフォーム。事業者の電話番号は掲載しない（OI-10 決定済み） |
 | Cookie 等 | 言語選択 Cookie、管理者セッション Cookie、Vercel Web Analytics（個人を識別しない） |
@@ -573,7 +574,7 @@ erDiagram
 ### 12.3 同意取得
 
 - 確認画面に必須チェックボックス 1 つ: 「ご入力いただいた氏名・電話番号は、ご予約の管理・確認連絡のために利用し、第三者には提供しません。プライバシーポリシーとキャンセルポリシーに同意します / I agree to the Privacy Policy and Cancellation Policy」。
-- `consents(kind, policy_version, accepted_at, ip, user_agent)` に保存し、`bookings.consent_id` で参照。
+- `consents(kind, policy_version, accepted_at, ip_hash, user_agent)`（IP は HMAC）に保存し、`bookings.consent_id` で参照。
 - Phase 3 の健康関連情報・写真は**別チェック**で取得し、Phase 1 の同意を流用しない。
 
 ### 12.4 その他

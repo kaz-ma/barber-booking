@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-02 |
-| 版 | v0.5 |
+| 版 | v0.6 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.5（2026-10-12）: 実装との同期。ルート（特商法表記 `/{locale}/tokusho`、キャッチオール `[...rest]`、`/admin/customers/{id}`、`/admin/install` への誘導条件）、データ取得関数名（`getMenuCatalog`・`getWeeklyHours`・`getDayAvailability`・`getWeek`・`getInbox`・`getAdminMenus`・`getAdminHours`・`getAdminSettings`・`listDevices`）、管理アクション（`moveMenu`・`unacknowledge`、`mergeCustomers` は未実装）、管理の共通レイアウト（`(app)/layout.tsx`、TanStack Query なし）。主要コンポーネント欄の実装名は 07_components.md v0.5 を参照。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップ・404 の CTA を「予約する」→ S-C-02 に統一し、「空き時間を見て予約する」は S-C-02 → S-C-03（CT-02）だけに（3 章の遷移図・CT-01）。S-C-01 の `MenuSummary` を 9 件の情報表示カードに。S-C-03 の初期の選択日 = 今日（OI-24）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-01 の構成簡素化（`HoursSection` を廃止し `AccessSection` に統合、`InstagramLink` 追加。F1）、S-C-03 の `WeekStrip` を `MonthCalendar` に置換（F2）、顧客向けの `tel:`／`PhoneFallback` を `InstagramLink` に置換し遷移図の電話アプリを Instagram DM に変更（F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（お客様情報）、完了画面の共有・コピー、ログインのワンタイムコード、ブロックのプリセット変更、手動予約の「それでも保存」削除 |
+| 変更履歴 | v0.6（2026-10-12）: レビュー修正の反映。S-A-04 のアクションと MT-04 に「直前の状態に戻す」（`stepBackBookingStatus`）を追加（03_screen_specs.md 11 章）。v0.5（2026-10-12）: 実装との同期。ルート（特商法表記 `/{locale}/tokusho`、キャッチオール `[...rest]`、`/admin/customers/{id}`、`/admin/install` への誘導条件）、データ取得関数名（`getMenuCatalog`・`getWeeklyHours`・`getDayAvailability`・`getWeek`・`getInbox`・`getAdminMenus`・`getAdminHours`・`getAdminSettings`・`listDevices`）、管理アクション（`moveMenu`・`unacknowledge`、`mergeCustomers` は未実装）、管理の共通レイアウト（`(app)/layout.tsx`、TanStack Query なし）。主要コンポーネント欄の実装名は 07_components.md v0.5 を参照。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。予約導線の 1 本化（OI-25）: トップ・404 の CTA を「予約する」→ S-C-02 に統一し、「空き時間を見て予約する」は S-C-02 → S-C-03（CT-02）だけに（3 章の遷移図・CT-01）。S-C-01 の `MenuSummary` を 9 件の情報表示カードに。S-C-03 の初期の選択日 = 今日（OI-24）。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。S-C-01 の構成簡素化（`HoursSection` を廃止し `AccessSection` に統合、`InstagramLink` 追加。F1）、S-C-03 の `WeekStrip` を `MonthCalendar` に置換（F2）、顧客向けの `tel:`／`PhoneFallback` を `InstagramLink` に置換し遷移図の電話アプリを Instagram DM に変更（F3）。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（お客様情報）、完了画面の共有・コピー、ログインのワンタイムコード、ブロックのプリセット変更、手動予約の「それでも保存」削除 |
 | 関連要件 | 8 章 S-C-01〜10・S-C-02b / S-A-01〜12、FR-C-01〜17、FR-A-01〜19、FR-S-14、AT-01〜23 |
 | 関連文書 | `03_screen_specs.md`（主要画面の詳細）、`06_api.md`（アクション）、`07_components.md`（コンポーネント） |
 
@@ -44,7 +44,7 @@
 | S-A-01 | ログイン | `/admin/login` | なし | `PasskeyLoginButton`、`OtpFallbackForm`（6 桁コード 1 欄、`autocomplete="one-time-code"`。OI-12 決定済み）、`StandaloneGate` | なし | Better Auth（`/api/auth/*`）。`signIn.passkey()`、フォールバックは `requestAdminOtp`・`verifyAdminOtp` | FR-A-01 |
 | S-A-02 | 今日 | `/admin` | 管理者 | `AdminHeader`（日付送り・`InboxBadge`）、`Timeline`、`BookingCard`、`BlockCard`、`NowLine`、`Fab`（`QuickActionSheet`）、`BottomTabs`、`Toast`（Undo）、`OfflineBanner`（Should）、`ResubscribeBanner` | `getDayAgenda(date)`（非キャッシュ）、`GET /api/admin/inbox-count`（20 秒ポーリング） | `createTimeBlock`（FAB プリセット）、`deleteTimeBlock`、`restoreTimeBlock`、`updateBookingStatus` | FR-A-02, 06, 10, 11, 17 |
 | S-A-03 | 週 | `/admin/week` | 管理者 | `WeekGrid`、`DayCell`（件数・空き時間・定休/ブロック・未確認の表示）、`BottomTabs` | `getWeek(start)`（月曜始まりの 7 日。予約件数・空き時間〔分〕・ブロック数・未確認数・定休） | なし | FR-A-03 |
-| S-A-04 | 予約詳細 | `/admin/bookings/{id}` | 管理者 | `BackButton`（standalone 用「←」）、`BookingDetail`、`StatusActions`、`ConfirmUrlPanel`、`OwnerNoteField`、`AuditTrail` | `getBookingDetail(id)` | `acknowledgeBooking`（表示時）、`updateBookingStatus`、`undoBookingChange`、`reissueConfirmationUrl`、`updateOwnerNote` | FR-A-04, 05, 10, 11 |
+| S-A-04 | 予約詳細 | `/admin/bookings/{id}` | 管理者 | `BackButton`（standalone 用「←」）、`BookingDetail`、`StatusActions`、`ConfirmUrlPanel`、`OwnerNoteField`、`AuditTrail` | `getBookingDetail(id)` | `acknowledgeBooking`（表示時）、`updateBookingStatus`、`stepBackBookingStatus`（直前の状態に戻す）、`undoBookingChange`、`reissueConfirmationUrl`、`updateOwnerNote` | FR-A-04, 05, 10, 11 |
 | S-A-05 | 手動予約 | `/admin/bookings/new` | 管理者 | `ManualBookingForm`、`CustomerCombobox`、`MenuSelect`、`DateTimeField`、`SourceSelect`、`OverlapAlert`、`SavedSheet`（確認 URL コピー） | `getAdminMenus()`、`GET /api/admin/customers/suggest`、`GET /api/admin/overlaps`、`GET /api/admin/free-starts`（空き開始時刻のチップ） | `createManualBooking` | FR-A-05, 10 |
 | S-A-06 | 時間ブロック | `/admin/blocks/new` | 管理者 | `BlockForm`（プリセット・期間指定）、`KindSelect`、`OverlapAlert` | `GET /api/admin/overlaps` | `createTimeBlock` | FR-A-06 |
 | S-A-07 | 受信箱（未確認） | `/admin/inbox` | 管理者 | `InboxList`（新規・キャンセル）、`AcknowledgeAllButton` | `getInbox()`（未確認と確認済み） | `acknowledgeAll`、`unacknowledge`（「すべて確認済み」の Undo）。個別の既読化は S-A-04 を開いたとき | FR-A-11 |
@@ -146,7 +146,7 @@ flowchart TD
 | MT-01 | 任意 | iPhone で `display-mode: standalone` でない状態でログイン後の画面を開く（S-A-12 で「閲覧だけ」を選んだ端末を除く） | S-A-12 | 購読 UI を出さない。ログインは可能（閲覧のみの利用を妨げない） | FR-A-09, AT-11 |
 | MT-02 | 通知タップ | `notification.navigate` | S-A-04 | iOS で既存ウィンドウ＋スリープ後に `/admin` へ戻る現象（WebKit 268797）が出た場合、S-A-02 の受信箱バッジで吸収 | FR-A-10, AT-14 |
 | MT-03 | S-A-02 | FAB →「今から 1 時間」（ほかに「2 時間」「今日はここまで」） | S-A-02 | シートを開いた時点で重なりを判定し行に表示。`createTimeBlock` 即時保存、トーストに顧客サイトへの影響を 1 行、5 秒 Undo。2 タップで完了 | FR-A-06, AT-21 |
-| MT-04 | S-A-04 | 状態ボタン（来店・施術開始・完了・無断キャンセル・管理者キャンセル・遅刻キャンセル） | S-A-04 | `updateBookingStatus`。キャンセル系・無断は 5 秒 Undo | FR-A-04 |
+| MT-04 | S-A-04 | 状態ボタン（来店・施術開始・完了・無断キャンセル・管理者キャンセル・遅刻キャンセル） | S-A-04 | `updateBookingStatus`。キャンセル系・無断は 5 秒 Undo。来店・施術開始・完了の押し間違いは「直前の状態に戻す」（`stepBackBookingStatus`、1 段ずつ） | FR-A-04 |
 | MT-05 | S-A-05 | 「保存」→ `conflict: overlap` | S-A-05 | 「19:00–20:00 の○○様と重なります」赤表示。操作は `[時間を変更]` のみ（「それでも保存」は置かない。OI-11 決定済み） | FR-A-05, US-04 |
 
 ---

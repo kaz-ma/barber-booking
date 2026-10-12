@@ -5,9 +5,10 @@
 | 項目 | 内容 |
 |---|---|
 | ID | ADR-0008 |
-| 版 | v0.1 |
-| 日付 | 2026-10-10 |
-| ステータス | Proposed（M3 で承認） |
+| 版 | v0.2 |
+| 日付 | 2026-10-12 |
+| ステータス | Accepted（2026-10-12、実装済み） |
+| 変更履歴 | v0.2（2026-10-12）: レビュー修正の反映。ステータスを Proposed から Accepted（実装済み）に変更。上書きの監査 `customer.overwrite`（列名のみ）、/en の予約でふりがなを消さないこと、匿名化で `cancel_reason` の自由記述・`cancel_token_hash`・同意の `ip_hash`・`user_agent` も消すことを「決定」に追記（決定内容は変更なし）。v0.1（2026-10-10）: 初版（Proposed） |
 | 決定者 | 開発者 |
 | 関連要件 | 10.1（`bookings` 備考の【要確認: 設計時にスナップショット列の要否を ADR で決定】）、10.3, FR-A-05, FR-A-13, FR-A-14, FR-S-09, NFR-SC-07 |
 
@@ -37,9 +38,9 @@
 
 - `bookings` は `customer_id`（NOT NULL）のみを持つ。氏名・ふりがな・電話は `customers` に保持する。
 - 確定時のスナップショットは個人情報でない値のみ: `price_jpy`、`is_student`、`buffer_min`、`locale`。
-- web 予約は `phone_e164` で `customers` を upsert し、氏名・ふりがな・職業・ロケールを最新の入力で更新する（顧客は自分の情報の正）。変更の事実は `audit_log` に PII なしで記録する。
+- web 予約は `phone_e164` で `customers` を upsert し、氏名・ふりがな・職業・ロケールを最新の入力で更新する（顧客は自分の情報の正）。ふりがな欄のない /en の予約は保存済みのふりがなを消さない（`COALESCE`）。変更の事実は `audit_log customer.overwrite`（`diff.fields` に変わった列名のみ）に PII なしで記録する。
 - 電話番号なしの手動予約は新しい `customers` 行を作り、後から名寄せ（`mergeCustomers`、Should）。
-- 匿名化は `customers` の個人情報列を NULL にし、関連予約の `note`・`owner_note` も同じトランザクションで NULL にする（04_data_model.md 8 章）。
+- 匿名化は `customers` の個人情報列を NULL にし、関連予約の `note`・`owner_note`・`cancel_reason` の自由記述・`cancel_token_hash` と、その顧客の `consents` の `ip_hash`・`user_agent` も同じトランザクションで NULL にする（04_data_model.md 8 章）。
 
 ## 結果
 

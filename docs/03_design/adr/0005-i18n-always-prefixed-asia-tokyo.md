@@ -5,9 +5,10 @@
 | 項目 | 内容 |
 |---|---|
 | ID | ADR-0005 |
-| 版 | v0.1 |
-| 日付 | 2026-10-10 |
+| 版 | v0.2 |
+| 日付 | 2026-10-12 |
 | ステータス | Accepted |
+| 変更履歴 | v0.2（2026-10-12）: レビュー修正の反映。日付ライブラリ（`temporal-polyfill`）の採用を ADR-0009 の決定（`Intl` と IANA 名 `Asia/Tokyo` のみ）への参照に置き換え（i18n・タイムゾーンの決定は変更なし）。v0.1（2026-10-10）: 初版 |
 | 決定者 | 開発者 |
 | 関連要件 | FR-C-03, FR-C-07, FR-C-08, FR-C-13, NFR-EN-05, NFR-EN-07, US-02, AT-02 |
 
@@ -33,7 +34,7 @@
 | 接頭辞 | `localePrefix: 'always'` | `as-needed`（既定ロケールで接頭辞が消え、絶対 URL 生成にロケール判定が絡む）、サブドメイン（DNS・証明書が増える） |
 | 検出 | パス → Cookie → Accept-Language → `ja`。`/` のみ 307 | 接頭辞付き URL の自動リダイレクト（ユーザーの選択を上書き） |
 | タイムゾーン | `Asia/Tokyo` 固定（IANA 名）、DB は `timestamptz`、フォームは `+09:00` 付き ISO | 端末 TZ での表示（訪日客が予約時刻を誤解）、固定オフセット `+09:00` のハードコード |
-| 日付ライブラリ | `temporal-polyfill`（将来ポリフィルを外すだけ） | dayjs（TZ が弱い）、luxon（サイズ大）、`date-fns`＋`@date-fns/tz`（次点） |
+| 日付処理 | ライブラリを使わず `Intl.DateTimeFormat`（IANA 名 `Asia/Tokyo`）と `YYYY-MM-DD` 文字列の暦計算（`domain/time.ts`・`domain/jst-format.ts`）。ADR-0009 で決定 | `temporal-polyfill`（v0.1 の採用案。ADR-0009 で置き換え）、dayjs（TZ が弱い）、luxon（サイズ大）、`date-fns`＋`@date-fns/tz` |
 
 ## 決定
 
@@ -55,9 +56,10 @@
 
 - 全 URL に接頭辞が付く（短縮性は下がる）。`/` へのアクセスは 1 回リダイレクトが入る。
 - `en.json` の欠落が日本語混在につながるため、CI でキー差分を検査する必要がある。
-- Temporal は Safari 未出荷のためポリフィル（約 20 kB）が必要。クライアントへの持ち込みを最小にし、整形は主にサーバーで行う。
+- 日時処理は ADR-0009 のとおり `Intl`（IANA 名 `Asia/Tokyo`）のみで、ポリフィルをクライアントに持ち込まない（v0.1 の Temporal ポリフィル約 20 kB の懸念は解消）。整形は主にサーバーで行う。
 
 ## 関連
 
 - 統合レポート『i18n は next-intl 4、localePrefix: 'always'、timeZone: 'Asia/Tokyo' で固定する』『空き計算は「JST で候補生成 → UTC の tstzrange → && で除外」…』
 - 01_sitemap.md 4 章、07_components.md 6 章
+- ADR-0009（日時処理は `Intl` のみ。本 ADR の日付ライブラリの選択を置き換え）

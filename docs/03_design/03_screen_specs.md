@@ -5,11 +5,11 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-03 |
-| 版 | v0.5 |
+| 版 | v0.6 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.5（2026-10-12）: 実装との同期。4 章 S-C-05 の見出しを「ご予約を承りました」＋スタンプ「予約確定 CONFIRMED」に（デザインガイド DG-001 U-05 決定。4.1・4.4）。1.4 の「完了段を要約に畳む」は実装どおりで、展開カンプ Q-01 は畳む側に決定。0.2 のデータ出所を `getWeeklyHours()` に、1.4 の下書きの保持先を `draft.ts`（`sessionStorage`）に。v0.4（2026-10-12）: 要件定義書 v0.6（決定事項 G1〜G4）の反映。0 章 S-C-01 のメニューを 9 件の情報表示カード（`MenuCard variant="info"`、リンクなし）にし「全 9 メニュー」導線を廃止、予約 CTA（ヘッダー＋メニュー直後）の文言を「予約する / Book」（`/book` へ）に統一し「空き時間を見て予約する」をメニュー段の CTA 専用に（OI-25）、2 章 S-C-03 の初期の選択日を今日に決定（OI-24）、Instagram `@neuer.kento` 確定（OI-23）。v0.3（2026-10-12）: 要件定義書 v0.5（クライアントフィードバック F1〜F3）の反映。0 章 S-C-01 トップの構成を新設（写真のみのヒーロー、受付時間・定休・予約締切をアクセスに統合）、2 章 S-C-03 を月カレンダー（grid・状態・キーボード操作）＋時間枠リストに変更し週ストリップを廃止、顧客向けの `tel:` / 電話案内をすべて Instagram DM 導線に置換（S-C-02/02b/04/05/06）、10 章 S-A-11 の予約制限 `dm_only` を新設。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（要約ブロック付きお客様情報）、× 行の表示規則と凡例、枠タップで次段へ、完了画面の店名・住所と共有・コピー、手動予約の「それでも保存」削除、ブロックのプリセット変更、ログインのワンタイムコード（9.4） |
+| 変更履歴 | v0.6（2026-10-12）: レビュー修正の反映。2 章 S-C-03 に S-C-04 から戻ったときのバナー（`?taken=1` 埋まった／`?taken=deadline` 予約できなくなった）と `allow_same_day` OFF の当日を「締切」に、3 章 S-C-04 の `not_bookable` を時間選択へ戻す・`duplicate` の廃止（`slot_taken` に統一）・Turnstile の `cData`・学生料金ラベルの判定、4・5 章の締切「◯時間前まで」を予約ごとの締切から算出、5 章 S-C-06 のキャンセルの冪等化（二重タップ・再送も完了表示）とキャンセル操作のレート制限、11 章を新設（S-A-04「直前の状態に戻す」、S-A-08 の日次サマリー時刻は表示のみ・サマリーの「臨時休業日」の文面、S-A-09 の最終開始プレビューを枠刻みに揃える）。v0.5（2026-10-12）: 実装との同期。4 章 S-C-05 の見出しを「ご予約を承りました」＋スタンプ「予約確定 CONFIRMED」に（デザインガイド DG-001 U-05 決定。4.1・4.4）。1.4 の「完了段を要約に畳む」は実装どおりで、展開カンプ Q-01 は畳む側に決定。0.2 のデータ出所を `getWeeklyHours()` に、1.4 の下書きの保持先を `draft.ts`（`sessionStorage`）に。v0.4（2026-10-12）: 要件定義書 v0.6（決定事項 G1〜G4）の反映。0 章 S-C-01 のメニューを 9 件の情報表示カード（`MenuCard variant="info"`、リンクなし）にし「全 9 メニュー」導線を廃止、予約 CTA（ヘッダー＋メニュー直後）の文言を「予約する / Book」（`/book` へ）に統一し「空き時間を見て予約する」をメニュー段の CTA 専用に（OI-25）、2 章 S-C-03 の初期の選択日を今日に決定（OI-24）、Instagram `@neuer.kento` 確定（OI-23）。v0.3（2026-10-12）: 要件定義書 v0.5（クライアントフィードバック F1〜F3）の反映。0 章 S-C-01 トップの構成を新設（写真のみのヒーロー、受付時間・定休・予約締切をアクセスに統合）、2 章 S-C-03 を月カレンダー（grid・状態・キーボード操作）＋時間枠リストに変更し週ストリップを廃止、顧客向けの `tel:` / 電話案内をすべて Instagram DM 導線に置換（S-C-02/02b/04/05/06）、10 章 S-A-11 の予約制限 `dm_only` を新設。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。日時先行の順序と S-C-02b（要約ブロック付きお客様情報）、× 行の表示規則と凡例、枠タップで次段へ、完了画面の店名・住所と共有・コピー、手動予約の「それでも保存」削除、ブロックのプリセット変更、ログインのワンタイムコード（9.4） |
 | 関連要件 | FR-C-01〜12, FR-C-14, FR-C-16, FR-A-01, FR-A-02, FR-A-05, FR-A-06, FR-A-09〜11, FR-A-13, FR-A-15, FR-A-16, FR-S-05, FR-S-06, NFR-EN-03〜07, AT-01〜21 |
-| 対象画面 | S-C-01, S-C-02, S-C-02b, S-C-03, S-C-04, S-C-05, S-C-06, S-A-02, S-A-05, S-A-06, S-A-10, S-A-11（＋S-A-01, S-A-12） |
+| 対象画面 | S-C-01, S-C-02, S-C-02b, S-C-03, S-C-04, S-C-05, S-C-06, S-A-02, S-A-05, S-A-06, S-A-10, S-A-11（＋S-A-01, S-A-12）。S-A-04・S-A-08・S-A-09 は 11 章で変更点のみ |
 
 ### 共通規約
 
@@ -199,7 +199,7 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 | 曜日行 | 常時 | 月〜日の 7 列（月曜始まり）。土日の色分けはしない（記号と文字で状態を示す） | — |
 | 日セル（`DayCell`） | available | 日付・◎、青系（`--status-open`）、タップ可（`<a href="?date=…">`） | その日に空き枠が 1 つ以上 |
 | | full | 日付・×・理由「満席」、グレー＋取り消し線。リンクにせずフォーカス対象外 | 営業日だが空き枠 0 |
-| | deadline | 日付・×・理由「締切」 | 今日で、残りの候補がすべてリードタイム内 |
+| | deadline | 日付・×・理由「締切」 | 今日で、残りの候補がすべてリードタイム内（または `allow_same_day` が OFF の今日） |
 | | closed | 日付・×・理由「定休」または「休業」 | `business_hours.is_closed`（定休）またはオーバーライド `is_closed`（休業） |
 | | disabled | 日付のみ（記号・理由なし）、薄いグレー。リンクにせずフォーカス対象外 | 今日より前、または `today + max_advance_days` より後（61 日以降） |
 | | today | 日付を枠線で囲む（状態の表示とは独立に重ねる）、`aria-current="date"` | 今日（JST） |
@@ -208,10 +208,11 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 | 初期の選択日 | `date` 未指定 | **今日**（JST）を選択し、今日の時間枠リストを出す。今日が ×（定休・休業・満席・締切）でも今日を選択したまま、2.5 の empty（選択日）を出す。他の日へ自動で移らない | OI-24 決定済み（2026-10-12） |
 | | 月外 | 空セル（前月・翌月の日付は出さない） | 月初の前・月末の後の埋め草 |
 | 時間枠 ◎（`SlotButton`） | available | 「◎ 18:00–19:00」（開始–終了）のボタン。終了は `start + duration_min`（バッファは表示に含めない） | その時刻から所要時間を連続確保できる |
-| 時間枠 ×（`SlotRow`） | full / deadline | 「× 19:00–20:00 満席」「× 18:00–19:00 締切」。グレー＋取り消し線。**ボタン・リンクにせず `tabindex` も付けない**（フォーカス・操作の対象外）。読み上げは行テキストのまま | 営業時間内の候補時刻のうち、予約・ブロックと重なる（満席）またはリードタイム内（締切）。閉店をまたぐ時刻は候補にしないため表示しない |
+| 時間枠 ×（`SlotRow`） | full / deadline | 「× 19:00–20:00 満席」「× 18:00–19:00 締切」。グレー＋取り消し線。**ボタン・リンクにせず `tabindex` も付けない**（フォーカス・操作の対象外）。読み上げは行テキストのまま | 営業時間内の候補時刻のうち、予約・ブロックと重なる（満席）またはリードタイム内・当日受付なしの今日（締切）。閉店をまたぐ時刻は候補にしないため表示しない |
 | 凡例 | 常時 | 「◎ 予約できます ／ × 予約できません」。◎・× の 2 記号のみ（○・△は使わない） | FR-C-07 |
 | 固定バー「この日時で進む」 | 選択済みで戻ってきたとき | S-C-04 の「変更」やブラウザの戻るで戻った場合だけ、選択中の枠を強調し固定バーを出す（再選択なしで進める） | EVAL-001 論点 2 |
 | 締切文言 | 常時 | `lead_time_min` を差し込み | 【要確認: OI-06】 |
+| 戻りのバナー | `?taken=1` / `?taken=deadline` | ページ先頭に `role="alert"` のバナー。`taken=1`:「選んだ時間は埋まりました」＋「申し訳ありません。その枠はたった今埋まりました。別の時間をお選びください。」、`taken=deadline`:「選んだ時間は予約できなくなりました」＋「受付の締切を過ぎたなどの理由で、その時間は予約できません。別の時間をお選びください。」 | S-C-04 から `conflict`（`taken=1`）または `invalid: not_bookable`（`taken=deadline`）で戻ったとき（CR-14） |
 
 ### 2.3 空き取得
 
@@ -221,7 +222,7 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 | 取得（時間枠） | RSC `getAvailability({ menuSlug, from: date, to: date })`。選択日の時間枠（◎ と × の両方、× は理由付き） |
 | 月送り | ‹ › は `?month=YYYY-MM` を変える `<Link>`（選択日は解除し、月を移った後は日付未選択。月送りの仕様は OI-24 の決定で変更なし）。`prefetch` は翌月のみ |
 | 鮮度 | 非キャッシュ（リクエスト内のみ React `cache()` で重複排除）。`<Suspense fallback={<MonthCalendarSkeleton/>}>` と `<Suspense fallback={<SlotListSkeleton/>}>` を分ける。日付タップは `?date=` を変える `<Link>`（RSC ナビゲーション、URL で共有可） |
-| 再取得 | S-C-04 から `slot_taken` で戻った場合は `router.refresh()` 済みの状態で表示し、`aria-live` で「選んだ時間は埋まりました。別の時間をお選びください」 |
+| 再取得 | S-C-04 から `conflict`・`not_bookable` で戻る場合は `/book/time?menu=…&date=…&taken=1\|deadline&return=confirm` へ `router.push` する（新しい RSC 描画のため空き状況は最新）。ページ先頭に 2.2 の「戻りのバナー」を出す（CR-14） |
 | 枠ルール | 営業時間テンプレート、休業日オーバーライド、時間ブロック、有効予約、リードタイム、先行予約上限、閉店をまたがない、Asia/Tokyo（FR-C-08） |
 
 ### 2.4 操作→処理
@@ -289,7 +290,7 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 | 行 | 値の出所 | 書式 |
 |---|---|---|
 | メニュー・所要時間 | 下書き `menuSlug` → `getActiveMenus()` | 名称（ロケール別） |
-| 料金 | `applicablePrice()` | `Intl` 通貨。お客様情報（S-C-02b）で選んだ職業に応じて再計算し、学生価格適用時は「学生料金」ラベル。確定値はサーバー側で再計算しスナップショット |
+| 料金 | `applicablePrice()` | `Intl` 通貨。お客様情報（S-C-02b）で選んだ職業に応じて再計算し、学生価格適用時は「学生料金」ラベル（`isStudentRateApplied()`。学生でも学生価格のないメニューには付けない。保存値 `is_student` と同じ判定。CR-06）。確定値はサーバー側で再計算しスナップショット |
 | 日時 | 下書き `startsAt` | 「11月4日(水) 18:00–19:00」/ "Wed, Nov 4, 6:00 PM–7:00 PM JST" |
 | お名前（ふりがな） | 下書き | /ja は `<ruby>` ではなく括弧併記（入力値の確認のため） |
 | 電話番号 | 下書き（表示は入力時の書式） | — |
@@ -301,14 +302,14 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 |---|---|---|
 | 「変更」 | 該当段階（メニュー → `/book`、日時 → `/book/time`、お客様情報 → `/book/info?step=…`）へ。他の値は保持し、日時の変更は枠タップで確認画面へ直接戻る | FR-C-09 |
 | 同意チェック | 状態のみ。未チェックで確定 → 「プライバシーポリシーとキャンセルポリシーへの同意にチェックしてください / Select the checkbox to agree to the policies」 | FR-C-09 |
-| 「この内容で予約を確定する」 | `useActionState(createBooking)`。送信値: 下書き全項目＋`consent`＋`turnstileToken`＋`website`（ハニーポット）＋`submissionNonce`（画面表示時に `crypto.randomUUID()`、`sessionStorage` に保持）。送信中はボタンを `aria-disabled` にし「確定しています…」 | FR-C-10 |
+| 「この内容で予約を確定する」 | `useActionState(createBooking)`。送信値: 下書き全項目＋`consent`＋`turnstileToken`＋`website`（ハニーポット）＋`submissionNonce`（画面表示時に `crypto.randomUUID()`、`sessionStorage` に保持。Turnstile ウィジェットにも `cData` として渡し、サーバーが一致を確認する。SR-03）。送信中はボタンを `aria-disabled` にし「確定しています…」 | FR-C-10 |
 | 結果 `ok` | `router.replace(result.doneUrl)`、下書き破棄 | CT-04 |
-| 結果 `conflict` | `/book/time?date=…` へ戻し「申し訳ありません。その枠はたった今埋まりました。別の時間をお選びください / Sorry, that time was just booked. Please choose another time.」 | AT-03 |
-| 結果 `invalid` | `ErrorSummary` にフィールドエラー。営業時間外・リードタイム切れは「その時間は予約できません。日時を選び直してください」 | FR-S-02 |
+| 結果 `conflict` | `/book/time?menu=…&date=…&taken=1&return=confirm` へ戻し「申し訳ありません。その枠はたった今埋まりました。別の時間をお選びください / Sorry, that time was just booked. Please choose another time.」 | AT-03 |
+| 結果 `invalid` | `reason: 'not_bookable'`（締切・当日受付なし・休業など）は `/book/time?menu=…&date=…&taken=deadline&return=confirm` へ戻し、S-C-03 に「選んだ時間は予約できなくなりました」バナー（CR-14）。それ以外は `ErrorSummary` にフィールドエラー | FR-S-02 |
 | 結果 `rate_limited` | 「短時間に操作が集中しました。しばらくしてからお試しいただくか、Instagram の DM でご連絡ください」＋`InstagramLink` | FR-S-04 |
 | 結果 `bot_check_failed` | Turnstile を `reset()` し「確認に失敗しました。もう一度お試しください」 | FR-S-05 |
 | 結果 `restricted`（Should） | 「お手数ですが、ご予約は Instagram の DM で承ります」＋`InstagramLink`（`booking_restriction = dm_only`。`blocked` も同じ文言で理由を区別しない） | FR-A-13 |
-| 結果 `duplicate` | 「同じ内容のご予約がすでにあります。完了画面を保存していない場合は Instagram の DM でご連絡ください」 | 00_overview G-04 |
+| 結果 `duplicate`（2026-10-12 のレビュー修正で廃止） | サーバーは同じ冪等性キーで nonce が一致しない送信にも `conflict: slot_taken` を返す（電話番号がその枠を持つことを明かさない。SR-12）。型に残る `duplicate` を受け取った場合も `conflict` と同じく `taken=1` で S-C-03 へ戻す | 00_overview G-04 |
 | Turnstile 期限切れ（300 秒） | `expired-callback` で自動 `reset()` | FR-S-05 |
 
 ### 3.4 状態
@@ -370,6 +371,7 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 | カレンダーに追加 | `/api/ics/{token}` | ダウンロード（`SUMMARY`/`LOCATION` に店名＋住所/`DESCRIPTION` にキャンセル URL 全文/`VALARM` 前日・1 時間前） |
 | Google カレンダー（Should） | `calendar.google.com/calendar/render?action=TEMPLATE…` | 新規タブ |
 | キャンセル用リンク | `absoluteUrl('/{locale}/cancel/{token}')` | 「共有・コピー」（`ShareCopyButton`）: `navigator.share` があれば `{ title, text, url }` で共有シート（LINE・メモ等へ送れる）、無い・失敗（`AbortError` 以外）ならクリップボードにコピーして `aria-live` で「コピーしました」。リンク自体もタップ可。下に「カレンダーの予定からもキャンセルできます」を 1 行（CW-15）。ボタンは置き換えで増やさず 844px 以内を保つ |
+| キャンセル締切の案内 | `getBookingByToken()` の `cancelDeadlineHours`（予約ごとの `start − cancel_token_expires_at`。予約後に設定が変わっても、その予約の締切で表示。CR-17） | 「キャンセル用リンク（ご来店の {hours} 時間前まで）」。レイアウト図の「2時間前」は既定値の例 |
 | お問い合わせ | `config/shop.ts` の Instagram アカウント（`@neuer.kento`。OI-23 決定済み） | `InstagramLink` → Instagram のプロフィール（新規タブ）。v0.2 の `tel:` ボタンを置き換え、行数は増やさない（FR-C-11, 16） |
 
 ### 4.3 状態
@@ -416,10 +418,10 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 | 状態 | 条件 | 表示 |
 |---|---|---|
 | cancellable | トークン一致、`status = confirmed`、`now < cancel_token_expires_at` | 上図。締切時刻を明示 |
-| past_deadline | トークン一致、`confirmed`、締切後、予約終了前 | 「キャンセル締切（ご来店の 2 時間前）を過ぎています。Instagram の DM でご連絡ください / The cancellation deadline has passed. Please contact us via Instagram DM.」＋大きな `InstagramLink` ボタン（`tel:` は置かない。F3）【要確認: OI-05, OI-23】 |
-| cancelled（直後） | `cancelBooking` が `ok` | 「キャンセルしました」＋「もう一度予約する」→ `/book` |
+| past_deadline | トークン一致、`confirmed`、締切後、予約終了前 | 「キャンセル締切（ご来店の {hours} 時間前。`cancelDeadlineHours` で予約ごとの締切から算出。CR-17）を過ぎています。Instagram の DM でご連絡ください / The cancellation deadline has passed. Please contact us via Instagram DM.」＋大きな `InstagramLink` ボタン（`tel:` は置かない。F3）【要確認: OI-05, OI-23】 |
+| cancelled（直後） | `cancelBooking` が `ok`（二重タップ・同じリンクの再送で `alreadyCancelled: true` が返った場合も同じ表示。通知は 1 回だけ。CR-09） | 「キャンセルしました」＋「もう一度予約する」→ `/book` |
 | not found | 形式不正・ハッシュ不一致・キャンセル済み・完了済み・閲覧期限切れ | 「この予約は見つかりません」（理由を区別しない。列挙対策） |
-| rate limited | proxy で IP 10 回/分超過 | 429 の簡易ページ「しばらくしてからお試しください」 |
+| rate limited | ページ表示: proxy で IP 10 回/分超過。キャンセル操作: `cancelBooking` が `rate_limited`（同じキーをサービスで判定。SR-01） | ページ表示は 429 の簡易ページ「しばらくしてからお試しください」。キャンセル操作はページ内の `role="alert"`「処理できませんでした。時間をおいてお試しいただくか、Instagram の DM でご連絡ください」 |
 | loading | — | 内容スケルトン |
 
 ### 5.3 操作→処理
@@ -428,7 +430,7 @@ v0.2 の「本日の残り枠はお電話で」（`PhoneFallback`）は削除し
 |---|---|---|
 | ページ表示（GET） | トークン形式チェック → ハッシュ照合 → 表示のみ。**副作用なし**（リンクプレビューの誤キャンセル防止） | FR-C-12, FR-S-06 |
 | 「この予約をキャンセルする」 | `ConfirmDialog`（`<dialog>`、初期フォーカスは「戻る」） | — |
-| 「キャンセルする」 | `cancelBooking({ token })`: 再照合 → 締切再判定 → `status = cancelled_by_customer`、`cancel_token_hash = NULL` → `after()` で管理者へ Push | FR-C-12, FR-A-10 |
+| 「キャンセルする」 | `cancelBooking({ token })`（送信中は `onSubmit` で再送を止める）: IP 制限 → ロックなしのトークン存在確認 → ロック下で再照合 → 締切再判定 → `status = cancelled_by_customer`（`cancel_token_hash` は残す）→ `after()` で管理者へ Push。キャンセル済みの同じリンクは `ok`＋`alreadyCancelled: true`（05_state_and_flows.md 3 章） | FR-C-12, FR-A-10 |
 | 結果 `past_deadline` | 締切後表示へ切替 | — |
 
 アクセシビリティ: ダイアログは `aria-modal`、Esc で閉じる、閉じたらトリガーへフォーカスを戻す。
@@ -655,3 +657,31 @@ OI-12 で「アプリ内で入力する 6 桁コード」に決定（2026-10-10�
 | 電話 | 管理者から顧客への発信用 `tel:` ボタン（`phone_e164` があれば）は維持する（顧客向けに電話番号を出さない方針とは別。管理側のみ） | `tel:` |
 
 判定は電話番号（`phone_e164`）で顧客に紐づけて行う（05_state_and_flows.md 2 章の `createBooking`）。
+
+---
+
+## 11. S-A-04・S-A-08・S-A-09 の補足（v0.6、レビュー修正）
+
+管理画面のうち、レビュー修正（2026-10-12）で操作・表示が変わった要素だけを記す。画面の構成は 02_screens.md、コンポーネントは 07_components.md 4 章。
+
+### 11.1 S-A-04 予約詳細: 「直前の状態に戻す」
+
+| 要素 | 内容 | 操作→処理 |
+|---|---|---|
+| 「直前の状態（{状態名}）に戻す」ボタン | 状態が `arrived`・`in_progress`・`completed` で、削除されていない予約に表示（進行ボタンの下、ゴーストボタン＋戻る矢印）。ラベルは戻り先の状態名（例「直前の状態（来店）に戻す」）。来店・施術開始・完了の押し間違いを 1 段ずつ戻す（CR-24、FR-A-04） | `stepBackBookingStatusAction({ bookingId })`（06_api.md 3.1）→ 成功で `refresh()` とトースト「「{状態名}」に戻しました」。`arrived` → `confirmed` は遅刻分を消去、`completed` → `in_progress` は最終来店日を残りの完了予約から再計算（05_state_and_flows.md 1.1）。`conflict: undo_blocked`（完了から戻す間に同じ枠が埋まった）などの失敗はトーストで表示 |
+
+キャンセル系・無断キャンセルからの復帰は従来どおり 5 秒の Undo トーストだけで、このボタンは出さない。
+
+### 11.2 S-A-08 設定: 営業時間・休業日（枠ルール）
+
+| 要素 | 内容 | 操作→処理 |
+|---|---|---|
+| 日次サマリーの時刻 | 枠ルールの末尾に読み取り専用の行「日次サマリーの時刻　毎日 21:00 前後」＋補足「Hobby プランでは 21:00 前後に固定（変更できません）」。入力欄は置かない | 表示のみ。`updateSettingsAction` は `digestHourJst` を受け付けない（送っても無視。06_api.md 3.1）。Vercel Hobby の Cron は 1 日 1 回の固定時刻（`vercel.json` の 12:00 UTC）のため（FR-A-07、FR-A-12） |
+| 日次サマリーの文面（参考） | 0 件の日の本文は、明日が定休なら「明日は定休日です（予約 0 件）」、休業日オーバーライドによる臨時休業なら「明日は臨時休業日です（予約 0 件）」、それ以外は「明日の予約はありません」（CR-16、05_state_and_flows.md 5 章） | — |
+| 当日の web 予約を受け付ける | スイッチ（`allow_same_day`）。OFF にすると顧客側の今日の枠がすべて ×「締切」になり、確定時の再検証でも `not_bookable`（CR-02、04_data_model.md 6 章） | 保存で `updateTag(CACHE_TAGS.settings)` |
+
+### 11.3 S-A-09 設定: メニュー（編集シートの「最終開始」プレビュー）
+
+| 要素 | 内容 | 操作→処理 |
+|---|---|---|
+| 最終開始のプレビュー | 「{閉店} 終了の日は、最終開始が {時刻} になります（所要 {d} 分＋バッファ {b} 分）」。所要時間・バッファの入力に追従 | 営業日のうち最も多い営業時間（開店〜閉店）と `settings.slot_step_min` をページから渡し、`domain/hours.ts#lastStartMin` で計算する: 開店から枠刻みで並べた開始時刻のうち、`開始 + 所要 + バッファ ≤ 閉店` を満たす最後の時刻（空き計算 SQL と同じ格子。CR-15）。v0.5 までの「閉店 − 所要 − バッファ」（枠刻みに揃わない）は廃止。収まらない場合は開店時刻を表示 |

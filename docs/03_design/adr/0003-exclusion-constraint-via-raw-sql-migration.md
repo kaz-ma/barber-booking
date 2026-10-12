@@ -5,10 +5,10 @@
 | 項目 | 内容 |
 |---|---|
 | ID | ADR-0003 |
-| 版 | v0.2 |
+| 版 | v0.3 |
 | 日付 | 2026-10-12 |
 | ステータス | Accepted |
-| 変更履歴 | v0.2（2026-10-12）: 実装との同期（決定は変更なし）。マイグレーションの実際の構成（手書き 2 本＋生成 2 本の 4 本）、`23P01` が通常経路ではなく最後の防衛線であること、DB 統合テストの所在を「決定」に追記。v0.1（2026-10-10）: 初版 |
+| 変更履歴 | v0.3（2026-10-12）: レビュー修正の反映。手書きの `0004_consent_ip_hash.sql` を追加し計 5 本（手書き 3 本＋生成 2 本）に（決定は変更なし）。v0.2（2026-10-12）: 実装との同期（決定は変更なし）。マイグレーションの実際の構成（手書き 2 本＋生成 2 本の 4 本）、`23P01` が通常経路ではなく最後の防衛線であること、DB 統合テストの所在を「決定」に追記。v0.1（2026-10-10）: 初版 |
 | 決定者 | 開発者 |
 | 関連要件 | FR-S-01, FR-C-10, FR-A-05, FR-A-06, CON-06, AT-03, KPI-02 |
 
@@ -45,11 +45,12 @@ ALTER TABLE bookings ADD CONSTRAINT bookings_no_overlap
   WHERE (status IN ('confirmed', 'arrived', 'in_progress'));
 ```
 
-- マイグレーションは次の 4 本で、`drizzle/meta/_journal.json` の順に `drizzle-kit migrate` が適用する（2026-10-12 時点）。手書き（custom）と生成を分け、生成側に手書きの SQL を混ぜない。
+- マイグレーションは次の 5 本で、`drizzle/meta/_journal.json` の順に `drizzle-kit migrate` が適用する（2026-10-12 時点）。手書き（custom）と生成を分け、生成側に手書きの SQL を混ぜない。
   - `0000_extensions.sql`（custom、手書き）: `btree_gist`・`pg_trgm`。表より先に作る。
   - `0001_init.sql`（`drizzle-kit generate`、`src/lib/db/schema.ts`・`auth-schema.ts` から）: ENUM・全テーブル・CHECK・通常インデックス・部分 UNIQUE。
   - `0002_constraints.sql`（custom、手書き）: `bookings_no_overlap`、相互参照の DEFERRABLE FK、`updated_at` トリガー。
   - `0003_auth.sql`（`drizzle-kit generate`）: Better Auth 1.7.7 との突き合わせで生じた追加分（索引 5 本と `auth_rate_limit`）。**追加のみ**で、0000〜0002 は書き換えない。
+  - `0004_consent_ip_hash.sql`（custom、手書き）: `consents.ip`（inet）を `ip_hash`（HMAC の text）に改名・型変更し CHECK を追加（AGENTS.md 規則 5、SR-15）。既存の生 IP は SQL で HMAC に変換できないため破棄（公開前のデータのみ）。
 - `tstzrange` 列は Drizzle の `customType` で宣言し（04_data_model.md 7 章）、半開区間 `[)` の CHECK と冪等性キーの部分 UNIQUE は DSL（`check()`、`uniqueIndex().where()`）で書く。
 - 時間ブロック（`time_blocks`）は別テーブルで排他制約の外にあるため、予約・ブロック作成の両トランザクションで `pg_advisory_xact_lock(hashtext('calendar'), resource_id)` を取り、ロック下で相互の重なりを確認する（05_state_and_flows.md 2・4 章）。
 - アプリは `23P01` を制約名で判別し `conflict: slot_taken`（顧客）／`conflict: overlap`（管理）／`conflict: undo_blocked`（Undo）に写像する。実装では advisory lock 下の再検証（顧客は空き計算 SQL、管理は重なり検索）で先に同じ結果を返すため、`23P01` が返るのはロックを経ない書き込みとの競合に限られる（最後の防衛線）。
