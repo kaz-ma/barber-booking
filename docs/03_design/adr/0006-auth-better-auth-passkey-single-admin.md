@@ -5,10 +5,10 @@
 | 項目 | 内容 |
 |---|---|
 | ID | ADR-0006 |
-| 版 | v0.2 |
-| 日付 | 2026-10-10 |
+| 版 | v0.3 |
+| 日付 | 2026-10-12 |
 | ステータス | Accepted（2026-10-10 改訂: フォールバックをアプリ内ワンタイムコードに確定。OI-12 決定済み） |
-| 変更履歴 | v0.2（2026-10-10）: フォールバックの既定案だったマジックリンクを不採用とし、アプリ内で入力する 6 桁コードに確定（WF 評価 EVAL-001 論点 4、要件定義書 v0.4 FR-A-01）。配信経路のみ【要確認: OI-21】 |
+| 変更履歴 | v0.3（2026-10-12）: 実装との同期（決定は変更なし）。Cookie 名を `__Host-bb.*`（HTTP のローカルは `bb.*`）に、ワンタイムコードは Server Action からのみ扱い emailOTP の HTTP エンドポイントは無効化、配信は Resend の HTTP API を直接呼ぶ、管理者は `scripts/seed-admin.ts` で作成、ログイン試行制限の DB 保存（`auth_rate_limit`）、他端末ログアウトの実装を「決定」に追記。v0.2（2026-10-10）: フォールバックの既定案だったマジックリンクを不採用とし、アプリ内で入力する 6 桁コードに確定（WF 評価 EVAL-001 論点 4、要件定義書 v0.4 FR-A-01）。配信経路のみ【要確認: OI-21】 |
 | 決定者 | 開発者 |
 | 関連要件 | FR-A-01, FR-A-09, FR-A-16, NFR-SC-01, NFR-SC-02, NFR-SC-10, AT-13, AT-17, AT-19, AT-27, OI-12, OI-21 |
 
@@ -41,13 +41,16 @@
 
 **A を採用する。**
 
-- Drizzle アダプタ、テーブル名は `auth_user`・`auth_session`・`auth_account`・`auth_verification`・`auth_passkey`（予約語 `user` を避ける）。
-- サインアップ無効。初回管理者は `scripts/seed.ts` で作成し、初回ログイン後にパスキーを登録（予備端末にも 2 本目を推奨）。
-- フォールバック（2026-10-10 改訂）: **アプリ内で入力する 6 桁のワンタイムコード**（Better Auth `emailOTP()`、`otpLength: 6`、`disableSignUp: true`。入力欄は 1 欄・`inputmode="numeric"`・`autocomplete="one-time-code"`）。ログインが PWA 内で完結し、Safari にセッションができる問題を避けられる。v0.1 の既定案だったマジックリンクは上記の理由で**採らない**。コードの配信経路は Resend による管理者メール宛を既定とし、メールを使わない場合は事前発行のリカバリーコード（一度だけ表示、ハッシュ保存）をアプリ内で入力する【要確認: OI-21】。アクションは 06_api.md 3.0（`requestAdminOtp`・`verifyAdminOtp`）。
-- セッション: 30 日、利用ごとに延長（`updateAge` 1 日）。Cookie は `__Host-` 接頭辞・`HttpOnly; Secure; SameSite=Lax; Path=/`・**`Max-Age` 必須**。
+- Better Auth 1.7.7＋`@better-auth/passkey` 1.7.7。Drizzle アダプタ（アプリと同じ `pg` Pool）、テーブル名は `auth_user`・`auth_session`・`auth_account`・`auth_verification`・`auth_passkey`（予約語 `user` を避ける）に、`rateLimit.storage: 'database'` 用の `auth_rate_limit` を加える（`drizzle/0003_auth.sql`、追加のみ）。アダプタは JS キーで対応付けるため、`auth-schema.ts` のプロパティ名は Better Auth のフィールド名に合わせる（例 `credentialID`）。
+- サインアップ無効。管理者は `scripts/seed-admin.ts`（`npm run db:seed-admin`、`ADMIN_EMAIL` から 1 行）で作成し、初回ログイン（フォールバック）後に S-A-10 でパスキーを登録（予備端末にも 2 本目を推奨）。`ADMIN_EMAIL` を設定した環境では `requireAdmin()` がセッションのメールとも照合する。
+- フォールバック（2026-10-10 改訂）: **アプリ内で入力する 6 桁のワンタイムコード**（Better Auth `emailOTP()`、`otpLength: 6`、`disableSignUp: true`。入力欄は 1 欄・`inputmode="numeric"`・`autocomplete="one-time-code"`）。ログインが PWA 内で完結し、Safari にセッションができる問題を避けられる。v0.1 の既定案だったマジックリンクは上記の理由で**採らない**。コードの配信経路は Resend による管理者メール宛を既定とし、メールを使わない場合は事前発行のリカバリーコード（一度だけ表示、ハッシュ保存）をアプリ内で入力する【要確認: OI-21】。アクションは 06_api.md 3.0（`requestAdminOtpAction`・`verifyAdminOtpAction`）。
+  - 実装（2026-10-12）: コードは 6 桁・10 分・5 回で失効、`storeOTP: 'hashed'`。emailOTP の HTTP エンドポイントは `disabledPaths` で**すべて無効**にし、コードの送信・照合は上記 2 つの Server Action（宛先は `ADMIN_EMAIL` に固定、独自のレート制限 `otp:ip` 3 回/10 分・`login:ip` 10 回/10 分・`login:acct` 20 回/時）からサーバー API でのみ行う。セッション Cookie は `nextCookies()` で Server Action から設定する。
+  - 配信は Resend の HTTP API（`POST https://api.resend.com/emails`）を `fetch` で直接呼ぶ（SDK を依存に加えない。差出人 `RESEND_FROM`）。`RESEND_API_KEY` 未設定時は開発環境に限りコードをサーバーログに表示し、本番・preview ではエラーログのみ（コードは出さない）。
+- セッション: 30 日、利用ごとに延長（`updateAge` 1 日。PWA は起動時・可視化時に `getSession()` を呼ぶ）。Cookie は HTTPS では Better Auth の全 Cookie を **`__Host-bb.*`**（セッションは `__Host-bb.session_token`）とし、`HttpOnly; Secure; SameSite=Lax; Path=/`・Domain なし・**`Max-Age` 必須**。HTTP のローカル開発は `__Host-` が `Secure` を要するため `bb.*`。Better Auth 既定の `__Secure-` を重ねないよう `useSecureCookies: false`＋`cookiePrefix` で明示する（`lib/auth-cookie.ts`）。
+- ログイン試行制限: Better Auth の `rateLimit`（本番のみ、DB 保存＝`auth_rate_limit`。サーバーレスのコールドスタートでも残る。パスキー認証は 10 回/10 分）。
 - オンボーディング: 「ホーム画面に追加 → アイコン起動 → アプリ内でログイン」（Safari でログインしてから追加しない）。
 - 認可: proxy.ts は Cookie の有無のみ（楽観）。全 Server Action・管理 Route Handler で `requireAdmin()` を最初に実行。
-- 端末管理: `auth_session` の UA・最終利用で端末一覧、「この端末以外をログアウト」で他セッションと紐づく Push 購読を削除。
+- 端末管理: `auth_session` の UA・最終利用で端末一覧、「この端末以外をログアウト」で他セッションと紐づく Push 購読を削除し、同じトランザクションで他の `auth_session` 行を削除する。
 - パスキーの `rpID` は `SITE_URL` のホスト名。
 
 ## 結果

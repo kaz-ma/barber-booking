@@ -5,9 +5,9 @@
 | 項目 | 内容 |
 |---|---|
 | 文書 ID | DES-07 |
-| 版 | v0.4 |
+| 版 | v0.5 |
 | 日付 | 2026-10-12 |
-| 変更履歴 | v0.4（2026-10-12）: 要件定義書 v0.6 の反映。`MenuCard` に情報表示の `variant="info"`（S-C-01、リンクなし・フォーカスなし）を追加し `MenuSummary` は 9 件すべてを表示、`BookCta` の文言を「予約する / Book」に固定し `menuSlug` を廃止（OI-25）、`MenuStep` の固定 CTA はメニュー選択後に表示、`MonthCalendar` の `selectedDate` 既定 = 今日（OI-24）、`InstagramLink` のアカウント確定（`@neuer.kento`、OI-23）と DM リンク `https://ig.me/m/neuer.kento`。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`WeekStrip` を廃止し `MonthCalendar`＋`DayCell`（月グリッド、ロービング tabindex）に置換（F2）、`PhoneFallback`・`phoneHref` を廃止し `InstagramLink` を追加（F3）、トップの `Hero`（写真のみ）・`AccessSection`（受付時間を統合）・`LanguagesNote` を明記（F1）、6 章の名前空間を更新。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。`ShareCopyButton`、`SlotList` の × 行（非活性の `SlotRow`）、`SelectionSummary`（S-C-02b）、`OtpFallbackForm`、ブロックのプリセット変更、ステップ順序の固定 |
+| 変更履歴 | v0.5（2026-10-12）: 実装との同期。2〜4 章の部品名・置き場所・props を実装に合わせ、設計名との対応を備考に記載（管理部品は `features/admin/components` に集約、予約下書きは `draft.ts`、TanStack Query は不使用）。5 章はトークン値の正本が `tokens.css`（DG-001）に移ったことと実装の `--danger`、5.3 を `globals.css` の `@theme inline` に合わせる。6 章の名前空間（`docs`・`tokusho` を追加、`admin`・`push` は messages に置かない）。v0.4（2026-10-12）: 要件定義書 v0.6 の反映。`MenuCard` に情報表示の `variant="info"`（S-C-01、リンクなし・フォーカスなし）を追加し `MenuSummary` は 9 件すべてを表示、`BookCta` の文言を「予約する / Book」に固定し `menuSlug` を廃止（OI-25）、`MenuStep` の固定 CTA はメニュー選択後に表示、`MonthCalendar` の `selectedDate` 既定 = 今日（OI-24）、`InstagramLink` のアカウント確定（`@neuer.kento`、OI-23）と DM リンク `https://ig.me/m/neuer.kento`。v0.3（2026-10-12）: 要件定義書 v0.5 の反映。`WeekStrip` を廃止し `MonthCalendar`＋`DayCell`（月グリッド、ロービング tabindex）に置換（F2）、`PhoneFallback`・`phoneHref` を廃止し `InstagramLink` を追加（F3）、トップの `Hero`（写真のみ）・`AccessSection`（受付時間を統合）・`LanguagesNote` を明記（F1）、6 章の名前空間を更新。v0.2（2026-10-10）: 要件定義書 v0.4 の反映。`ShareCopyButton`、`SlotList` の × 行（非活性の `SlotRow`）、`SelectionSummary`（S-C-02b）、`OtpFallbackForm`、ブロックのプリセット変更、ステップ順序の固定 |
 | 関連要件 | FR-C-01〜16, FR-A-02〜18, NFR-PF-01, NFR-PF-02, NFR-EN-03〜07, AT-09, AT-10, AT-24, AT-25 |
 | 関連文書 | `02_screens.md`（画面ごとの使用コンポーネント）、`docs/05_design_comps/`（デザインガイド。トークン値の正本はデザインガイド確定後にそちら） |
 
@@ -18,37 +18,39 @@
 | # | 方針 | 内容 |
 |---|---|---|
 | C-01 | Server Component が既定 | `"use client"` は操作が必要な葉に限定。境界の props はシリアライズ可能な DTO のみ |
-| C-02 | UI プリミティブは `components/ui`、機能部品は `features/*/components` | プリミティブはドメインを知らない。機能部品は feature 外から import しない（ページで合成） |
+| C-02 | UI プリミティブは `components/ui`、機能部品は `features/*/components` | プリミティブはドメインを知らない。機能部品は feature 外から import しない（ページで合成）。顧客サイトのページ専用部品は `app/(public)/_components` |
 | C-03 | ネイティブ要素優先 | ラジオ・チェック・`<dialog>`・`<input type="time">` を使い、ARIA は不足分のみ。JS 前でも基本操作が可能 |
-| C-04 | 状態の置き場所 | 予約下書き: `BookingDraftProvider`（React state＋`sessionStorage`）。管理のサーバー状態: TanStack Query はポーリング用途のみ、他は RSC＋`refresh()` |
+| C-04 | 状態の置き場所 | 予約下書き: `features/booking/draft.ts`（`sessionStorage`＋`useSyncExternalStore`。Context は使わない）。管理のサーバー状態: RSC＋Server Action 内の `refresh()`、未確認件数のポーリングは `InboxProvider`（TanStack Query は使わない） |
 | C-05 | トークン経由のスタイル | 色・余白・角丸・モーションは CSS 変数（5 章）のみ参照。生の色コードをコンポーネントに書かない |
-| C-06 | バンドル予算 | 公開ページ First Load JS ≤ 150 kB、予約フォーム ≤ 200 kB（NFR-PF-02）。日付処理はサーバー側で整形し、クライアントに `temporal-polyfill` を極力持ち込まない |
+| C-06 | バンドル予算 | 公開ページ First Load JS ≤ 150 kB、予約フォーム ≤ 200 kB（NFR-PF-02。計測の CI ゲートは未導入）。日付処理はサーバー側で整形し、クライアントは `Intl` のみ（日付ライブラリ・`temporal-polyfill` は使わない） |
 
 ---
 
 ## 2. UI プリミティブ（`src/components/ui`）
 
+実装名と設計名（v0.4 まで）が異なるものは備考に設計名を書く。
+
 | コンポーネント | 種別 | 主な props | 備考・a11y |
 |---|---|---|---|
-| `Button` | Server 可 | `variant: 'primary'\|'secondary'\|'ghost'\|'danger'`, `size: 'md'\|'lg'`, `asChild?`, `pending?` | 高さ md 44 / lg 52 px。`pending` で `aria-busy`・スピナー（1 秒超のみ表示） |
-| `LinkButton` | Server | `href`, `variant`, `prefetch?` | `next/link` ラッパー |
-| `Field` | Server | `id`, `label`, `hint?`, `error?`, `required?`, `children` | ラベル・ヒント・エラーを `aria-describedby` で結線。必須は「必須」テキスト |
-| `TextInput` / `TextArea` | Client | `name`, `type`, `inputMode`, `autoComplete`, `maxLength?`, `counter?` | 16 px 以上。`counter` で残り文字数（`aria-live="polite"`） |
-| `RadioGroup` / `RadioCard` | Client | `name`, `options: { value, label, description? }[]`, `value`, `onChange` | `<fieldset>`＋`<legend>`。カードは `<label>` 内に `<input type="radio">` |
-| `Checkbox` | Client | `name`, `label: ReactNode`, `checked`, `error?` | タップ領域 44 px |
-| `Select` | Client | `name`, `options`, `value` | ネイティブ `<select>` |
-| `Combobox` | Client | `label`, `fetcher(q)`, `onSelect(item)`, `renderItem` | WAI-ARIA combobox パターン |
-| `Dialog` | Client | `open`, `onClose`, `title`, `initialFocusRef?` | `<dialog>`＋`showModal()`。閉じたらトリガーへフォーカス返却 |
-| `Sheet` | Client | `open`, `onClose`, `title`, `snap?: 'half'\|'full'` | ボトムシート。入場 400 ms emphasized-decelerate／退場 200 ms emphasized-accelerate、reduced-motion でフェードのみ |
-| `Toast` / `useToast` | Client | `message`, `action?: { label, onAction }`, `duration=5000` | `role="status"`。Undo 付きは表示中にフォーカスを奪わない。下部固定 UI と重ならない位置 |
-| `Badge` | Server | `tone: 'neutral'\|'accent'\|'warning'`, `children` | 件数は「未確認 2 件」と文字で表す |
-| `Skeleton` | Server | `width`, `height`, `rounded?` | 高さ固定で CLS 0 |
-| `ErrorSummary` | Client | `errors: { fieldId, message }[]` | `role="alert"`、表示時にフォーカス、各エラーへのリンク |
-| `VisuallyHidden` / `LiveRegion` | Server/Client | `children`, `politeness` | 段階遷移の通知に使用 |
-| `CopyButton` | Client | `value`, `label`, `copiedLabel` | Clipboard API、失敗時は選択状態にする。結果を `aria-live` で通知 |
-| `ShareCopyButton` | Client | `url`, `title`, `text?`, `label`（「共有・コピー」/ "Share or copy"）, `copiedLabel` | `navigator.share` があれば `{ title, text, url }` で共有シートを開く。未対応、または `AbortError` 以外で失敗したら `CopyButton` と同じ処理でクリップボードにコピーし `aria-live` で「コピーしました」。ユーザー操作内でのみ呼ぶ。完了画面のキャンセルリンク用（FR-C-11、CW-15） |
-| `StickyCta` | Client | `children` | `padding-bottom: max(16px, env(safe-area-inset-bottom))`、ページ側で `scroll-padding-bottom` を設定 |
-| `Icon` | Server | `name`, `label?` | インライン SVG。意味を持つ場合のみ `label`（それ以外は `aria-hidden`） |
+| `Button` / `LinkButton` / `ExternalButton`（＋`buttonClass()`） | Server 可 | `variant: 'primary'\|'secondary'\|'ghost'\|'danger'\|'danger-fill'`, `size: 'md'\|'sm'`, `block?`, `icon?`, `trailingIcon?` | 高さ primary 56 / secondary 48 / `sm`・ghost 44 px。無効は `aria-disabled`（フォーカス可、押すと理由を表示）で薄くしない。`LinkButton` は next-intl の `Link`、`ExternalButton` は新規タブ＋`rel="noopener noreferrer"`。ラベルは動詞（HE-04） |
+| `Card` | Server | `as?`（要素を差し替え）, `className` | 無地のカード面＋淡い罫＋接地影。紙テクスチャには載せない |
+| `FieldWrapper` / `FieldError` | Server | `id`, `label`, `tag?: { text, optional? }`, `help?`, `error?`, `errorPrefix`, `children(aria)` | 設計名 `Field`。ヘルプは欄の上、エラーは欄の直下。`aria-describedby` はエラー→ヘルプの順、エラー文の前に視覚的に隠した「エラー: 」。色だけに頼らない（2px 枠＋「!」） |
+| `TextInput` / `TextArea` | Server（ネイティブ要素の props） | `name`, `type`, `inputMode`, `autoComplete`, `maxLength` … | 高さ 48 px、文字 16 px（iOS のズーム回避）。残り文字数の表示は呼び出し側 |
+| `RadioGroup` | Client から使う | `name`, `value`, `options: { value, label }[]`, `onChange`, `labelledBy`, `describedBy?`, `invalid?` | `<label>` 内のネイティブラジオ（JS 前でも操作可）。選択は点＋2px 枠＋太字（えんじは使わない） |
+| `Checkbox` | Server | `name`, `label`, `checked`, … | ラベル全体がターゲット（56 px 以上。同意欄） |
+| `Sheet`（`dialog.tsx`） | Client | `open`, `onClose`, `titleId`, `descriptionId?`, `initialFocus?` | 設計名 `Dialog`・`Sheet`。`<dialog>`＋`showModal()`（フォーカス閉じ込め・背景 inert・Esc）。閉じたらトリガーへフォーカス返却 |
+| `Toast` | Client | `message`, `duration=5000` | `role="status"`、フォーカスを奪わない。管理 PWA は Undo 付きの別実装（4 章 `ToastProvider`） |
+| `CopyButton` / `ShareCopyButton` | Client | `value` または `url`・`title`・`text?`、`label`, `copiedLabel`, `liveMessage` | Clipboard API。失敗時は選択状態にする。「コピーしました ✓」を 2 秒（幅固定）、`aria-live` で通知。`ShareCopyButton` は `navigator.share` があれば共有シート、未対応または `AbortError` 以外の失敗でコピー（FR-C-11、CW-15） |
+| `Stepper` | Server | `steps`, `current`, `label`, `doneSuffix` | `<ol>`、完了＝輪＋✓、現在＝塗り＋`aria-current="step"`。アクセント色は使わない |
+| `SiteHeader` / `FlowHeader` / `MiniHeader` | Server（`LocaleSwitch` のみ Client） | `showBookCta?` / `back` / — | トップ・ポリシー・404 は `SiteHeader`（エンブレム＋「予約する」）、予約ステップは `FlowHeader`（←・「ご予約」・EN・Instagram）、完了・キャンセルは `MiniHeader`。電話リンクは持たない |
+| `Footer` | Server | `showInstagram?` | 設計名 `SiteFooter`。Instagram DM・ポリシー 3 行（プライバシー・キャンセルポリシー・特商法表記）・© |
+| `InstagramLink` | Server | `variant: 'header'\|'footer'\|'done'\|'button'\|'plain'\|'primary'\|'profile'\|'inline'` | 顧客の唯一の連絡手段（FR-C-16）。問い合わせは DM（`https://ig.me/m/{account}`）、`profile` はプロフィール。常に新規タブ。URL・アカウントは `config/shop.ts`（`@neuer.kento`） |
+| `LocaleSwitch` | Client | — | 設計名 `LocaleSwitcher`。同じページの他ロケール URL（クエリを保持、`prefetch={false}`）。動的ルートでは `<Suspense>` 内で解決 |
+| `BackLink` | Server | `href`, `label` | 44×44 の「←」。ラベルは行き先を言う |
+| `FocusOnMount` | Client | `targetId` | 表示後に一度だけ見出し（`tabIndex={-1}`）へフォーカス |
+| `Icon` | Server | `name` | インライン SVG（24 グリッド）。常に装飾扱い（`aria-hidden`）で、意味は隣の文字で伝える |
+
+設計にあって実装で独立部品にしなかったもの: `Select`・`Badge`・`Skeleton`・`VisuallyHidden`／`LiveRegion`（各所で CSS クラス・要素を直接使う）、`Combobox`（`ManualBookingForm` 内に WAI-ARIA combobox を実装）、`ErrorSummary`（`ConfirmForm`・`BookingInfoForm` 内）、`StickyCta`（CSS クラス `.sticky-cta`）。
 
 ---
 
@@ -56,73 +58,66 @@
 
 | コンポーネント | 置き場所 | 境界 | 主な props / 状態 | 使用画面 | 関連 FR |
 |---|---|---|---|---|---|
-| `SiteHeader` | `features/booking/components`（共通レイアウトは `app/(public)` で合成） | Server（`LocaleSwitcher` のみ Client） | `locale`, `showBookCta?`（予約 CTA を内包。電話リンクは持たない） | 全画面 | FR-C-13, 14 |
-| `LocaleSwitcher` | 同上 | Client | `currentLocale`, `alternateHref` | 全画面 | FR-C-13 |
-| `BookCta` | 同上 | Server | `locale`。文言は「予約する / Book」固定、遷移先は `/{locale}/book`（予約の唯一の入口、OI-25）。`menuSlug` は持たない（トップから `?menu=` や `/book/time` へは飛ばさない）。「空き時間を見て予約する」は `MenuStep` の固定 CTA 専用で、この部品では使わない | S-C-01（ヘッダーと本文）, 10 | FR-C-01, 14 |
-| `InstagramLink` | 同上 | Server | `variant: 'inline'\|'button'`, `locale`, `context?: 'header'\|'footer'\|'done'\|'pastDeadline'\|'restricted'\|'error'`。URL・アカウント名は `config/shop.ts` の `instagram`（`@neuer.kento`。OI-23 決定済み）から取得。問い合わせ（DM）の文脈は `https://ig.me/m/{account}`、施術写真を見る文脈（トップ）は `https://www.instagram.com/{account}/` を新規タブ（`target="_blank" rel="noopener noreferrer"`）で開き、ラベル「Instagram の DM でお問い合わせ / Message us on Instagram」（文脈別の前置き文は `contact` 名前空間）。v0.2 の `PhoneFallback`・`phoneHref` を置き換え、顧客向けに `tel:` を出す部品は持たない | S-C-01, 02, 03, 04, 05, 06, 10、`SiteFooter` | FR-C-11, 12, 16 |
-| `Hero` | 同上 | Server | `image`（`next/image`、`priority`、`alt`）。写真のみでキャッチコピー・リード文のテキストブロックは持たない（F1） | S-C-01 | FR-C-14 |
-| `AccessSection` | 同上 | Server | `shop`（店名・住所・最寄り駅・地図 URL）, `hoursLines: string[]`（「受付時間 18:00–24:00 ／ 定休 月曜」「予約締切 ご来店の 60 分前まで」の 2〜3 行。`getBusinessCalendar()`・`getPublicSettings()` から生成）。単独の受付時間カード（v0.2 の `HoursSection`）は持たない | S-C-01 | FR-C-14 |
-| `LanguagesNote` | 同上 | Server | `locale`。「日本語 / English」 | S-C-01 | FR-C-14 |
-| `MenuSummary` / `MenuCard` | 同上 | Server（`variant="select"` の `MenuCard` は `RadioCard` を内包するため Client） | `menu: MenuDTO`, `variant: 'select'\|'info'`, `selected?`, `occupation?`。**`select`**（S-C-02）: `<label>`＋ラジオ、一般・学生の両価格・所要時間・一言説明を併記。**`info`**（S-C-01、v0.4）: 情報表示の `<article>`。名称 JA/EN・一般価格・所要時間、一言説明は `description_*` があるときだけ 1 行。リンク・ボタン・`tabindex`・hover を持たない（予約の入口は `BookCta`）。`MenuSummary` は公開メニュー 9 件すべてを `sort_order` 順に `info` で並べる（「全 9 メニュー」への導線は持たない） | S-C-01, 02 | FR-C-02, 04, 14 |
-| `BookingDraftProvider` | `features/booking/components` | Client（`/book/layout.tsx`） | 状態: `{ menuSlug, startsAt, name, nameKana, occupation, phone, note, submissionNonce, updatedAt }`。`sessionStorage` 同期、30 分無操作で破棄 | S-C-02, 03, 02b, 04 | FR-C-01 |
-| `BookingStepper` | 同上 | Server | `current: 1..4`（1 メニュー / 2 日時 / 3 お客様情報 / 4 確認）, `locale` | S-C-02, 03, 02b, 04 | FR-C-01 |
-| `MenuStep` | 同上 | Client | メニューのラジオグループ（`MenuCard variant="select"`）と固定 CTA「空き時間を見て予約する / See available times」（メニュー選択後にだけ表示。この文言を使う CTA はこれだけ） | S-C-02 | FR-C-01, 02 |
-| `SelectionSummary` | 同上 | Client（下書きを読む） | `menu`, `startsAt`, `price`（職業に応じて再計算）, `editMenuHref`, `editTimeHref`。お客様情報の上部に置くコンパクトな 2 行要約 | S-C-02b | FR-C-01, 04 |
-| `BookingForm` | 同上 | Client | `menus: MenuDTO[]`, `locale`。段階は `name → occupation → phone` で固定（OI-19 決定済み）。`history.state` と `?step=` を管理、`popstate` で段階復元 | S-C-02b | FR-C-01, AT-09 |
-| `NameStep` / `KanaField` / `OccupationStep` / `PhoneStep`（＋`NoteField`） | 同上 | Client | 各段階の値・エラー・`onComplete`。`KanaField` は `locale === 'ja'` のときのみ描画。`OccupationStep` はラジオ選択で `onComplete`。`NoteField` は `PhoneStep` 内の「＋ご要望を追加（任意）」で開く | S-C-02b | FR-C-03〜06 |
-| `StepSummary` | 同上 | Client | `label`, `value`, `onEdit` | S-C-02b | FR-C-01 |
-| `MonthCalendar` | `features/availability/components` | Server（グリッド描画。各 ◎ の日は `<Link>`）＋キーボード操作の小さな Client ラッパー（`useRovingGrid`） | `month: 'YYYY-MM'`, `days: MonthDayDTO[]`（`getMonthAvailability` の戻り値）, `selectedDate?`（`date` 未指定の初期表示は `today`。今日が × でも今日を選択し、時間枠リストは空きなしの表示。OI-24 決定済み）, `today`, `prevMonthHref?`, `nextMonthHref?`, `menuSlug`, `locale`。見出し「‹ 2026年11月 ›」（‹ › は 44×44 のリンク、範囲外は `aria-disabled`）、曜日行（月曜始まり 7 列）、週ごとの行（5〜6 行、月外は空セル）。`<table role="grid" aria-labelledby>`＋`<th scope="col" abbr>`。キーボード: ロービング tabindex（Tab 停止点は選択日、未選択なら最初の ◎ の日）、← → は前後の ◎ の日、↑ ↓ は 7 日前後（◎ でなければ同方向に週単位で探索）、Home / End は月内の最初・最後の ◎ の日、PageUp / PageDown は前月・翌月、Enter / Space で選択（03_screen_specs.md 2.6）。v0.2 の `WeekStrip`（横スクロールの週ストリップ）を置き換え | S-C-03 | FR-C-07, 08 |
-| `DayCell`（顧客） | 同上 | Server | `date`, `status: 'available'\|'full'\|'deadline'\|'closed'\|'out_of_range'`, `closedReason?: 'regular'\|'override'`, `isToday`, `selected`, `tabIndex: 0\|-1\|undefined`。`role="gridcell"`。`available` のみ内側に `<Link href="?date=…">`（`aria-selected`・ロービング tabindex）。`full`（満席）・`deadline`（締切）・`closed`（定休 / 休業）は日付＋×＋理由ラベルの非活性セル、`out_of_range`（過去日・61 日以降）は日付のみの薄い非活性セルで、いずれもリンクにせず `tabindex` を付けない。今日は枠線＋`aria-current="date"`、選択日は `--accent` の塗り。`aria-label` は「11月5日 木曜日 満席」形式。セル幅 1/7・高さ 56 px。管理の `DayCell`（4 章、`WeekGrid` 用）とは別部品 | S-C-03 | FR-C-07 |
-| `MonthCalendarSkeleton` | 同上 | Server | 曜日行＋6 行 × 7 列の固定高（CLS 0） | S-C-03 | NFR-AV-02 |
-| `SlotList` / `SlotButton` / `SlotRow` | 同上 | Client（`SlotButton` の選択で下書き更新して遷移） | `slots: { startsAt, status }[]`（ISO+09:00）, `durationMin`, `locale`, `selectedStartsAt?`。**全候補時刻を行として描画**し、`available` は `SlotButton`（タップ → 150 ms の選択表示 → 次段へ）、`full`・`deadline` は `SlotRow`（× と理由ラベル。ボタン・リンクにせず `tabindex` なし）。`selectedStartsAt` があるとき（戻ってきたとき）だけ `StickyCta`「この日時で進む」 | S-C-03 | FR-C-07, 08 |
-| `SlotListSkeleton` | 同上 | Server | — | S-C-03 | NFR-AV-02 |
-| `SlotLegend` / `DeadlineNotice` | 同上 | Server | `leadTimeMin`（v0.2 の `PhoneFallback`「本日の残り枠はお電話で」は廃止。F3） | S-C-03 | FR-C-07 |
-| `CheckAnswers` | `features/booking/components` | Client（下書きを読む） | `rows: { key, label, value, editHref }[]` | S-C-04 | FR-C-09 |
-| `PolicyDigest` / `ConsentCheckbox` | 同上 | Server / Client | `policyVersion`, `locale` | S-C-04 | FR-C-09, 15 |
-| `TurnstileWidget` | 同上 | Client | `siteKey`（props で受け取る）, `onToken`, `onExpire` | S-C-04 | FR-S-05 |
-| `Honeypot` | 同上 | Server | — | S-C-04 | FR-S-05 |
-| `ConfirmBookingForm` | 同上 | Client | `useActionState(createBooking)` | S-C-04 | FR-C-10 |
-| `DoneCard` | 同上 | Server（`CopyButton`・`ShareCopyButton` のみ Client） | `booking: BookingByTokenDTO`, `cancelUrl`, `icsUrl`, `shop`（店名・住所・地図 URL。OI-09 決定済み）。予約番号は `CopyButton`、キャンセルリンクは `ShareCopyButton`＋「カレンダーの予定からもキャンセルできます」 | S-C-05 | FR-C-11 |
-| `AddToCalendar` | 同上 | Server | `icsUrl`, `googleUrl?` | S-C-05 | FR-C-11 |
-| `CancelPanel` | 同上 | Client | `token`, `deadline`, `canCancel`。締切後は「Instagram の DM でご連絡ください」＋`InstagramLink`（`variant="button"`） | S-C-06 | FR-C-12, 16 |
-| `PolicyArticle` / `TokushohoTable` | `app/(public)/[locale]/policy` 近傍 | Server | `locale` | S-C-08, 09 | FR-C-15 |
+| `Hero` | `app/(public)/_components` | Server | `config/shop.ts` の `heroPhoto`（未設定の間は CSS のプレースホルダー、設定後は `next/image` の `priority`）。写真のみでキャッチコピーを持たない（F1） | S-C-01 | FR-C-14 |
+| `AccessSection` | 同上 | Server | `hours: HoursSummary`（`domain/hours.ts` の `summarizeHours(getWeeklyHours())`）, `leadTimeMin`。店名・住所 2 行・徒歩・受付時間 2 行・「地図を開く」。単独の受付時間カードは持たない | S-C-01 | FR-C-14 |
+| `JsonLd` | 同上 | Server | `data`（`<` を `\u003c` にエスケープ）。トップの `HairSalon`（`telephone` なし） | S-C-01 | FR-C-14 |
+| `DocPage` | 同上 | Server | 見出し・版・目次・H2 節・表。本文は messages（`privacy`・`policy`・`docs`） | S-C-08, 09 | FR-C-15 |
+| `MenuInfoCard` | `features/booking/components` | Server | `menu: MenuCatalogItem`。設計の `MenuCard variant="info"`（`<article>`、リンク・フォーカス・hover なし。非公開メニューも「¥—」で表示）。トップはこれを 9 件並べる（設計の `MenuSummary` はページ内に直接） | S-C-01 | FR-C-02, 14 |
+| （「予約する」CTA・対応言語） | `app/(public)/[locale]/page.tsx` | Server | 設計の `BookCta`・`LanguagesNote` は独立部品にせず、`LinkButton href="/book"`（「予約する / Book」、OI-25）と見出し＋本文で直接描画 | S-C-01, 10 | FR-C-01, 14 |
+| `MenuStep` | `features/booking/components` | Client | `menus: MenuStepItem[]`。設計の `MenuCard variant="select"`（ラジオカード、一般・学生の両価格・所要時間）と固定 CTA「空き時間を見て予約する / See available times」（選択後のみ表示）を内包。選択は `?menu=` と下書きに保存 | S-C-02 | FR-C-01, 02 |
+| `Yen` / `yenText` | 同上 | Server | `amount`, `unsetSr`。0 は未確定（OI-01）として「¥—」と読み上げ用ラベル | S-C-01〜05 | FR-C-02 |
+| `BookingStepper` / `StepAnnouncer` | 同上 | Server | `current: 'menu'\|'time'\|'info'\|'confirm'`（1 メニュー / 2 日時 / 3 お客様情報 / 4 確認）。`StepAnnouncer` は「ステップ 3/4: お客様情報」を `aria-live` で通知 | S-C-02, 03, 02b, 04 | FR-C-01 |
+| （予約下書き） | `features/booking/draft.ts` | Client（フック） | 設計の `BookingDraftProvider` は Context にせず、`sessionStorage`（`bb.bookingDraft.v1`）の下書きを `useDraft()`（`useSyncExternalStore`）・`saveDraft`・`updateDraft`・`clearDraft` で読み書きする。項目 `{ menuSlug, startsAt, name, nameKana, occupation, phone, note }`、30 分無操作で破棄。`submissionNonce` は別キーで保持 | S-C-02〜04, 02b | FR-C-01 |
+| `MonthCalendar` / `MonthCalendarSkeleton` | `features/availability/components` | Client（各 ◎ の日は `<Link>`） | `month`, `days: DayDTO[]`（`getMonthAvailability`）, `prevMonth?`, `nextMonth?`, `today`, `selectedDate: string \| null`（初期は今日。月送り後は `null`。OI-24）, `menuSlug`, `keep?`（`return=confirm` 等を各リンクに保持）。`<table role="grid">`、月曜始まり、日セル（設計の `DayCell`）は内部で描画。◎ の日だけがリンク（ロービング tabindex）、× と期間外はフォーカスしないセル。キーボード: ← → は前後の ◎ の日、↑ ↓ は 7 日前後（◎ でなければ週単位で探索）、Home / End、PageUp / PageDown、Enter / Space（03_screen_specs.md 2.6）。スケルトンは固定高（CLS 0） | S-C-03 | FR-C-07, 08 |
+| `SlotList` / `slotHref` | 同上 | Client | `slots: { startsAt, status }[]`（JST ISO）, `menuSlug`, `durationMin`, `selectedStartsAt?`, `keep?`。全候補を行で描画し、◎ は 56 px のリンク（タップ → 150 ms の選択表示 → 次段）、×（満席・締切）は理由付きの 48 px の `<li>`（ボタン・リンク・tabindex なし）。設計の `SlotButton`・`SlotRow` は内部要素 | S-C-03 | FR-C-07, 08 |
+| `SlotsFocus` | 同上 | Client | `date`。日を選び直したとき時間枠の見出しへフォーカス（初回は除く） | S-C-03 | FR-C-07 |
+| （凡例・締切・固定バー） | `book/time/page.tsx` | Server | 設計の `SlotLegend`・`DeadlineNotice`・`StickyCta`「この日時で進む」はページ内で直接描画 | S-C-03 | FR-C-07 |
+| `SelectionSummary` | `features/booking/components` | Client | `menu`, `startsAt`, `occupation`。メニュー（職業に応じて再計算した価格）と日時の 2 行＋各「変更」 | S-C-02b | FR-C-01, 04 |
+| `BookingInfoForm` | 同上 | Client | `menus`。設計の `BookingForm`・`NameStep`／`KanaField`（ja のみ）／`OccupationStep`／`PhoneStep`（＋備考）・`StepSummary` を 1 部品にまとめた。段階は `name → occupation → phone` 固定、各段は `pushState`＋`?step=`、完了した段は 1 行の要約＋「変更」に畳む（FR-C-01）。検証は `validate.ts`（共有 Zod） | S-C-02b | FR-C-01, 03〜06, AT-09 |
+| `DraftBackLink` | 同上 | Client | `to: 'time'\|'info'`, `label`。下書きを保ったまま前の段へ | S-C-02b, 04 | FR-C-01 |
+| `ConfirmForm` | 同上 | Client | `menus`, `turnstileSiteKey?`, `cancelDeadlineMin`。`useActionState(createBooking)`。設計の `ConfirmBookingForm`・`CheckAnswers`・`PolicyDigest`・`ConsentCheckbox`・`Honeypot`・`ErrorSummary` を内包。`ok` で `router.replace(doneUrl)`＋下書き破棄、`slot_taken` で `/book/time?…&taken=1` へ | S-C-04 | FR-C-09, 10, 15 |
+| `TurnstileWidget` | 同上 | Client | `siteKey`（props で受け取る）, `locale`, `onToken`, `resetOn?`（失敗後に新しいトークンを取得）。`action: 'create_booking'`、`appearance: 'interaction-only'`、期限切れで `reset()` | S-C-04 | FR-S-05 |
+| （完了カード・カレンダー追加） | `book/done/[token]/page.tsx` | Server（`CopyButton`・`ShareCopyButton` のみ Client） | 設計の `DoneCard`・`AddToCalendar` はページ内で直接描画。スタンプ「予約確定 CONFIRMED」＋見出し「ご予約を承りました」、予約番号は `CopyButton`、キャンセルリンクは `ShareCopyButton`＋「カレンダーの予定からもキャンセルできます」、`.ics` は `/api/ics/{token}` | S-C-05 | FR-C-11 |
+| `CancelFlow` / `CancelBookingCard`・`BookingWhen`・`BookingPrice`・`bookingSummary` | `features/booking/components` | Client / Server | `CancelFlow`: `token`, `locale`, `summary`, `publicCode`, `deadlineLabel`, `card`, `pastDeadline`, `notFound`。設計の `CancelPanel`＋`ConfirmDialog`（`<dialog>` のボトムシート、初期フォーカスは「予約を残す」、`cancelBooking` は「予約を取り消す」だけが送る）。締切後は「Instagram の DM でご連絡ください」＋`InstagramLink variant="primary"` | S-C-06 | FR-C-12, 16 |
 
 ---
 
 ## 4. 管理 PWA の機能コンポーネント
 
-| コンポーネント | 置き場所 | 境界 | 主な props / 状態 | 使用画面 | 関連 FR |
-|---|---|---|---|---|---|
-| `AdminShell` | `features/admin-calendar/components` | Server（`BottomTabs` の現在タブ判定のみ Client） | `children` | S-A-02〜11 | FR-A-02 |
-| `AdminHeader` | 同上 | Server＋`InboxBadge`（Client） | `title`, `date?`, `prevHref?`, `nextHref?` | S-A-02, 03 | FR-A-02 |
-| `InboxBadge` | 同上 | Client | TanStack Query `useQuery(['inbox-count'], …, { refetchInterval: 20000, refetchIntervalInBackground: false })`。変化で `router.refresh()`、`setAppBadge` | 全画面 | FR-A-11 |
-| `BottomTabs` | 同上 | Client | `active: 'today'\|'week'\|'inbox'\|'settings'` | 全画面 | FR-A-02 |
-| `Timeline` | 同上 | Server（描画）＋`NowLine`（Client） | `date`, `openMin`, `closeMin`, `items: (BookingCardDTO\|BlockCardDTO)[]`、15 分グリッド | S-A-02 | FR-A-02 |
-| `BookingCard` | 同上 | Server（`tel:` はリンク） | `id, start, end, name, nameKana, menuName, source, status, hasNote, phoneHref?, unacknowledged` | S-A-02, 07 | FR-A-02 |
-| `BlockCard` | `features/blocks/components` | Client（削除・Undo） | `id, start, end, kind, label` | S-A-02 | FR-A-06 |
-| `Fab` / `QuickActionSheet` | `features/admin-calendar/components` | Client | プリセット: `now60`, `now120`, `untilClose`、「手動予約」「期間指定」。開いた時点で各プリセットの重なりを取得し行に表示（種別「休憩として」等も）。重なりのないプリセットは `createTimeBlock` を直接呼び、顧客サイトへの影響を添えた Undo トースト | S-A-02 | FR-A-05, 06 |
-| `WeekGrid` / `DayCell`（管理） | 同上 | Server | `days: { date, bookingCount, freeSlots, closed, hasBlocks }[]` | S-A-03 | FR-A-03 |
-| `BookingDetail` / `StatusActions` | 同上 | Server / Client | `booking: BookingDetailDTO`、許可遷移のみボタン表示（`domain/booking-status.ts`） | S-A-04 | FR-A-04 |
-| `ConfirmUrlPanel` | 同上 | Client | `bookingId`, `reissue()` | S-A-04, 05 | FR-A-05 |
-| `ManualBookingForm` | 同上 | Client | 下書きを `sessionStorage['bb.draft.manual']` に保存。`OverlapAlert` を内包 | S-A-05 | FR-A-05, 10 |
-| `OverlapAlert` | 同上（ブロックでも使用するため `components/ui` に昇格可） | Client | `overlaps: OverlapDTO[]`, `mode: 'blocking'\|'warning'`。手動予約は `blocking`（「時間を変更」のみ、上書き保存なし。OI-11）、ブロックは `warning`（「それでもブロック」可） | S-A-05, 06 | FR-A-05, 06 |
-| `BlockForm` | `features/blocks/components` | Client | 下書き `sessionStorage['bb.draft.block']` | S-A-06 | FR-A-06 |
-| `InboxList` | `features/admin-calendar/components` | Server＋行の既読化は Client | `items: { id, kind: 'created'\|'cancelled', start, name, menuName, createdAt }[]` | S-A-07 | FR-A-11 |
-| `WeeklyHoursEditor` / `OverrideList` / `SlotRulesForm` | `features/settings/components` | Client | 曜日 7 行、オーバーライド一覧、枠ルール | S-A-08 | FR-A-07 |
-| `MenuList` / `MenuEditSheet` | 同上 | Client | 並べ替えは上下ボタン（ドラッグ不要、WCAG 2.5.7） | S-A-09 | FR-A-08 |
-| `PushOnboarding` / `PushStatusCard` / `TestPushPanel` / `ResubscribeBanner` | `features/notifications/components` | Client | `vapidPublicKey`（props）、状態機械（03_screen_specs.md 9.1） | S-A-02, 10 | FR-A-09 |
-| `DeviceList` / `LogoutOthersButton` | `features/auth/components` | Server / Client | `sessions`, `subscriptions` | S-A-10 | FR-A-16 |
-| `PasskeyLoginButton` / `OtpFallbackForm` | `features/auth/components` | Client | `next?`。`OtpFallbackForm` は「確認コードを送る」（`requestAdminOtp`）と 1 欄のコード入力（`inputmode="numeric"`、`autocomplete="one-time-code"`、6 桁で `verifyAdminOtp`）。マジックリンクの UI は持たない（OI-12） | S-A-01 | FR-A-01 |
-| `InstallGuide` / `StandaloneGate` | `features/notifications/components` | Client | `platform`（UA 推定）、`beforeinstallprompt` を保持 | S-A-01, 12 | FR-A-09, 15 |
-| `OfflineBanner`（Should） | `features/admin-calendar/components` | Client | `navigator.onLine`＋最終取得時刻 | S-A-02 | FR-A-17 |
-| `BackButton` | `components/ui` | Client | `fallbackHref='/admin'`。`history.length` が 1 なら fallback | S-A-04〜11 | FR-A-04 |
-| `CustomerSearch` / `CustomerDetail` / `AnonymizeDialog` / `MergeDialog`（Should） | `features/customers/components` | Client | — | S-A-11 | FR-A-13, 14 |
+管理 PWA の部品はすべて `features/admin/components`（v0.4 までの `admin-calendar`・`blocks`・`settings`・`notifications`・`auth`・`customers` の各 feature は 1 つの `features/admin` にまとめた）。文言は `features/admin/strings.ts`（ja 固定）。
+
+| コンポーネント | 境界 | 主な props / 状態 | 使用画面 | 関連 FR |
+|---|---|---|---|---|
+| `ToastProvider` / `useToast` | Client | 1 件ずつ表示。`undo` 付きは 5 秒のカウントダウンリング、`role="status"`。設計の `Toast`（Undo） | S-A-02〜11 | FR-A-04, 06 |
+| `InboxProvider` / `useInbox` | Client | `initialCount`, `initialLatest`。`/api/admin/inbox-count` を起動・可視化時と可視中 20 秒ごとに取得（非表示で停止）、`latestChangeAt` の変化で `router.refresh()`、増加時にトースト、`setAppBadge`。設計の `InboxBadge` のポーリング部分（TanStack Query は使わない） | 全画面 | FR-A-11 |
+| `PushProvider` / `usePush` | Client | `vapidPublicKey`（props）。状態 `checking`・`unsupported`・`not-standalone`・`unsubscribed`・`subscribed`・`blocked`・`no-key`。起動・可視化時に SW 登録 → `getSubscription()` → `touchPushSubscription`（未知なら再登録） | 全画面 | FR-A-09 |
+| `AdminBoot` | Client | iPhone の Safari タブなら `/admin/install`（「閲覧だけ」を除く）、起動時のセッション更新（`getSession()`、1 時間に 1 回まで）、SW の `NAVIGATE` メッセージで `router.push` | 全画面 | FR-A-01, 10 |
+| `TabBar` / `InboxButton` | Client | 設計の `BottomTabs`（今日・週・受信箱・設定。全画面タスクでは隠す）と `InboxBadge` の表示部分（ヘッダーの「未確認 n」） | S-A-02〜11 | FR-A-02, 11 |
+| `TodayView` / `ResubscribeBanner` | Client | 今日ビューのクライアント部分（`Timeline`、FAB＋`QuickSheet`、オフライン表示）、push 未購読のバナー。日付送り・ヘッダーはページ（設計の `AdminHeader`） | S-A-02 | FR-A-02, 09 |
+| `Timeline` | Client | 15 分＝1 行（28 px）、営業時間（時間外の予約があれば広げる）、予約カード（56 px 以上、別の 44 px の `tel:` ボタン）、斜線のブロック、空き区間（`aria-hidden`。同じ操作は FAB にもある）、現在線。時系列の `<ol>`。設計の `BookingCard`・`BlockCard`・`NowLine` は内部要素 | S-A-02 | FR-A-02, 06 |
+| `QuickSheet` | Client | 設計の `Fab`／`QuickActionSheet`。手動予約、プリセット「今から 1 時間 / 2 時間 / 今日はここまで」「期間を指定」。開いた時点で各行の重なりを取得し、範囲・保存する種別・顧客サイトへの影響を表示。重なりのない行は 2 タップで保存、重なりがあれば「それでも…」（`force`）。空き区間のタップで同じシートをその時刻から開く | S-A-02 | FR-A-05, 06, AT-21 |
+| `BlockRangeForm` | Client | 設計の `BlockForm`。種別（既定 `closed`）・開始・終了（5 分刻み、最大 60 日）・ラベル。有効予約と重なれば一覧を出し「それでもブロック」で保存 | S-A-06 | FR-A-06 |
+| `ManualBookingForm` | Client | `menus`, `initialDate`, `initialStart`。下書きは `sessionStorage['bb.draft.manual']`。顧客サジェスト（WAI-ARIA combobox、250 ms デバウンス）、空き開始時刻のチップ（`free-starts`）、重なりの事前確認（300 ms デバウンス）。重なり中の操作は「時間を変更」のみ（OI-11）。保存後は確認 URL のコピー（設計の `CustomerCombobox`・`OverlapAlert`・`SavedSheet` を内包） | S-A-05 | FR-A-05, 10 |
+| `BookingActions` | Client | 予約詳細の操作: 来店 → 施術開始 → 完了、3 種のキャンセル結果（即時実行＋5 秒 Undo トースト）、確認 URL の発行・再発行とコピー、店主メモ。表示時に既読化。設計の `StatusActions`・`ConfirmUrlPanel`・`OwnerNoteField`（予約内容と履歴はページで描画＝設計の `BookingDetail`・`AuditTrail`） | S-A-04 | FR-A-04, 05, 11 |
+| `InboxList` | Client | `unread`, `read`, `nowIso`。未確認を先に、「すべて確認済みにする」＋Undo | S-A-07 | FR-A-10, 11 |
+| `HoursSettings` | Client | 設計の `WeeklyHoursEditor`・`OverrideList`・`SlotRulesForm`。曜日テンプレートと枠ルールを 1 回で保存、オーバーライドは個別に追加・削除 | S-A-08 | FR-A-07, AT-22 |
+| `MenusSettings` | Client | 設計の `MenuList`・`MenuEditSheet`。公開スイッチ、上下ボタンの並べ替え（WCAG 2.5.7）、編集シート（「最終開始」のプレビュー） | S-A-09 | FR-A-08, AT-22 |
+| `NotificationsPanel` | Client | 設計の `PushOnboarding`・`PushStatusCard`・`TestPushPanel`・`DeviceList`・`LogoutOthersButton`。通知をオンにする → テスト通知 → 届いた / 届かない（作り直し）、端末一覧、この端末以外をログアウト、パスキーの追加、ログアウト | S-A-10 | FR-A-09, 12, 16 |
+| `SettingsNav` / `SettingsHeader` | Server | 設定のセグメント（営業時間・メニュー・通知・顧客） | S-A-08〜11 | FR-A-07 |
+| `LoginPanel` | Client | 設計の `PasskeyLoginButton`・`OtpFallbackForm`。主はパスキー、フォールバックは「確認コードを送る」（`requestAdminOtpAction`）と 1 欄のコード入力（`inputmode="numeric"`、`autocomplete="one-time-code"`、6 桁で `verifyAdminOtpAction`）。マジックリンクの UI は持たない | S-A-01 | FR-A-01 |
+| `InstallGuide` | Client | 設計の `InstallGuide`・`StandaloneGate`。iOS は 3 手順の図解、Android Chrome は `beforeinstallprompt` を保持してボタン 1 つ。「閲覧だけ」を選べる | S-A-12 | FR-A-09, 15 |
+| `CustomerActions` | Client | 設計の `CustomerDetail` の操作部分（予約制限・JSON エクスポート・匿名化ダイアログ）。一覧・検索はページで描画（設計の `CustomerSearch`）。`MergeDialog` は未実装（Should） | S-A-11 | FR-A-13, 14 |
+| `Sheet` / `Icon` | Client / Server | 管理用のボトムシート（`<dialog>`）とアイコンセット（ライト・ダークのトークンに追従） | 全画面 | — |
+
+設計の `OfflineBanner`（Should、FR-A-17）は `TodayView` 内のオフライン表示（`navigator.onLine`＋時刻）として実装し、独立部品にしていない。`BackButton` は各ページのヘッダーの「←」リンク（戻り先を固定）で代替した。
 
 ---
 
 ## 5. デザイントークン（CSS 変数 3 層）
 
-`src/styles/globals.css` に定義する。トークン名は用途名で付け、色名（`--green` 等）は第 2 層以降で使わない。値は統合レポートの採用値で、最終値はデザインガイド（`docs/05_design_comps/`）で確定する。
+**v0.5 注記**: トークン値の正本はデザインガイド DG-001（`docs/05_design_comps/design_guide.md` §2、`docs/05_design_comps/tokens.css`）に移った。実装は `src/styles/tokens.css`（その写し）で第 1・第 2 層を定義し、`src/styles/globals.css` が第 3 層（Tailwind 接続）と、tokens.css に無い `--danger`・`--danger-pressed`（展開カンプ T-01）を定義する。5.1・5.2 の表は v0.2 時点の設計値の記録で、DG-001 §2.4 で置き換えた値（`--ring`・`--border`・`--surface`・`--status-*`・角丸・テクスチャ）は DG-001 を正とする。
+
+トークン名は用途名で付け、色名（`--green` 等）は第 2 層以降で使わない。
 
 ### 5.1 第 1 層: プリミティブ（`:root`、生の値）
 
@@ -151,7 +146,7 @@
 | `--on-accent` | `var(--paper-98)` | `var(--ink-10)` | CTA 上の文字 |
 | `--border` | `var(--paper-80)` | `var(--ink-25)` | 罫線 |
 | `--ring` | `var(--burgundy-40)` | `var(--burgundy-70)` | フォーカスリング（2 px＋オフセット 2 px） |
-| `--danger` / `--on-danger` | `#a4262c`（仮）/ `#ffffff` | `#f19a9e`（仮）/ `var(--ink-10)` | 破壊的操作（キャンセル）。えんじと区別する |
+| `--danger` / `--danger-pressed` | **`#a33b0b` / `#862f08`**（実装値、`globals.css`。錆色 19°、紙の上 5.61:1・カード上 6.17:1） | `#f19a9e` / `#f5b3b6`（暫定、管理のダークパレット確定まで） | 破壊的操作（キャンセル・取り消し）。えんじと区別する。v0.4 の `--on-danger` は定義しない（`.btn-danger-fill` の文字は `--on-accent`） |
 | `--status-open` | `var(--blue-35)` | `#7fbde3`（仮） | 空きあり ◎ |
 | `--status-few` | `var(--amber-60)` | 同左 | 予備（Phase 1 未使用） |
 | `--status-full` | `var(--gray-60)` | `var(--ink-70)` | 満席 × |
@@ -162,31 +157,34 @@
 | `--target-min` | `44px` | 同左 | タップ領域 |
 | `--radius-sm` / `--radius-md` / `--radius-lg` | `6px` / `10px` / `16px` | 同左 | 角丸 |
 
-ダーク切替: `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`。管理 PWA は `prefers-color-scheme` 追従を既定とし、設定で固定（FR-A-18、Could）。顧客サイトは Phase 1 はライトのみ。
+ダーク切替: `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *))`（`globals.css`）。管理 PWA は `prefers-color-scheme` 追従を既定とし、設定で固定（FR-A-18、Could）。顧客サイトは Phase 1 はライトのみ。
 
 ### 5.3 第 3 層: Tailwind 接続（`@theme inline`）
 
 ```css
+/* src/styles/globals.css（抜粋。@import "tailwindcss" と "./tokens.css" の後） */
 @theme inline {
   --color-*: initial;                       /* 既定パレットを捨てる */
   --color-bg: var(--bg);
-  --color-surface: var(--surface);
+  --color-bg-card: var(--bg-card);
+  --color-bg-sunken: var(--bg-sunken);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
   --color-accent: var(--accent);
+  --color-accent-pressed: var(--accent-pressed);
   --color-on-accent: var(--on-accent);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-ring: var(--ring);
-  --color-danger: var(--danger);
   --color-status-open: var(--status-open);
   --color-status-full: var(--status-full);
   --color-status-closed: var(--status-closed);
-  --color-overlap: var(--overlap);
-  --font-sans: var(--font-lato), var(--font-noto-sans-jp), system-ui, sans-serif;
-  --font-display: var(--font-lato);
-  --text-base--line-height: 1.7;            /* 日本語本文（JLREQ） */
-  --ease-standard: var(--ease-standard);
-  --radius-md: var(--radius-md);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-lato), var(--font-noto), system-ui, sans-serif;   /* next/font が --font-*-next を注入 */
+  --font-num: var(--font-lato), system-ui, sans-serif;
+  --spacing-target-min: var(--target-min);
+  /* … */
 }
 ```
 
@@ -212,9 +210,11 @@
 | `done` | 完了見出し、スクリーンショット案内、カード項目（店名・住所）、カレンダー追加、「共有・コピー」、「カレンダーの予定からもキャンセルできます」 | S-C-05 | FR-C-11 |
 | `cancel` | キャンセル各状態の文言、ダイアログ | S-C-06 | FR-C-12 |
 | `ics` | ICS の `SUMMARY`・`DESCRIPTION` テンプレート | S-C-07 | FR-C-11 |
-| `policy` / `privacy` | 見出し・本文（本文は MDX にする場合は対象外） | S-C-08, 09 | FR-C-15 |
+| `policy` / `privacy` | 見出し・本文 | S-C-08, 09 | FR-C-15 |
+| `tokusho` | 特定商取引法に基づく表記の見出し・表の行（`{handle}`・`{hours}` を差し込む） | S-C-09（`/tokusho`） | FR-C-15 |
+| `docs` | ポリシー系ページ共通の語（`toc` 目次・`toTop` ページの先頭へ・`version` 版） | S-C-08, 09 | FR-C-15 |
 | `errors` | 404・500・429 | S-C-10 | FR-C-16 |
-| `admin` | 管理 PWA の全文言（`ja.json` のみ。`getTranslations({ locale: 'ja', namespace: 'admin' })`） | S-A-01〜12 | FR-A-* |
-| `push` | 通知タイトル・本文テンプレート（ja のみ。管理者向け） | `features/notifications` | FR-A-10, 12 |
 
-規約: キーは `camelCase`、ICU MessageFormat（複数形・`{count}`）を使う。`en.json` に存在しないキーは CI（`next-intl` の型生成＋キー差分チェック）で失敗させ、「`/en` に日本語が混在しない」（FR-C-13）を担保する。
+管理 PWA（ja 固定、next-intl の外）の文言は messages に置かず `features/admin/strings.ts` に、Push の通知文面は `lib/notify.ts`・`features/notifications/digest.ts` に、ログインコードのメール文面は `lib/auth-email.ts` に持つ（v0.4 の `admin`・`push` 名前空間は作らない）。
+
+規約: キーは `camelCase`、ICU MessageFormat（複数形・`{count}`）を使う。`ja.json` と `en.json` のキー集合の一致は単体テスト（`src/lib/i18n/messages.test.ts`）で強制し、「`/en` に日本語が混在しない」（FR-C-13）は E2E（`test/e2e/run.mjs` の EN フロー）でも確認する。

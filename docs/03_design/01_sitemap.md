@@ -186,7 +186,7 @@ flowchart TD
 | matcher | `['/((?!api\|_next\|_vercel\|monitoring\|sw\\.js\|manifest\\.webmanifest\|.*\\..*).*)']`（表中の `\|` は区切り記号のエスケープ） | — |
 | 判定順 | パス → `NEXT_LOCALE` Cookie → `Accept-Language` → `ja` | FR-C-13 |
 | 自動リダイレクト | `/` のみ検出結果へ 307。`/ja`・`/en` を開いた人を別言語へ飛ばすことはしない | FR-C-13 |
-| 言語切替 | ヘッダー右上「EN」/「日本語」（相手言語名をネイティブ表記、国旗なし）。同じページの他ロケール URL へ遷移し、next-intl が `NEXT_LOCALE` を更新。予約フロー中は下書きを保持（`BookingDraftProvider` が `/book` 配下のレイアウトに居るため、ロケール切替でアンマウントされる → `sessionStorage` から復元） | FR-C-13 |
+| 言語切替 | ヘッダー右上「EN」/「日本語」（相手言語名をネイティブ表記、国旗なし）。同じページの他ロケール URL へ遷移し、next-intl が `NEXT_LOCALE` を更新。予約フロー中は下書きを保持（下書きは `features/booking/draft.ts` の `sessionStorage` にあり、ロケールを切り替えても残る。`LocaleSwitch` はクエリ〔`menu`・`date` 等〕も引き継ぐ） | FR-C-13 |
 | `/admin` | next-intl を通さない。`<html lang="ja">` 固定。認証の本体は各 Server Action と DAL の `requireAdmin()`（proxy は楽観チェック）。Server Action の POST（`Next-Action` ヘッダー付き）はリダイレクトせず、Cookie が無ければアクションが `unauthorized` を返す。Cookie 名は `__Host-bb.session_token`（HTTP のローカルは `bb.session_token`） | FR-A-01, NFR-SC-02 |
 | `/api/ics/*` | matcher 外のため、Route Handler 内で同じレート制限関数を呼ぶ | FR-S-04 |
 | レート制限の DB 呼び出し | proxy は Node ランタイムなので `lib/rate-limit.ts` を直接使える。対象パスはキャンセルのみに限定し、他ページの遅延を増やさない | FR-S-04 |
