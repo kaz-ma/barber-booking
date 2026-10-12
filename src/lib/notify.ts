@@ -4,6 +4,7 @@ import { formatDateJa, formatRangeJa } from '@/domain/jst-format'
 import { jstDate, jstTime } from '@/domain/time'
 import { type DbOrTx, db as defaultDb } from '@/lib/db'
 import { logger } from '@/lib/logger'
+import { errorFields } from '@/lib/pg-errors'
 import { sendPushToAll } from '@/lib/push'
 import { bookingTopic, buildDeclarativePayload } from '@/lib/push-payload'
 import { absoluteUrl } from '@/lib/site'
@@ -82,6 +83,6 @@ export async function notifyOwner(kind: OwnerNotification, bookingId: string): P
       topic: bookingTopic(row.id),
     })
   } catch (err) {
-    logger.error('notify_owner.failed', { kind, bookingId, error: err instanceof Error ? err.message : 'unknown' })
+    logger.error('notify_owner.failed', { kind, bookingId, ...errorFields(err) })
   }
 }

@@ -27,6 +27,9 @@ export function adminCsp(nonce: string): string {
     "worker-src 'self'",
     "manifest-src 'self'",
     ...(isDev ? [] : ['upgrade-insecure-requests']),
-    ...(env.SENTRY_CSP_REPORT_URI ? [`report-uri ${env.SENTRY_CSP_REPORT_URI}`] : []),
+    // Violations go to the same-origin /api/csp-report (SR-11) unless Sentry is configured;
+    // `report-to` uses the Reporting-Endpoints header from next.config.ts.
+    `report-uri ${env.SENTRY_CSP_REPORT_URI ?? '/api/csp-report'}`,
+    ...(env.SENTRY_CSP_REPORT_URI || env.SITE_URL ? ['report-to csp-endpoint'] : []),
   ].join('; ')
 }

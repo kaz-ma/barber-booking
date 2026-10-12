@@ -52,6 +52,6 @@ export async function sendAdminOtpEmail(email: string, otp: string): Promise<voi
     })
     if (!res.ok) logger.error('admin_otp.delivery_failed', { httpStatus: res.status })
   } catch (err) {
-    logger.error('admin_otp.delivery_failed', { error: err instanceof Error ? err.name : 'unknown' })
+    logger.error('admin_otp.delivery_failed', { errorName: err instanceof Error ? err.name : 'unknown' })
   }
 }

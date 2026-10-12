@@ -6,7 +6,6 @@ import {
   check,
   date,
   index,
-  inet,
   integer,
   jsonb,
   pgEnum,
@@ -231,16 +230,20 @@ export const consents = pgTable(
     policyVersion: text('policy_version').notNull(),
     acceptedAt: tz('accepted_at').notNull().defaultNow(),
     revokedAt: tz('revoked_at'),
-    /** Nulled after 1 year (10.3). */
-    ip: inet('ip'),
+    /**
+     * HMAC-SHA256(PII_HASH_SECRET, client IP), base64url 22 chars — never the raw IP
+     * (AGENTS.md rule 5, SR-15; 0004_consent_ip_hash.sql). Nulled after 1 year (10.3).
+     */
+    ipHash: text('ip_hash'),
     userAgent: text('user_agent'),
     createdAt: tz('created_at').notNull().defaultNow(),
   },
   () => [
     check('consents_policy_version_len', sql`char_length(policy_version) <= 32`),
     check('consents_user_agent_len', sql`char_length(user_agent) <= 512`),
+    check('consents_ip_hash_len', sql`char_length(ip_hash) <= 32`),
     index('consents_customer_idx').on(sql`customer_id`, sql`accepted_at DESC`),
-    index('consents_pii_purge_idx').on(sql`accepted_at`).where(sql`ip IS NOT NULL OR user_agent IS NOT NULL`),
+    index('consents_pii_purge_idx').on(sql`accepted_at`).where(sql`ip_hash IS NOT NULL OR user_agent IS NOT NULL`),
   ],
 )
 

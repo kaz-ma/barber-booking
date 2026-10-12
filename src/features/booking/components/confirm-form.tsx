@@ -11,7 +11,7 @@ import { FieldError } from '@/components/ui/field'
 import { Icon } from '@/components/ui/icon'
 import { InstagramLink } from '@/components/ui/instagram-link'
 import { shop } from '@/config/shop'
-import { applicablePrice } from '@/domain/pricing'
+import { applicablePrice, isStudentRateApplied } from '@/domain/pricing'
 import { formatDateTime, formatDayOf, formatTimeSpan } from '@/lib/i18n/display'
 import { Link, useRouter } from '@/lib/i18n/navigation'
 import { type CreateBookingState, createBooking } from '../actions'
@@ -203,8 +203,10 @@ export function ConfirmForm({
         <TurnstileWidget
           siteKey={turnstileSiteKey}
           locale={locale}
+          cData={nonce}
           onToken={setTurnstileToken}
-          resetOn={state?.status === 'bot_check_failed' ? state : null}
+          // siteverify consumes a token once (SR-03): any failed submit needs a fresh one.
+          resetOn={state}
         />
       ) : (
         <div className="turnstile-dev" aria-hidden="true">
@@ -247,7 +249,7 @@ function CheckAnswers({ draft, menu }: { draft: Draft; menu: BookingMenu }) {
   const end = new Date(start.getTime() + menu.durationMin * 60_000)
   const occupation = draft.occupation || 'worker'
   const price = applicablePrice(menu, occupation)
-  const isStudentRate = occupation === 'student' && menu.priceStudentJpy !== null
+  const isStudentRate = occupation === 'student' && isStudentRateApplied(menu, occupation)
   const date = draft.startsAt.slice(0, 10)
 
   const rows: { key: string; label: string; value: ReactNode; edit?: Parameters<typeof Link>[0]['href'] }[] = [

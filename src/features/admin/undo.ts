@@ -1,6 +1,7 @@
 import 'server-only'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { env } from '@/lib/env'
+import { secretOrEphemeral } from '@/lib/secrets'
 
 /*
  * Undo tokens for owner status changes (05_state_and_flows.md §1.1, 08_security.md §5):
@@ -24,7 +25,7 @@ export type UndoPayload = {
 }
 
 function key(): Buffer {
-  const secret = env.BETTER_AUTH_SECRET ?? 'dev-only-better-auth-secret-not-for-production-0123456789'
+  const secret = secretOrEphemeral('BETTER_AUTH_SECRET', env.BETTER_AUTH_SECRET)
   return createHmac('sha256', secret).update('bb-undo-token-v1').digest()
 }
 

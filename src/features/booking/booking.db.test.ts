@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
+import { setTimeout as sleep } from 'node:timers/promises'
 import { sql } from 'drizzle-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { db } from '@/lib/db'
+import { db, pool } from '@/lib/db'
 import { pgErrorOf } from '@/lib/pg-errors'
 import { insertRawBooking, jst, resetDb } from '../../../test/db-helpers'
 import { getBookingByToken } from './queries'
@@ -122,10 +123,14 @@ describe('createBooking', () => {
     expect(await count('bookings')).toBe(1)
   })
 
-  it('same person + slot from another browser (different nonce) -> duplicate, no details', async () => {
+  it('same person + slot from another browser (different nonce) -> same answer as a taken slot (SR-12)', async () => {
     await submitBooking(payload(), ctx())
-    const { result } = await submitBooking(payload(), ctx())
-    expect(result).toEqual({ status: 'duplicate' })
+    const same = await submitBooking(payload(), ctx())
+    const other = await submitBooking(payload({ phone: '090-3333-4444' }), ctx())
+    // Indistinguishable: the response must not reveal that this phone holds the slot.
+    expect(same.result).toEqual({ status: 'conflict', reason: 'slot_taken' })
+    expect(other.result).toEqual(same.result)
+    expect(await count('bookings')).toBe(1)
   })
 
   it('re-check rejects times that are not offered: outside hours, lead time, closed day', async () => {
@@ -140,15 +145,18 @@ describe('createBooking', () => {
     }
     const late = await submitBooking(
       payload({ startsAt: '2026-11-03T19:30:00+09:00' }),
-      ctx({ now: jst('2026-11-03 19:00') }),
+      ctx({ ip: '192.0.2.1', now: jst('2026-11-03 19:00') }),
     )
     expect(late.result).toEqual(notBookable)
     expect(await count('bookings')).toBe(0)
   })
 
-  it('honeypot: pretends success and stores nothing', async () => {
+  it('honeypot: pretends success with a real-looking done URL and stores nothing (SR-24)', async () => {
     const { result } = await submitBooking(payload({ website: 'http://spam.example' }), ctx())
-    expect(result).toEqual({ status: 'ok', data: { doneUrl: '/ja/book' } })
+    expect(result.status).toBe('ok')
+    if (result.status !== 'ok') return
+    expect(result.data.doneUrl).toMatch(/^\/ja\/book\/done\/[A-Za-z0-9_-]{43}$/)
+    expect(await getBookingByToken(tokenOf(result.data.doneUrl), NOW)).toBeNull()
     expect(await count('bookings')).toBe(0)
     expect(await count('customers')).toBe(0)
   })
@@ -204,31 +212,28 @@ describe('cancelBooking', () => {
     const token = await book()
     const { result, cancelledBookingId } = await cancelByToken(
       { locale: 'ja', token },
-      { now: jst('2026-11-04 16:59') },
+      { ip: '192.0.2.1', now: jst('2026-11-04 16:59') },
     )
-    expect(result).toEqual({ status: 'ok', data: null })
+    expect(result).toEqual({ status: 'ok', data: { alreadyCancelled: false } })
     expect(cancelledBookingId).toBeDefined()
 
     const res = await db.execute<Record<string, unknown>>(
-      sql`SELECT status, cancelled_at, cancel_token_hash, acknowledged_at FROM bookings`,
+      sql`SELECT status, cancelled_at, acknowledged_at FROM bookings`,
     )
-    expect(res.rows[0]).toMatchObject({
-      status: 'cancelled_by_customer',
-      cancel_token_hash: null,
-      acknowledged_at: null,
-    })
+    expect(res.rows[0]).toMatchObject({ status: 'cancelled_by_customer', acknowledged_at: null })
     expect(res.rows[0]?.cancelled_at).not.toBeNull()
-    // single use: the same URL is now "not found"
-    expect((await cancelByToken({ locale: 'ja', token }, { now: jst('2026-11-04 16:59') })).result).toEqual({
-      status: 'not_found',
-    })
+    // The link can do nothing more: the token pages no longer resolve it, and a repeated
+    // submit is answered "already cancelled" without a second cancellation / push (CR-09).
+    expect(await getBookingByToken(token, jst('2026-11-04 16:59'))).toBeNull()
+    const again = await cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.1', now: jst('2026-11-04 16:59') })
+    expect(again).toEqual({ result: { status: 'ok', data: { alreadyCancelled: true } } })
     // the slot can be booked again (EXCLUDE ignores cancelled rows; partial idempotency index too)
     expect((await submitBooking(payload(), ctx())).result.status).toBe('ok')
   })
 
   it('after the deadline (start - 120 min): refused with past_deadline', async () => {
     const token = await book()
-    const { result } = await cancelByToken({ locale: 'ja', token }, { now: jst('2026-11-04 17:00') })
+    const { result } = await cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.1', now: jst('2026-11-04 17:00') })
     expect(result).toEqual({ status: 'past_deadline' })
     const dto = await getBookingByToken(token, jst('2026-11-04 17:00'))
     expect(dto?.canCancel).toBe(false)
@@ -237,7 +242,9 @@ describe('cancelBooking', () => {
   it('invalid tokens are refused without revealing why', async () => {
     await book()
     for (const token of ['short', 'A'.repeat(43), `${'A'.repeat(42)}!`]) {
-      expect((await cancelByToken({ locale: 'ja', token }, { now: NOW })).result).toEqual({ status: 'not_found' })
+      expect((await cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.1', now: NOW })).result).toEqual({
+        status: 'not_found',
+      })
     }
   })
 
@@ -260,5 +267,153 @@ describe('cancelBooking', () => {
     const token = await book()
     expect(await getBookingByToken(token, jst('2026-11-05 19:59'))).not.toBeNull()
     expect(await getBookingByToken(token, jst('2026-11-05 20:00'))).toBeNull()
+  })
+})
+
+describe('review v1 regressions (booking)', () => {
+  it('SR-02 / CR-08: concurrent bookings with one phone -> exactly 3 succeed', async () => {
+    const days = ['04', '05', '06', '07', '08', '10']
+    const results = await Promise.all(
+      days.map((d) => submitBooking(payload({ startsAt: `2026-11-${d}T18:00:00+09:00` }), ctx())),
+    )
+    const statuses = results.map((r) => r.result.status).sort()
+    expect(statuses).toEqual(['ok', 'ok', 'ok', 'rate_limited', 'rate_limited', 'rate_limited'])
+    expect(await count('bookings')).toBe(3)
+  })
+
+  it('CR-02: allow_same_day=false makes today not bookable; true keeps it bookable', async () => {
+    await db.execute(sql`UPDATE settings SET allow_same_day = false`)
+    const sameDay = await submitBooking(payload({ startsAt: '2026-11-03T19:00:00+09:00' }), ctx())
+    expect(sameDay.result).toEqual({ status: 'invalid', fieldErrors: {}, reason: 'not_bookable' })
+    // tomorrow is unaffected
+    expect((await submitBooking(payload({ startsAt: '2026-11-04T19:00:00+09:00' }), ctx())).result.status).toBe('ok')
+
+    await db.execute(sql`UPDATE settings SET allow_same_day = true`)
+    const allowed = await submitBooking(
+      payload({ startsAt: '2026-11-03T19:00:00+09:00', phone: '090-7777-0000' }),
+      ctx(),
+    )
+    expect(allowed.result.status).toBe('ok')
+  })
+
+  it('CR-05: an /en booking with the same phone keeps the stored furigana', async () => {
+    expect((await submitBooking(payload(), ctx())).result.status).toBe('ok')
+    const en = await submitBooking(
+      payload({ locale: 'en', nameKana: '', name: 'Taro Yamada', startsAt: '2026-11-05T19:00:00+09:00' }),
+      ctx(),
+    )
+    expect(en.result.status).toBe('ok')
+    const rows = await db.execute<{ name: string; name_kana: string | null }>(
+      sql`SELECT name, name_kana FROM customers`,
+    )
+    expect(rows.rows).toEqual([{ name: 'Taro Yamada', name_kana: 'やまだ たろう' }])
+  })
+
+  it('SR-14: overwriting a customer name is audited with field names only', async () => {
+    await submitBooking(payload(), ctx())
+    await submitBooking(
+      payload({ name: '山田 花子', nameKana: 'やまだ はなこ', startsAt: '2026-11-05T19:00:00+09:00' }),
+      ctx(),
+    )
+    const rows = await db.execute<{ diff: Record<string, unknown> }>(
+      sql`SELECT diff FROM audit_log WHERE action = 'customer.overwrite'`,
+    )
+    expect(rows.rows).toEqual([{ diff: { fields: 'name,nameKana', source: 'web' } }])
+    const all = JSON.stringify((await db.execute(sql`SELECT diff FROM audit_log`)).rows)
+    for (const value of ['山田', 'やまだ', '090', '+81']) expect(all).not.toContain(value)
+    // Same values again: nothing to audit.
+    await submitBooking(
+      payload({ name: '山田 花子', nameKana: 'やまだ はなこ', startsAt: '2026-11-06T19:00:00+09:00' }),
+      ctx(),
+    )
+    const n = await db.execute<{ n: number }>(
+      sql`SELECT count(*)::int AS n FROM audit_log WHERE action = 'customer.overwrite'`,
+    )
+    expect(n.rows[0]?.n).toBe(1)
+  })
+
+  it('CR-06: a student booking a menu without a student price is stored as regular price, no student flag', async () => {
+    await db.execute(sql`UPDATE menus SET price_student_jpy = NULL WHERE slug = 'cut'`)
+    const { result } = await submitBooking(payload({ occupation: 'student' }), ctx())
+    expect(result.status).toBe('ok')
+    const rows = await db.execute<{ price_jpy: number; is_student: boolean }>(
+      sql`SELECT price_jpy, is_student FROM bookings`,
+    )
+    expect(rows.rows).toEqual([{ price_jpy: 5000, is_student: false }])
+    if (result.status !== 'ok') return
+    expect(await getBookingByToken(tokenOf(result.data.doneUrl), NOW)).toMatchObject({
+      isStudent: false,
+      priceJpy: 5000,
+    })
+  })
+
+  it('SR-15: consents store an HMAC of the IP, never the raw address', async () => {
+    await submitBooking(payload(), ctx({ ip: '203.0.113.42' }))
+    const rows = await db.execute<{ ip_hash: string }>(sql`SELECT ip_hash FROM consents`)
+    expect(rows.rows).toHaveLength(2)
+    for (const r of rows.rows) {
+      expect(r.ip_hash).toMatch(/^[A-Za-z0-9_-]{22}$/)
+      expect(r.ip_hash).not.toContain('203.0.113')
+    }
+  })
+})
+
+describe('review v1 regressions (cancel)', () => {
+  async function book(startsAt = '2026-11-04T19:00:00+09:00') {
+    const { result } = await submitBooking(payload({ startsAt }), ctx())
+    if (result.status !== 'ok') throw new Error(`booking failed: ${result.status}`)
+    return tokenOf(result.data.doneUrl)
+  }
+
+  it('SR-01: the 11th cancel attempt from one IP within a minute is rate limited (in the service)', async () => {
+    const statuses: string[] = []
+    for (let i = 0; i < 11; i++) {
+      const { result } = await cancelByToken({ locale: 'ja', token: 'B'.repeat(43) }, { ip: '203.0.113.99', now: NOW })
+      statuses.push(result.status)
+    }
+    expect(statuses.slice(0, 10).every((s) => s === 'not_found')).toBe(true)
+    expect(statuses[10]).toBe('rate_limited')
+    // another IP is unaffected
+    const other = await cancelByToken({ locale: 'ja', token: 'B'.repeat(43) }, { ip: '203.0.113.100', now: NOW })
+    expect(other.result.status).toBe('not_found')
+  })
+
+  it('SR-01: an unknown token never waits for the calendar lock; a real one does', async () => {
+    const token = await book()
+    const holder = await pool.connect()
+    try {
+      // Another writer holds the calendar lock (same key as lockCalendar()).
+      await holder.query(`SELECT pg_advisory_lock(hashtext('calendar'), 1)`)
+      const unknown = cancelByToken({ locale: 'ja', token: 'Z'.repeat(43) }, { ip: '192.0.2.10', now: NOW })
+      const quick = await Promise.race([unknown, sleep(2_000).then(() => 'blocked' as const)])
+      expect(quick).toEqual({ result: { status: 'not_found' } })
+
+      let settled = false
+      const real = cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.11', now: NOW }).then((r) => {
+        settled = true
+        return r
+      })
+      await sleep(300)
+      expect(settled).toBe(false) // queued behind the lock
+      await holder.query(`SELECT pg_advisory_unlock(hashtext('calendar'), 1)`)
+      expect((await real).result).toEqual({ status: 'ok', data: { alreadyCancelled: false } })
+    } finally {
+      await holder.query('SELECT pg_advisory_unlock_all()')
+      holder.release()
+    }
+  })
+
+  it('CR-09: a double tap cancels once and both taps see success', async () => {
+    const token = await book()
+    const [a, b] = await Promise.all([
+      cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.20', now: NOW }),
+      cancelByToken({ locale: 'ja', token }, { ip: '192.0.2.20', now: NOW }),
+    ])
+    expect([a.result.status, b.result.status]).toEqual(['ok', 'ok'])
+    expect([a.cancelledBookingId, b.cancelledBookingId].filter(Boolean)).toHaveLength(1)
+    const audits = await db.execute<{ n: number }>(
+      sql`SELECT count(*)::int AS n FROM audit_log WHERE action = 'booking.cancel'`,
+    )
+    expect(audits.rows[0]?.n).toBe(1)
   })
 })

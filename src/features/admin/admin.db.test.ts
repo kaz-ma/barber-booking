@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
 import { queryAvailabilityDays } from '@/lib/db/availability-sql'
 import { insertBlock, insertNamedBooking, jst, resetDb, seedAdminSession } from '../../../test/db-helpers'
+import { captureLogs, withFailingTrigger } from '../../../test/log-capture'
 import { getDayAgenda, getInbox, getInboxCount, getOverlaps } from './queries'
 import {
   acknowledgeAll,
@@ -382,3 +383,16 @@ describe('push subscriptions / devices', () => {
 function randomSession(userId: string): string {
   return `${userId.slice(0, 8)}-other-session`
 }
+
+describe('CR-01: admin errors are logged without PII', () => {
+  it('createManualBooking: a failing INSERT logs no name / kana / phone / owner note', async () => {
+    const input = manual({ menuId: await menuId(), phone: '+819087654321', ownerNote: '常連・右側を短めに' })
+    const { value, lines } = await captureLogs(() =>
+      withFailingTrigger('bookings', 'BEFORE INSERT', () => createManualBooking(input, { now: NOW })),
+    )
+    expect(value).toMatchObject({ status: 'error', digest: expect.any(String) })
+    const text = lines.join('\n')
+    expect(text).toContain('admin.manual_booking_failed')
+    for (const pii of ['中村', 'なかむら', '+819087654321', '9087654321', '常連']) expect(text).not.toContain(pii)
+  })
+})

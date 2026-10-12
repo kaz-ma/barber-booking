@@ -40,12 +40,14 @@ export async function runDailyDigest(now: Date = new Date()): Promise<DigestResu
   const s = stats.rows[0] ?? { n: 0, first_at: null, last_at: null }
   await db.execute(sql`UPDATE daily_digests SET booking_count = ${s.n} WHERE digest_sent_on = ${today}::date`)
 
-  const closed = await db.execute<{ closed: boolean }>(sql`
-    SELECT COALESCE(o.is_closed, h.is_closed) AS closed
+  const closed = await db.execute<{ closed: boolean; override_closed: boolean }>(sql`
+    SELECT COALESCE(o.is_closed, h.is_closed) AS closed, COALESCE(o.is_closed, false) AS override_closed
     FROM business_hours h LEFT JOIN business_hour_overrides o ON o.date = ${target}::date
     WHERE h.weekday = extract(dow FROM ${target}::date)
   `)
   const isClosed = closed.rows[0]?.closed ?? false
+  // A temporary closure (override) is not the regular holiday (CR-16).
+  const closedLabel = closed.rows[0]?.override_closed ? '明日は臨時休業日です' : '明日は定休日です'
   const day = formatDateJa(target, 'half')
   let body: string
   if (s.n > 0 && s.first_at && s.last_at) {
@@ -53,7 +55,7 @@ export async function runDailyDigest(now: Date = new Date()): Promise<DigestResu
     const last = jstTime(new Date(s.last_at))
     body = first === last ? `${first} 開始` : `${first}〜${last} 開始`
   } else {
-    body = isClosed ? '明日は定休日です（予約 0 件）' : '明日の予約はありません'
+    body = isClosed ? `${closedLabel}（予約 0 件）` : '明日の予約はありません'
   }
   const payload = buildDeclarativePayload({
     title: `明日 ${day} の予約 ${s.n} 件`,
@@ -71,22 +73,6 @@ export async function runDailyDigest(now: Date = new Date()): Promise<DigestResu
     now,
   })
 
-  await housekeeping(now)
   logger.info('daily_digest.sent', { targetDate: target, count: s.n })
   return { result: 'sent', count: s.n }
-}
-
-/** 04_data_model.md §8 retention for append-only tables. Failures never fail the digest. */
-async function housekeeping(now: Date): Promise<void> {
-  try {
-    const t = now.toISOString()
-    await db.execute(sql`DELETE FROM rate_limits WHERE window_start < ${t}::timestamptz - interval '2 days'`)
-    await db.execute(sql`
-      UPDATE consents SET ip = NULL, user_agent = NULL
-      WHERE accepted_at < ${t}::timestamptz - interval '1 year' AND (ip IS NOT NULL OR user_agent IS NOT NULL)`)
-    await db.execute(sql`DELETE FROM notification_log WHERE created_at < ${t}::timestamptz - interval '1 year'`)
-    await db.execute(sql`DELETE FROM auth_verification WHERE expires_at < ${t}::timestamptz - interval '1 day'`)
-  } catch (err) {
-    logger.error('daily_digest.housekeeping_failed', { error: err instanceof Error ? err.message : 'unknown' })
-  }
 }

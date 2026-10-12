@@ -1,20 +1,43 @@
 import 'server-only'
 import { type SQL, sql } from 'drizzle-orm'
-import type { DbOrTx } from '@/lib/db'
+import { type DbOrTx, db as rootDb, type Tx } from '@/lib/db'
 
 /*
  * Availability SQL (04_data_model.md §6 / §6.1, FR-S-02). One query, no per-slot round trips:
  *   1. generate candidate start minutes per JST day from business_hours (+ overrides),
  *      never offering a start whose [start, start + duration + buffer) crosses closing time;
  *   2. turn them into timestamptz via `AT TIME ZONE 'Asia/Tokyo'` (UTC storage, M-01);
- *   3. classify: inside lead time -> 'deadline'; overlapping an active booking or a
- *      non-deleted block with `&&` -> 'full'; else 'available'.
+ *   3. classify: inside lead time, or today while settings.allow_same_day is off (CR-02)
+ *      -> 'deadline'; overlapping an active booking or a non-deleted block with `&&` -> 'full';
+ *      else 'available'.
  * Ranges are half-open '[)', so a booking ending 19:00 does not block a 19:00 start.
  * The day summary and the slot list come from the same CTEs, so they can never disagree.
  * This file lives in lib/db because both features/availability (read DAL) and
  * features/booking (re-check under the advisory lock) use it, and features must not import
  * each other (DES-00 §5.1).
+ *
+ * JIT (SR-04): the planner over-estimates generate_series rows, the estimated cost crosses
+ * jit_above_cost and Postgres JIT-compiles a ~1 ms query for ~0.4 s. Every execution therefore
+ * runs inside a transaction with `SET LOCAL jit = off` (works through transaction-mode poolers
+ * such as Neon's, unlike startup options or per-session SET): readers use readAvailability(),
+ * the booking transaction calls disableJit() itself before the re-check.
  */
+
+/** Turn JIT off for the rest of the current transaction (no-op outside a transaction). */
+export async function disableJit(tx: Tx): Promise<void> {
+  await tx.execute(sql`SET LOCAL jit = off`)
+}
+
+/** Run availability reads in a short read-only transaction with JIT disabled. */
+export function readAvailability<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  return rootDb.transaction(
+    async (tx) => {
+      await disableJit(tx)
+      return fn(tx)
+    },
+    { accessMode: 'read only' },
+  )
+}
 
 export type SlotStatus = 'available' | 'full' | 'deadline'
 export type DayStatus = SlotStatus | 'closed' | 'out_of_range'
@@ -40,11 +63,11 @@ function availabilityCtes({ menuSlug, from, to, now }: AvailabilityParams): SQL 
   const nowTs = sql`${now.toISOString()}::timestamptz`
   return sql`
     WITH s AS (
-      SELECT slot_step_min, lead_time_min, max_advance_days FROM settings WHERE id = 1
+      SELECT slot_step_min, lead_time_min, max_advance_days, allow_same_day FROM settings WHERE id = 1
     ), m AS (
       SELECT duration_min, buffer_after_min FROM menus WHERE slug = ${menuSlug} AND is_active
     ), p AS (
-      SELECT m.duration_min, m.buffer_after_min, s.slot_step_min,
+      SELECT m.duration_min, m.buffer_after_min, s.slot_step_min, s.allow_same_day,
              ${nowTs} + make_interval(mins => s.lead_time_min)                 AS not_before,
              (${nowTs} AT TIME ZONE 'Asia/Tokyo')::date + s.max_advance_days    AS last_date,
              (${nowTs} AT TIME ZONE 'Asia/Tokyo')::date                         AS today
@@ -77,11 +100,12 @@ function availabilityCtes({ menuSlug, from, to, now }: AvailabilityParams): SQL 
              tstzrange(c.start_at,
                        c.start_at + make_interval(mins => p.duration_min + p.buffer_after_min),
                        '[)') AS r,
-             c.start_at < p.not_before AS in_lead_time
+             c.start_at < p.not_before AS in_lead_time,
+             (NOT p.allow_same_day AND c.d <= p.today) AS same_day_off
       FROM cand c CROSS JOIN p
     ), classified AS (
       SELECT sl.d, sl.start_at,
-             CASE WHEN sl.in_lead_time THEN 'deadline'
+             CASE WHEN sl.in_lead_time OR sl.same_day_off THEN 'deadline'
                   WHEN EXISTS (SELECT 1 FROM bookings b
                                WHERE b.resource_id = 1
                                  AND b.status IN ('confirmed', 'arrived', 'in_progress')
@@ -114,9 +138,9 @@ type DayRow = {
   slots?: { startsAt: string; status: SlotStatus }[]
 }
 
-/** §6: each day with every candidate slot and its status (used for the slot list). */
-export async function queryAvailabilityDays(db: DbOrTx, params: AvailabilityParams): Promise<RawDay[]> {
-  const res = await db.execute<DayRow>(sql`
+/** §6 SQL (exported for the EXPLAIN test). */
+export function availabilityDaysSql(params: AvailabilityParams): SQL {
+  return sql`
     ${availabilityCtes(params)}
     SELECT hr.d::text AS date,
            ${dayStatusExpr(false)} AS day_status,
@@ -129,7 +153,12 @@ export async function queryAvailabilityDays(db: DbOrTx, params: AvailabilityPara
     LEFT JOIN classified c ON c.d = hr.d
     GROUP BY hr.d, hr.is_closed, hr.override_closed
     ORDER BY hr.d
-  `)
+  `
+}
+
+/** §6: each day with every candidate slot and its status (used for the slot list). */
+export async function queryAvailabilityDays(db: DbOrTx, params: AvailabilityParams): Promise<RawDay[]> {
+  const res = await db.execute<DayRow>(availabilityDaysSql(params))
   return res.rows.map((r) => ({
     date: r.date,
     status: r.day_status,

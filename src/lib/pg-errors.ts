@@ -37,3 +37,29 @@ export const CONSTRAINTS = {
   publicCode: 'bookings_public_code_unique',
   cancelTokenHash: 'bookings_cancel_token_hash_unique',
 } as const
+
+/**
+ * Loggable, PII-free description of an unexpected error (CR-01, AGENTS.md rule 6).
+ * Drizzle's DrizzleQueryError message embeds every SQL parameter (names, phones, notes, IPs),
+ * and some Postgres messages / `detail` echo input values, so neither is ever logged. Only the
+ * error class, SQLSTATE, constraint and a stable code derived from them are kept.
+ */
+export type ErrorFields = {
+  errorName: string
+  errorCode: string
+  sqlstate: string | null
+  constraint: string | null
+}
+
+export function errorFields(err: unknown): ErrorFields {
+  const pg = pgErrorOf(err)
+  const rawName = err instanceof Error ? err.name : typeof err
+  const errorName = /^[A-Za-z][A-Za-z0-9_]{0,40}$/.test(rawName) ? rawName : 'Error'
+  const constraint = pg?.constraint && /^[a-z0-9_]{1,63}$/.test(pg.constraint) ? pg.constraint : null
+  return {
+    errorName,
+    errorCode: pg ? `db_${pg.code}` : 'unexpected',
+    sqlstate: pg?.code ?? null,
+    constraint,
+  }
+}

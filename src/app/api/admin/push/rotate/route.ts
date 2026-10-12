@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireAdmin } from '@/features/admin/auth'
 import { rotatePushSubscription } from '@/features/admin/service'
 import { siteUrl } from '@/lib/site'
+import { guardRoute } from '@/lib/unexpected-error'
 
 const NO_STORE = { 'Cache-Control': 'no-store' }
 const body = z.object({
@@ -18,16 +19,18 @@ const body = z.object({
  * `pushsubscriptionchange` (Android). Cookie session + same-origin check (T-08).
  */
 export async function POST(request: NextRequest): Promise<Response> {
-  const origin = request.headers.get('origin')
-  if (origin && origin !== new URL(siteUrl()).origin) return new Response(null, { status: 403, headers: NO_STORE })
-  const session = await requireAdmin()
-  if (!session) return new Response(null, { status: 401, headers: NO_STORE })
-  const parsed = body.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) return new Response(null, { status: 400, headers: NO_STORE })
-  await rotatePushSubscription(parsed.data, {
-    userId: session.user.id,
-    sessionId: session.session.id,
-    userAgent: request.headers.get('user-agent'),
+  return guardRoute('admin_api.push_rotate_failed', async () => {
+    const origin = request.headers.get('origin')
+    if (origin && origin !== new URL(siteUrl()).origin) return new Response(null, { status: 403, headers: NO_STORE })
+    const session = await requireAdmin()
+    if (!session) return new Response(null, { status: 401, headers: NO_STORE })
+    const parsed = body.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) return new Response(null, { status: 400, headers: NO_STORE })
+    await rotatePushSubscription(parsed.data, {
+      userId: session.user.id,
+      sessionId: session.session.id,
+      userAgent: request.headers.get('user-agent'),
+    })
+    return new Response(null, { status: 204, headers: NO_STORE })
   })
-  return new Response(null, { status: 204, headers: NO_STORE })
 }

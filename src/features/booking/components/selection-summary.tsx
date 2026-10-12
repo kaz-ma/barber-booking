@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import { applicablePrice, type Occupation } from '@/domain/pricing'
+import { applicablePrice, isStudentRateApplied, type Occupation } from '@/domain/pricing'
 import { formatDayOf, formatTimeSpan } from '@/lib/i18n/display'
 import { Link } from '@/lib/i18n/navigation'
 import { yenText } from './price'
@@ -28,7 +28,7 @@ export function SelectionSummary({
   const start = new Date(startsAt)
   const end = new Date(start.getTime() + menu.durationMin * 60_000)
   const date = startsAt.slice(0, 10)
-  const isStudentRate = occupation === 'student' && menu.priceStudentJpy !== null
+  const isStudentRate = occupation === 'student' && isStudentRateApplied(menu, occupation)
   const price = applicablePrice(menu, occupation || 'worker')
   const duration = tMenu('duration', { minutes: menu.durationMin })
   return (

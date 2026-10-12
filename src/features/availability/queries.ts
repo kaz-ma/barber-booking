@@ -7,6 +7,7 @@ import {
   type DayStatus,
   queryAvailabilityDays,
   queryAvailabilityMonth,
+  readAvailability,
   type SlotStatus,
 } from '@/lib/db/availability-sql'
 import { menus, settings } from '@/lib/db/schema'
@@ -53,7 +54,7 @@ export async function getAvailability(
   if (!isDateString(from) || !isDateString(to) || from > to) return null
   if (addDays(from, MAX_RANGE_DAYS - 1) < to) return null
   if (!(await isActiveMenu(menuSlug))) return null
-  const days = await queryAvailabilityDays(db, { menuSlug, from, to, now })
+  const days = await readAvailability((tx) => queryAvailabilityDays(tx, { menuSlug, from, to, now }))
   return days.map((d) => ({
     date: d.date,
     status: d.status,
@@ -85,7 +86,7 @@ export async function getMonthAvailability(
   if (!(await isActiveMenu(menuSlug))) return null
 
   const { first, last } = monthBounds(month)
-  const days = await queryAvailabilityMonth(db, { menuSlug, from: first, to: last, now })
+  const days = await readAvailability((tx) => queryAvailabilityMonth(tx, { menuSlug, from: first, to: last, now }))
   const prev = addMonths(month, -1)
   const next = addMonths(month, 1)
   return {

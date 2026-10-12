@@ -9,7 +9,7 @@ import { sendAdminOtpEmail } from '@/lib/auth-email'
 import { db } from '@/lib/db'
 import { authAccount, authPasskey, authRateLimit, authSession, authUser, authVerification } from '@/lib/db/schema'
 import { env } from '@/lib/env'
-import { logger } from '@/lib/logger'
+import { secretOrEphemeral } from '@/lib/secrets'
 import { siteUrl } from '@/lib/site'
 
 /*
@@ -24,14 +24,8 @@ import { siteUrl } from '@/lib/site'
  *   - nextCookies() must be the last plugin: it lets Server Actions set the session cookie.
  */
 
-const DEV_FALLBACK_SECRET = 'dev-only-better-auth-secret-not-for-production-0123456789'
-
-function authSecret(): string {
-  if (env.BETTER_AUTH_SECRET) return env.BETTER_AUTH_SECRET
-  // env.ts requires the secret on deployed environments; this branch is local / test only.
-  if (env.NODE_ENV === 'development') logger.warn('better_auth.dev_secret', { reason: 'BETTER_AUTH_SECRET unset' })
-  return DEV_FALLBACK_SECRET
-}
+/** Required in production (SR-05); random per process in development / test / build. */
+export const authSecret = (): string => secretOrEphemeral('BETTER_AUTH_SECRET', env.BETTER_AUTH_SECRET)
 
 export const OTP_LENGTH = 6
 export const OTP_EXPIRES_SEC = 10 * 60

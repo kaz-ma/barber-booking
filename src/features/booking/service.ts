@@ -1,16 +1,16 @@
 import 'server-only'
 import { randomUUID } from 'node:crypto'
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { POLICY_VERSION } from '@/config/shop'
 import { ACTIVE_STATUSES } from '@/domain/booking-status'
 import { phoneTail } from '@/domain/phone'
-import { applicablePrice } from '@/domain/pricing'
+import { applicablePrice, isStudentRateApplied } from '@/domain/pricing'
 import { jstDate } from '@/domain/time'
 import type { ActionResult } from '@/lib/action-result'
 import { invalid } from '@/lib/action-result'
 import { audit } from '@/lib/audit'
 import { db, type Tx } from '@/lib/db'
-import { queryAvailabilityDays } from '@/lib/db/availability-sql'
+import { disableJit, queryAvailabilityDays } from '@/lib/db/availability-sql'
 import { bookings, consents, customers, menus, settings } from '@/lib/db/schema'
 import { piiHmac, sha256, sha256Hex } from '@/lib/hash'
 import { logger } from '@/lib/logger'
@@ -18,6 +18,7 @@ import { CONSTRAINTS, isExclusionViolation, isUniqueViolation } from '@/lib/pg-e
 import { checkPhoneDaily, hitWindow, incrementPhoneDaily, LIMITS, rateKeys } from '@/lib/rate-limit'
 import { generatePublicCode, hashCancelToken, hashesEqual, isCancelTokenFormat, issueCancelToken } from '@/lib/tokens'
 import { verifyTurnstile } from '@/lib/turnstile'
+import { unexpectedError } from '@/lib/unexpected-error'
 import { type CreateBookingInput, cancelBookingSchema, createBookingSchema, type Locale } from './schema'
 
 /*
@@ -53,14 +54,10 @@ class Abort extends Error {
   }
 }
 
-function errorResult(err: unknown, event: string): ActionResult<never> {
-  const digest = randomUUID().slice(0, 8)
-  logger.error(event, {
-    digest,
-    error: err instanceof Error ? err.message : String(err),
-  })
-  return { status: 'error', digest }
-}
+/** Unexpected errors: logged without the message (it may embed SQL parameters, CR-01). */
+const errorResult = (err: unknown, event: string): ActionResult<never> => unexpectedError(err, event)
+
+const SLOT_TAKEN = { status: 'conflict', reason: 'slot_taken' } as const
 
 const doneUrl = (locale: Locale, rawToken: string) => `/${locale}/book/done/${rawToken}`
 
@@ -75,7 +72,9 @@ function idempotencyKeyOf(startsAt: Date, menuId: string, phoneE164: string): st
 
 /**
  * Same browser re-submitting (submission nonce matches): re-issue the token and return the
- * existing booking. Anyone else gets `duplicate` with no details (G-04, T-05).
+ * existing booking. Anyone else gets the same answer as for any taken slot (SR-12): telling
+ * `duplicate` apart from `slot_taken` would reveal whether a given phone number holds that slot
+ * (G-04, T-05). The internal reason is logged as `booking.duplicate_rejected` (no PII).
  */
 async function resolveExistingByIdempotency(
   tx: Tx,
@@ -91,7 +90,8 @@ async function resolveExistingByIdempotency(
     .limit(1)
   if (!existing) return null
   if (!existing.nonceHash || !hashesEqual(existing.nonceHash, sha256(nonce))) {
-    return { status: 'duplicate' }
+    logger.info('booking.duplicate_rejected', {})
+    return SLOT_TAKEN
   }
   const token = issueCancelToken()
   await tx.update(bookings).set({ cancelTokenHash: token.hash }).where(eq(bookings.id, existing.id))
@@ -106,6 +106,12 @@ async function insertBooking(
   const startsAt = new Date(input.startsAt)
   return db.transaction(async (tx) => {
     await lockCalendar(tx)
+    await disableJit(tx)
+
+    // Phone limit under the calendar lock (SR-02 / CR-08): every booking write is serialised by
+    // the lock, so check + increment (below, same transaction) are atomic per phone.
+    const phoneLimit = await checkPhoneDaily(input.phone, { db: tx, now: ctx.now })
+    if (!phoneLimit.ok) throw new Abort({ status: 'rate_limited', retryAfterSec: phoneLimit.retryAfterSec })
 
     const [menu] = await tx
       .select()
@@ -130,12 +136,25 @@ async function insertBooking(
     if (!slot || slot.status === 'deadline') {
       throw new Abort({ status: 'invalid', fieldErrors: {}, reason: 'not_bookable' })
     }
-    if (slot.status === 'full') throw new Abort({ status: 'conflict', reason: 'slot_taken' })
+    if (slot.status === 'full') throw new Abort(SLOT_TAKEN)
 
     const [conf] = await tx.select({ cancelDeadlineMin: settings.cancelDeadlineMin }).from(settings).limit(1)
     const cancelDeadlineMin = conf?.cancelDeadlineMin ?? 120
 
     // Customers are the single source of PII (ADR-0008): upsert by phone, never snapshot.
+    // The previous values are read (locked) first so an overwrite can be audited (SR-14).
+    const [previous] = await tx
+      .select({ name: customers.name, nameKana: customers.nameKana })
+      .from(customers)
+      .where(
+        and(
+          eq(customers.phoneE164, input.phone),
+          isNull(customers.deletedAt),
+          isNull(customers.mergedIntoCustomerId),
+        ),
+      )
+      .for('update')
+      .limit(1)
     const [customer] = await tx
       .insert(customers)
       .values({
@@ -151,7 +170,8 @@ async function insertBooking(
         targetWhere: sql`phone_e164 IS NOT NULL AND deleted_at IS NULL AND merged_into_customer_id IS NULL`,
         set: {
           name: sql`excluded.name`,
-          nameKana: sql`excluded.name_kana`,
+          // /en has no furigana field: keep the stored kana instead of nulling it (CR-05).
+          nameKana: sql`COALESCE(excluded.name_kana, ${customers.nameKana})`,
           occupation: sql`excluded.occupation`,
           locale: sql`excluded.locale`,
         },
@@ -159,6 +179,22 @@ async function insertBooking(
       .returning({ id: customers.id, restriction: customers.bookingRestriction })
     if (!customer) throw new Error('customer upsert returned no row')
     if (customer.restriction !== 'none') throw new Abort({ status: 'restricted' })
+    if (previous) {
+      // Column names only, never values (allow-listed diff, AGENTS.md rule 6).
+      const changed = [
+        previous.name !== input.name ? 'name' : null,
+        input.nameKana && previous.nameKana !== input.nameKana ? 'nameKana' : null,
+      ].filter((f): f is string => f !== null)
+      if (changed.length > 0) {
+        await audit(tx, {
+          actor: 'system',
+          action: 'customer.overwrite',
+          entityType: 'customer',
+          entityId: customer.id,
+          diff: { fields: changed.join(','), source: 'web' },
+        })
+      }
+    }
 
     const bookingId = randomUUID()
     const consentId = randomUUID()
@@ -177,7 +213,9 @@ async function insertBooking(
       source: 'web',
       locale: input.locale,
       priceJpy: applicablePrice(menu, input.occupation),
-      isStudent: input.occupation === 'student',
+      // "Student price applied", not "occupation is student" (CR-06): a menu without a student
+      // price charges the regular price and must not show the student tag.
+      isStudent: isStudentRateApplied(menu, input.occupation),
       bufferMin: menu.bufferAfterMin,
       note: input.note ?? null,
       idempotencyKey,
@@ -188,7 +226,9 @@ async function insertBooking(
     })
 
     // One checkbox records two consents (12.3). The FKs are DEFERRABLE (checked at COMMIT).
+    // The IP is stored as an HMAC like the rate-limit keys (AGENTS.md rule 5, SR-15).
     const userAgent = ctx.userAgent?.slice(0, 512) ?? null
+    const ipHash = piiHmac(ctx.ip)
     await tx.insert(consents).values([
       {
         id: consentId,
@@ -196,13 +236,13 @@ async function insertBooking(
         bookingId,
         kind: 'booking_policy',
         policyVersion: POLICY_VERSION,
-        ip: ctx.ip,
+        ipHash,
         userAgent,
       },
-      { customerId: customer.id, bookingId, kind: 'privacy', policyVersion: POLICY_VERSION, ip: ctx.ip, userAgent },
+      { customerId: customer.id, bookingId, kind: 'privacy', policyVersion: POLICY_VERSION, ipHash, userAgent },
     ])
 
-    await incrementPhoneDaily(input.phone, tx)
+    await incrementPhoneDaily(input.phone, { db: tx, now: ctx.now })
     await audit(tx, {
       actor: `customer:${bookingId}`,
       action: 'booking.create',
@@ -233,24 +273,24 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
   const input = parsed.data
   const rawPhone = String((raw as Record<string, unknown>).phone ?? '')
 
-  // (2) Honeypot: pretend success, store nothing (FR-S-05)
+  // (2) Honeypot: pretend success, store nothing (FR-S-05). The fake done URL has the same
+  // shape as a real one (an unstored random token) so bots cannot tell them apart (SR-24).
   if (input.website !== '') {
     logger.info('booking.honeypot', {})
-    return { result: { status: 'ok', data: { doneUrl: `/${input.locale}/book` } } }
+    return { result: { status: 'ok', data: { doneUrl: doneUrl(input.locale, issueCancelToken().raw) } } }
   }
 
-  // (3) Rate limits: IP counted on every attempt; phone checked here, counted on success
-  const ipLimit = await hitWindow(rateKeys.bookingIp(ctx.ip), LIMITS.bookingIp.windowSec, LIMITS.bookingIp.limit)
+  // (3) Rate limits: IP counted on every attempt; phone checked here as an early rejection and
+  // again under the lock inside the transaction, where it is counted on success (SR-02).
+  const ipLimit = await hitWindow(rateKeys.bookingIp(ctx.ip), LIMITS.bookingIp.windowSec, LIMITS.bookingIp.limit, {
+    now: ctx.now,
+  })
   if (!ipLimit.ok) return { result: { status: 'rate_limited', retryAfterSec: ipLimit.retryAfterSec } }
-  const phoneLimit = await checkPhoneDaily(input.phone)
+  const phoneLimit = await checkPhoneDaily(input.phone, { now: ctx.now })
   if (!phoneLimit.ok) return { result: { status: 'rate_limited', retryAfterSec: phoneLimit.retryAfterSec } }
 
-  // (4) Turnstile (external I/O, after everything cheap)
-  const human = await verifyTurnstile({
-    token: input.turnstileToken,
-    ip: ctx.ip,
-    idempotencyKey: input.submissionNonce,
-  })
+  // (4) Turnstile (external I/O, after everything cheap). The token is bound to the nonce (SR-03).
+  const human = await verifyTurnstile({ token: input.turnstileToken, ip: ctx.ip, nonce: input.submissionNonce })
   if (!human) return { result: { status: 'bot_check_failed' } }
 
   // (5) Transaction; retry once only for the (practically impossible) random-value collisions
@@ -261,9 +301,7 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
       return bookingId ? { result, createdBookingId: bookingId } : { result }
     } catch (err) {
       if (err instanceof Abort) return { result: err.result }
-      if (isExclusionViolation(err, CONSTRAINTS.noOverlap)) {
-        return { result: { status: 'conflict', reason: 'slot_taken' } }
-      }
+      if (isExclusionViolation(err, CONSTRAINTS.noOverlap)) return { result: SLOT_TAKEN }
       if (isUniqueViolation(err, CONSTRAINTS.idempotencyActive)) {
         // A concurrent identical submission committed first: same browser gets it back.
         const resolved = await db.transaction(async (tx) => {
@@ -273,7 +311,7 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
           const key = idempotencyKeyOf(new Date(input.startsAt), menuId, input.phone)
           return resolveExistingByIdempotency(tx, key, input.submissionNonce, input.locale)
         })
-        return { result: resolved ?? { status: 'conflict', reason: 'slot_taken' } }
+        return { result: resolved ?? SLOT_TAKEN }
       }
       if (
         attempt === 0 &&
@@ -288,7 +326,8 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
 }
 
 export type CancelBookingResult = {
-  result: ActionResult<null>
+  /** `alreadyCancelled`: the same link was used again after a successful cancel (CR-09). */
+  result: ActionResult<{ alreadyCancelled: boolean }>
   cancelledBookingId?: string
 }
 
@@ -296,20 +335,37 @@ export type CancelBookingResult = {
 export const VIEW_GRACE_MS = 24 * 60 * 60 * 1000
 
 /**
- * Self-cancel by token (FR-C-12, FR-S-06): format check -> SHA-256 lookup under the lock ->
- * constant-time compare -> deadline check -> cancelled_by_customer, token invalidated.
+ * Self-cancel by token (FR-C-12, FR-S-06):
+ *   IP rate limit (SR-01: here, not only in proxy.ts — a Server Action can be posted to any URL)
+ *   -> format check -> lock-free existence check by SHA-256 (an unknown token never takes the
+ *   calendar lock or holds a connection in a transaction) -> lock -> re-read FOR UPDATE ->
+ *   constant-time compare -> deadline -> cancelled_by_customer.
  * "Not found" never reveals why (enumeration resistance).
+ *
+ * Idempotent (CR-09): the hash stays on a customer-cancelled row, so a double tap / resubmission
+ * of the same link answers `ok` with `alreadyCancelled: true` instead of "not found". The token
+ * can do nothing else: token pages and the ICS only resolve `confirmed` bookings.
  */
 export async function cancelByToken(
   raw: unknown,
-  context: Omit<RequestContext, 'ip' | 'userAgent'>,
+  context: { ip: string; now?: Date },
 ): Promise<CancelBookingResult> {
   const now = context.now ?? new Date()
-  const parsed = cancelBookingSchema.safeParse(raw)
-  if (!parsed.success || !isCancelTokenFormat(parsed.data.token)) return { result: { status: 'not_found' } }
-  const hash = hashCancelToken(parsed.data.token)
-
   try {
+    const rate = await hitWindow(rateKeys.cancelIp(context.ip), LIMITS.cancelIp.windowSec, LIMITS.cancelIp.limit, {
+      now,
+    })
+    if (!rate.ok) return { result: { status: 'rate_limited', retryAfterSec: rate.retryAfterSec } }
+
+    const parsed = cancelBookingSchema.safeParse(raw)
+    if (!parsed.success || !isCancelTokenFormat(parsed.data.token)) return { result: { status: 'not_found' } }
+    const hash = hashCancelToken(parsed.data.token)
+
+    const exists = await db.execute<{ id: string }>(sql`
+      SELECT id FROM bookings WHERE cancel_token_hash = ${hash} AND deleted_at IS NULL
+    `)
+    if (exists.rows.length === 0) return { result: { status: 'not_found' } }
+
     return await db.transaction(async (tx) => {
       await lockCalendar(tx)
       const rows = await tx.execute<{
@@ -328,9 +384,11 @@ export async function cancelByToken(
       if (!row?.cancel_token_hash || !hashesEqual(row.cancel_token_hash, hash)) {
         return { result: { status: 'not_found' } }
       }
-      if (row.status !== 'confirmed' || now.getTime() >= new Date(row.end_at).getTime() + VIEW_GRACE_MS) {
-        return { result: { status: 'not_found' } }
+      const viewable = now.getTime() < new Date(row.end_at).getTime() + VIEW_GRACE_MS
+      if (row.status === 'cancelled_by_customer' && viewable) {
+        return { result: { status: 'ok', data: { alreadyCancelled: true } } }
       }
+      if (row.status !== 'confirmed' || !viewable) return { result: { status: 'not_found' } }
       if (!row.cancel_token_expires_at || now.getTime() >= new Date(row.cancel_token_expires_at).getTime()) {
         return { result: { status: 'past_deadline' } }
       }
@@ -339,7 +397,6 @@ export async function cancelByToken(
         .set({
           status: 'cancelled_by_customer',
           cancelledAt: now,
-          cancelTokenHash: null,
           acknowledgedAt: null,
           statusChangedAt: now,
         })
@@ -351,7 +408,7 @@ export async function cancelByToken(
         entityId: row.id,
         diff: { from: 'confirmed', to: 'cancelled_by_customer' },
       })
-      return { result: { status: 'ok', data: null }, cancelledBookingId: row.id }
+      return { result: { status: 'ok', data: { alreadyCancelled: false } }, cancelledBookingId: row.id }
     })
   } catch (err) {
     return { result: errorResult(err, 'booking.cancel_failed') }

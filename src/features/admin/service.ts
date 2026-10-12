@@ -26,12 +26,13 @@ import { env } from '@/lib/env'
 import { piiHmac } from '@/lib/hash'
 import { logger } from '@/lib/logger'
 import { countUnacknowledged, UNACKNOWLEDGED_WHERE } from '@/lib/notify'
-import { CONSTRAINTS, isExclusionViolation, isUniqueViolation } from '@/lib/pg-errors'
+import { CONSTRAINTS, errorFields, isExclusionViolation, isUniqueViolation } from '@/lib/pg-errors'
 import { type PushSendResult, sendPushToAll } from '@/lib/push'
 import { buildDeclarativePayload } from '@/lib/push-payload'
 import { hitWindow } from '@/lib/rate-limit'
 import { absoluteUrl } from '@/lib/site'
 import { generatePublicCode, issueCancelToken } from '@/lib/tokens'
+import { type UnexpectedResult, unexpectedError } from '@/lib/unexpected-error'
 import { findOverlaps, hoursForDate, lockCalendar, RESOURCE_ID } from './calendar'
 import type { CreateManualBookingInput, CreateTimeBlockInput, UpsertMenuInput } from './schema'
 import { safeAdminNext } from './schema'
@@ -53,11 +54,8 @@ class Abort<T> extends Error {
   }
 }
 
-function errorResult(err: unknown, event: string): { status: 'error'; digest: string } {
-  const digest = randomUUID().slice(0, 8)
-  logger.error(event, { digest, error: err instanceof Error ? err.message : String(err) })
-  return { status: 'error', digest }
-}
+/** Unexpected errors: logged without the message (it may embed SQL parameters, CR-01). */
+const errorResult = (err: unknown, event: string): UnexpectedResult => unexpectedError(err, event)
 
 function fieldError(field: string, key: string): { status: 'invalid'; fieldErrors: Record<string, string[]> } {
   return { status: 'invalid', fieldErrors: { [field]: [key] } }
@@ -1066,8 +1064,17 @@ export async function anonymizeCustomer(
         AND lower(during) > ${now.toISOString()}::timestamptz
       RETURNING id
     `)
-    await tx.update(bookings).set({ note: null, ownerNote: null }).where(eq(bookings.customerId, c.id))
-    await tx.update(consents).set({ ip: null, userAgent: null }).where(eq(consents.customerId, c.id))
+    // Free-text cancel reasons may contain PII; the fixed markers stay (CR-20).
+    await tx
+      .update(bookings)
+      .set({
+        note: null,
+        ownerNote: null,
+        cancelTokenHash: null,
+        cancelReason: sql`CASE WHEN ${bookings.cancelReason} IN ('deleted', 'anonymized') THEN ${bookings.cancelReason} END`,
+      })
+      .where(eq(bookings.customerId, c.id))
+    await tx.update(consents).set({ ipHash: null, userAgent: null }).where(eq(consents.customerId, c.id))
     await tx
       .update(customers)
       .set({
@@ -1124,7 +1131,7 @@ export async function requestAdminOtp(ctx: OtpCtx): Promise<ActionResult<null>> 
     await auth.api.sendVerificationOTP({ body: { email, type: 'sign-in' }, headers: ctx.headers })
     await audit(db, { actor: 'system', action: 'auth.otp_requested', entityType: 'session', entityId: user.id })
   } catch (err) {
-    logger.error('admin_otp.request_failed', { error: err instanceof Error ? err.message : 'unknown' })
+    logger.error('admin_otp.request_failed', errorFields(err))
   }
   return { status: 'ok', data: null }
 }

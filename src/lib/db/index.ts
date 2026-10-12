@@ -4,6 +4,10 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { env } from '@/lib/env'
 import * as schema from './schema'
+import { installDbErrorScrubber } from './scrub-errors'
+
+// CR-01: database errors never carry SQL parameters (PII) out of the data layer.
+installDbErrorScrubber()
 
 /*
  * One driver everywhere: node-postgres Pool (DZ-05, ADR-0002). Locally it talks to the

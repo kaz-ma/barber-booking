@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
+import { availabilityDaysSql, disableJit, queryAvailabilityDays, readAvailability } from '@/lib/db/availability-sql'
 import { addMenu, insertBlock, insertRawBooking, jst, resetDb } from '../../../test/db-helpers'
 import { getDayAvailability, getMonthAvailability } from './queries'
 
@@ -158,5 +159,56 @@ describe('schema guards', () => {
         VALUES (tstzrange(now(), now() + interval '1 hour', '[]'), 'break')
       `),
     ).rejects.toMatchObject({ cause: { code: '23514' } })
+  })
+})
+
+describe('allow_same_day (CR-02)', () => {
+  it('false: every slot today is "deadline" (締切) and the day is not bookable; tomorrow is unaffected', async () => {
+    await db.execute(sql`UPDATE settings SET allow_same_day = false`)
+    const today = await getDayAvailability({ menuSlug: 'cut', date: '2026-11-03' }, NOON)
+    expect(today?.status).toBe('deadline')
+    expect(startsOf(today, 'available')).toEqual([])
+    expect(startsOf(today, 'deadline')).toHaveLength(11)
+    const month = await getMonthAvailability({ menuSlug: 'cut', month: '2026-11' }, NOON)
+    expect(month?.days.find((d) => d.date === '2026-11-03')?.status).toBe('deadline')
+    expect(month?.firstAvailableDate).toBe('2026-11-04')
+    expect((await getDayAvailability({ menuSlug: 'cut', date: '2026-11-04' }, NOON))?.status).toBe('available')
+  })
+
+  it('true: today keeps its bookable slots after the lead time', async () => {
+    await db.execute(sql`UPDATE settings SET allow_same_day = true`)
+    const today = await getDayAvailability({ menuSlug: 'cut', date: '2026-11-03' }, NOON)
+    expect(today?.status).toBe('available')
+    expect(startsOf(today, 'available')).toHaveLength(11)
+  })
+})
+
+describe('JIT is disabled for availability queries (SR-04)', () => {
+  const params = { menuSlug: 'cut', from: '2026-11-04', to: '2026-11-04', now: NOON }
+
+  it('readAvailability runs with jit = off and the plan has no JIT section', async () => {
+    const result = await readAvailability(async (tx) => {
+      const jit = await tx.execute<{ jit: string }>(sql`SHOW jit`)
+      const plan = await tx.execute<{ 'QUERY PLAN': unknown }>(
+        sql`EXPLAIN (ANALYZE, FORMAT JSON) ${availabilityDaysSql(params)}`,
+      )
+      return { jit: jit.rows[0]?.jit, plan: JSON.stringify(plan.rows[0]?.['QUERY PLAN']) }
+    })
+    expect(result.jit).toBe('off')
+    expect(result.plan).not.toContain('"JIT"')
+    // SET LOCAL does not leak to the pooled connection afterwards.
+    const after = await db.execute<{ jit: string }>(sql`SHOW jit`)
+    expect(after.rows[0]?.jit).toBe(
+      (await db.execute<{ d: string }>(sql`SELECT reset_val AS d FROM pg_settings WHERE name = 'jit'`)).rows[0]?.d,
+    )
+  })
+
+  it('the booking-transaction path (disableJit) also turns it off', async () => {
+    const jit = await db.transaction(async (tx) => {
+      await disableJit(tx)
+      await queryAvailabilityDays(tx, params)
+      return (await tx.execute<{ jit: string }>(sql`SHOW jit`)).rows[0]?.jit
+    })
+    expect(jit).toBe('off')
   })
 })
