@@ -189,7 +189,10 @@ async function settleFonts(page) {
     const fam = getComputedStyle(document.body).fontFamily
     const text = document.body.innerText.slice(0, 4000)
     // allSettled: next/font also registers `local()` fallback faces that reject when the local font is missing.
-    await Promise.allSettled([document.fonts.load(`400 16px ${fam}`, text), document.fonts.load(`700 16px ${fam}`, text)])
+    await Promise.allSettled([
+      document.fonts.load(`400 16px ${fam}`, text),
+      document.fonts.load(`700 16px ${fam}`, text),
+    ])
     await document.fonts.ready
   })
 }
