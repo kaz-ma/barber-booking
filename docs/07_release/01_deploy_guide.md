@@ -89,7 +89,7 @@
 | Build Command / Install Command / Output | 既定のまま（`npm run build` / `npm ci` 相当 / `.next`） |
 | Node.js Version | **24.x**（Settings → Build and Deployment）。`.nvmrc` は `24`、`package.json` の `engines.node` は `>=22.13.0` |
 | Production Branch | `main` |
-| Function Region | Neon と同じ地域にそろえる（§4 の結果に合わせ、Singapore なら `sin1`）【要実機確認: Hobby で変更できるか】 |
+| Function Region | Neon と同じ地域にそろえる。本番の Neon は **AWS Asia Pacific 1 (Singapore)** のため `vercel.json` の `"regions": ["sin1"]` で固定（2026-10-13。iad1 のままだと空き状況の DB 時間が約 0.65 秒だった） |
 
 3. **Deploy** を押す。環境変数がないため初回ビルドは `src/lib/env.ts` の検証で失敗するが、プロジェクトが作られればよい。
 4. 発行された本番 URL（例 `https://neuer-barber.vercel.app`）を控える。これが Phase 1 の `SITE_URL` になる。プロジェクト名で URL が決まるため、名前は公開前に決めておく【クライアント: 表示名の希望】。

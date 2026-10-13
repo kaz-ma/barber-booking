@@ -50,7 +50,7 @@ flowchart LR
     C1["顧客ブラウザ<br/>/ja と /en"]
     A1["管理 PWA<br/>iPhone と Android<br/>Service Worker"]
   end
-  subgraph Vercel["Vercel Hobby 東京リージョン hnd1 Node.js ランタイム"]
+  subgraph Vercel["Vercel Hobby シンガポール sin1 Node.js ランタイム"]
     WAF["Vercel WAF<br/>Rate Limit 1 ルール"]
     P["proxy.ts<br/>ロケール判定<br/>admin Cookie 楽観チェック<br/>キャンセル URL レート制限"]
     R["RSC ページ<br/>Cache Components<br/>Suspense ストリーミング"]
@@ -121,7 +121,7 @@ flowchart LR
 ### 3.1 ランタイム
 
 - 全ルート Node.js ランタイム（Next.js 16 で `proxy.ts` は Node 固定、`runtime: 'edge'` は使わない）。本番・CI は Node 24 LTS（`.nvmrc`）、`package.json` の `engines.node` は `>=22.13.0`（ADR-0009）。
-- 関数リージョン `hnd1`（東京）。Neon のリージョンも `aws-ap-northeast-1` に揃える。（Hobby でのリージョン指定は初回デプロイ時にダッシュボードで確認する）
+- 関数リージョン `sin1`（シンガポール）。本番の Neon が AWS Asia Pacific 1（Singapore, `aws-ap-southeast-1`）のため、関数を DB と同じ地域に置く（`vercel.json` の `regions`。2026-10-13 変更: 当初の `hnd1`＋東京は Neon に東京リージョンが無く不可。1 リクエストで DB を複数回往復するので、利用者との距離より DB との距離を優先）。
 - `next.config.ts`: `cacheComponents: true`、`partialPrefetching: true`（明示しないと警告）、`typedRoutes: true`、`poweredByHeader: false`、`experimental.globalNotFound: true`（ルートレイアウトが `(public)/[locale]` と `(admin)/admin` の 2 つあるため `app/global-not-found.tsx` を使う）、`serverActions.bodySizeLimit` は既定 1 MB のまま。`next.config.ts` は Next から渡されたフェーズを使い、`src/lib/env-schema.ts` の `parseServerEnv()` で環境変数を検証する（`next build` は秘密なしで通し、`next start`／`next dev` は完全に検証する。4 章）。
 - ロケールは `next/root-params` の `locale()` で取得する（`setRequestLocale` の代わり。Cache Components と両立）。
 
