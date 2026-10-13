@@ -22,7 +22,7 @@ export default function NotFound() {
           <p className="desc">{t('notFoundBody')}</p>
         </div>
         <div className="nf-actions">
-          <LinkButton href="/book" variant="primary" block trailingIcon="arrowRight">
+          <LinkButton href="/#book" variant="primary" block trailingIcon="arrowRight">
             {tNav('book')}
           </LinkButton>
           <InstagramLink variant="plain" />

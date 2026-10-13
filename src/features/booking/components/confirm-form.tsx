@@ -22,6 +22,9 @@ import { yenText } from './price'
 import { TurnstileWidget } from './turnstile-widget'
 import type { BookingMenu } from './types'
 
+type SubmitState = CreateBookingState | typeof NETWORK
+const NETWORK = { status: 'network' } as const
+
 /** Placeholder token when no site key is configured (local dev; the server skips siteverify). */
 const DEV_TURNSTILE_TOKEN = 'turnstile-not-configured'
 
@@ -52,7 +55,15 @@ export function ConfirmForm({
   const [turnstileToken, setTurnstileToken] = useState(turnstileSiteKey ? '' : DEV_TURNSTILE_TOKEN)
   const [consent, setConsent] = useState(false)
   const [consentError, setConsentError] = useState(false)
-  const [state, formAction, pending] = useActionState<CreateBookingState, FormData>(createBooking, null)
+  // A thrown action (network drop, or a page loaded before a redeploy whose action id no longer
+  // exists) must not end on the error page: keep the draft and offer a reload (S-C-04 §5).
+  const [state, formAction, pending] = useActionState<SubmitState, FormData>(async (prev, form) => {
+    try {
+      return await createBooking(prev?.status === 'network' ? null : prev, form)
+    } catch {
+      return NETWORK
+    }
+  }, null)
   const alertRef = useRef<HTMLDivElement>(null)
   const consentRef = useRef<HTMLInputElement>(null)
   const menu = draft ? menus.find((m) => m.slug === draft.menuSlug) : undefined
@@ -61,12 +72,11 @@ export function ConfirmForm({
   useEffect(() => {
     if (draft === undefined || state?.status === 'ok') return
     if (draft === null || !menu) {
-      router.replace({ pathname: '/book', query: { expired: '1' } })
+      router.replace('/?step=menu#book')
     } else if (!draft.startsAt) {
-      router.replace({ pathname: '/book/time', query: { menu: draft.menuSlug } })
-    } else {
-      const stage = firstIncompleteStage(draft, locale)
-      if (stage) router.replace({ pathname: '/book/info', query: { step: stage } })
+      router.replace('/?step=time#book')
+    } else if (firstIncompleteStage(draft, locale)) {
+      router.replace('/?step=info#book')
     }
   }, [draft, menu, locale, router, state])
 
@@ -82,14 +92,9 @@ export function ConfirmForm({
       (state.status === 'invalid' && state.reason === 'not_bookable')
     ) {
       // The slot was just taken, or is no longer offered (lead time passed, closed meanwhile):
-      // back to the calendar with a banner (AT-03, DES-06 §5 "S-C-03 へ", CR-14).
-      const d = loadDraft()
-      if (d) {
-        const taken = state.status === 'invalid' ? 'deadline' : '1'
-        router.push({
-          pathname: '/book/time',
-          query: { menu: d.menuSlug, date: d.startsAt.slice(0, 10), taken, return: 'confirm' },
-        })
+      // back to the date step on the top page with a banner (AT-03, DES-06 §5, CR-14).
+      if (loadDraft()) {
+        router.push(`/?step=time&taken=${state.status === 'invalid' ? 'deadline' : '1'}#book`)
       }
     } else {
       alertRef.current?.focus()
@@ -105,7 +110,7 @@ export function ConfirmForm({
     state?.status === 'conflict' ||
     state?.status === 'duplicate' ||
     (state?.status === 'invalid' && state.reason === 'not_bookable')
-  const messageKey = navigatesAway ? null : resultMessageKey(state)
+  const messageKey = navigatesAway ? null : state?.status === 'network' ? 'network' : resultMessageKey(state)
   const fieldErrors = state?.status === 'invalid' ? state.fieldErrors : {}
   const ready = consent && !!nonce && !!turnstileToken && !pending
 
@@ -141,6 +146,11 @@ export function ConfirmForm({
                 <li key={field}>{t(`booking.errors.${asErrorKey(keys[0])}`)}</li>
               ))}
             </ul>
+          ) : null}
+          {messageKey === 'network' ? (
+            <Button variant="secondary" block onClick={() => window.location.reload()}>
+              {t('booking.errors.reload')}
+            </Button>
           ) : null}
           {WITH_INSTAGRAM.includes(messageKey) ? <InstagramLink variant="button" /> : null}
         </div>
@@ -260,14 +270,13 @@ function CheckAnswers({ draft, menu }: { draft: Draft; menu: BookingMenu }) {
   const occupation = draft.occupation || 'worker'
   const price = applicablePrice(menu, occupation)
   const isStudentRate = occupation === 'student' && isStudentRateApplied(menu, occupation)
-  const date = draft.startsAt.slice(0, 10)
 
   const rows: { key: string; label: string; value: ReactNode; edit?: Parameters<typeof Link>[0]['href'] }[] = [
     {
       key: 'menu',
       label: t('menu'),
       value: menu.name[locale],
-      edit: { pathname: '/book', query: { menu: menu.slug } },
+      edit: '/?step=menu#book',
     },
     {
       key: 'price',
@@ -297,7 +306,7 @@ function CheckAnswers({ draft, menu }: { draft: Draft; menu: BookingMenu }) {
           {t('jst')}
         </>
       ),
-      edit: { pathname: '/book/time', query: { menu: menu.slug, date, sel: draft.startsAt, return: 'confirm' } },
+      edit: '/?step=time#book',
     },
     {
       key: 'name',
@@ -313,25 +322,25 @@ function CheckAnswers({ draft, menu }: { draft: Draft; menu: BookingMenu }) {
           ) : null}
         </>
       ),
-      edit: { pathname: '/book/info', query: { step: 'name' } },
+      edit: '/?step=info#book',
     },
     {
       key: 'occupation',
       label: t('occupation'),
       value: draft.occupation ? tForm(draft.occupation) : '',
-      edit: { pathname: '/book/info', query: { step: 'occupation' } },
+      edit: '/?step=info#book',
     },
     {
       key: 'phone',
       label: t('phone'),
       value: <span className="num">{draft.phone}</span>,
-      edit: { pathname: '/book/info', query: { step: 'phone' } },
+      edit: '/?step=info#book',
     },
     {
       key: 'note',
       label: t('note'),
       value: draft.note.trim() ? <span className="whitespace-pre-line">{draft.note}</span> : t('noteNone'),
-      edit: { pathname: '/book/info', query: { step: 'phone', note: '1' } },
+      edit: '/?step=info#book',
     },
   ]
 

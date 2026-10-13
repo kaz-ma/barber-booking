@@ -55,3 +55,13 @@ export function isStageComplete(stage: InfoStage, values: InfoValues, locale: st
 export function firstIncompleteStage(values: InfoValues, locale: string): InfoStage | null {
   return STAGES.find((s) => !isStageComplete(s, values, locale)) ?? null
 }
+
+/** Field order on the page (furigana only on /ja), used to focus the first problem. */
+export function infoFields(locale: string): InfoField[] {
+  return STAGES.flatMap((s) => stageFields(s, locale))
+}
+
+/** Every field's error at once (the single "この内容で予約する" button validates all). */
+export function allErrors(values: InfoValues, locale: string): Partial<Record<InfoField, BookingErrorKey>> {
+  return Object.assign({}, ...STAGES.map((s) => stageErrors(s, values, locale)))
+}

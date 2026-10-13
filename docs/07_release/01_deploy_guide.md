@@ -215,7 +215,7 @@ Firewall → **Configure → New Rule**:
 | 項目 | 設定 |
 |---|---|
 | Name | `booking-abuse-coarse` |
-| If | Request Path **matches regex** `^/(ja\|en)/(cancel/\|book/(confirm\|time))` **OR** Request Path **starts with** `/api/ics/` （`book/time` は空き計算 SQL を毎回実行しキャッシュしないため対象に含める。SR-04） |
+| If | Request Path **matches regex** `^/(ja\|en)/(cancel/\|book/confirm)` **OR** Request Path **starts with** `/api/ics/` **OR** Request Path **starts with** `/api/availability` （`/api/availability` は空き計算 SQL を毎回実行しキャッシュしないため対象に含める。SR-04、ADR-0010） |
 | Then | **Rate Limit**、Fixed Window **60 秒**、Key **IP**、Limit **30** リクエスト |
 | Action | **Too Many Requests（429）**、60 秒 |
 

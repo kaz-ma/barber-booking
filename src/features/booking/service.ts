@@ -12,6 +12,7 @@ import { audit } from '@/lib/audit'
 import { db, type Tx } from '@/lib/db'
 import { disableJit, queryAvailabilityDays } from '@/lib/db/availability-sql'
 import { bookings, consents, customers, menus, settings } from '@/lib/db/schema'
+import { isTransientDbError, withDbRetry } from '@/lib/db/transient'
 import { piiHmac, sha256, sha256Hex } from '@/lib/hash'
 import { logger } from '@/lib/logger'
 import { CONSTRAINTS, isExclusionViolation, isUniqueViolation } from '@/lib/pg-errors'
@@ -278,18 +279,20 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
 
   // (3) Rate limits: IP counted on every attempt; phone checked here as an early rejection and
   // again under the lock inside the transaction, where it is counted on success (SR-02).
-  const ipLimit = await hitWindow(rateKeys.bookingIp(ctx.ip), LIMITS.bookingIp.windowSec, LIMITS.bookingIp.limit, {
-    now: ctx.now,
-  })
+  // withDbRetry: the first queries of a request meet a suspended Neon compute (one retry).
+  const ipLimit = await withDbRetry(() =>
+    hitWindow(rateKeys.bookingIp(ctx.ip), LIMITS.bookingIp.windowSec, LIMITS.bookingIp.limit, { now: ctx.now }),
+  )
   if (!ipLimit.ok) return { result: { status: 'rate_limited', retryAfterSec: ipLimit.retryAfterSec } }
-  const phoneLimit = await checkPhoneDaily(input.phone, { now: ctx.now })
+  const phoneLimit = await withDbRetry(() => checkPhoneDaily(input.phone, { now: ctx.now }))
   if (!phoneLimit.ok) return { result: { status: 'rate_limited', retryAfterSec: phoneLimit.retryAfterSec } }
 
   // (4) Turnstile (external I/O, after everything cheap). The token is bound to the nonce (SR-03).
   const human = await verifyTurnstile({ token: input.turnstileToken, ip: ctx.ip, nonce: input.submissionNonce })
   if (!human) return { result: { status: 'bot_check_failed' } }
 
-  // (5) Transaction; retry once only for the (practically impossible) random-value collisions
+  // (5) Transaction; retry once for the (practically impossible) random-value collisions and
+  // for a dropped / refused connection (rolled back; the nonce makes a re-run idempotent, G-04).
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const { result, bookingId } = await insertBooking(input, rawPhone, ctx)
@@ -311,8 +314,11 @@ export async function submitBooking(raw: unknown, context: RequestContext): Prom
       }
       if (
         attempt === 0 &&
-        (isUniqueViolation(err, CONSTRAINTS.publicCode) || isUniqueViolation(err, CONSTRAINTS.cancelTokenHash))
+        (isUniqueViolation(err, CONSTRAINTS.publicCode) ||
+          isUniqueViolation(err, CONSTRAINTS.cancelTokenHash) ||
+          isTransientDbError(err))
       ) {
+        if (isTransientDbError(err)) await new Promise((r) => setTimeout(r, 250))
         continue
       }
       return { result: errorResult(err, 'booking.create_failed') }

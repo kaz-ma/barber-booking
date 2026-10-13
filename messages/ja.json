@@ -84,23 +84,14 @@
     "leadLabel": "予約締切",
     "leadValue": "開始 <b>{minutes}</b> 分前",
     "noClosedDays": "なし",
-    "openMap": "Googleマップで開く",
+    "openMap": "地図を開く",
     "langCaps": "Languages",
     "langHeading": "対応言語・お支払い",
     "languagesLabel": "対応言語",
     "languagesValue": "日本語 ／ <en>English</en>",
     "paymentLabel": "お支払い",
     "paymentValue": "ご来店時（方法は確認中）",
-    "openAppleMap": "Appleマップで開く",
     "postal": "〒{code}",
-    "stationsHeading": "最寄り駅",
-    "stationWalk": "徒歩約 {minutes} 分",
-    "routeHeading": "JR天王寺駅からの道順",
-    "routeStep1": "JR天王寺駅の<b>中央口</b>を出て、目の前の大きな交差点を<b>歩道橋</b>で渡り、<b>あべのハルカス</b>の角へ。",
-    "routeStep2": "ハルカスと<b>あべのキューズモール</b>の間の大通り<b>「あべの筋」</b>を、ハルカス側（左側）の歩道で南へまっすぐ。通りの真ん中を<b>路面電車</b>が走っています。",
-    "routeStep3": "右手の向かいにキューズモールを見ながら約 3 分。左に入る細い通り<b>（常盤通）</b>の角を過ぎてすぐ、左手のビルが<b>金村ビル</b>です。<b>3F（南B）</b>へお上がりください。",
-    "routeFromAbeno": "地下鉄谷町線「阿倍野」駅からは、あべの筋を北へ徒歩約 2 分。キューズモールの向かい側（東側）です。",
-    "walkNote": "所要時間は地図上の道のり（80m＝1分）から計算した目安です。",
     "map": {
       "jr": "JR天王寺駅",
       "jrGate": "中央口",
@@ -204,7 +195,9 @@
       "rateLimited": "送信が多すぎます。しばらくしてからお試しいただくか、Instagram の DM でご連絡ください。",
       "restricted": "お手数ですが、ご予約は Instagram の DM で承ります",
       "error": "予約を確定できませんでした。時間をおいて再度お試しいただくか、Instagram の DM でご連絡ください",
-      "summaryTitle": "送信できませんでした"
+      "summaryTitle": "送信できませんでした",
+      "network": "通信に失敗しました。入力内容は保存されています。ページを再読み込みしてから、もう一度「予約を確定する」を押してください。",
+      "reload": "ページを再読み込みする"
     }
   },
   "availability": {
@@ -609,5 +602,16 @@
         "v": "キャンセルポリシーのとおり（ご来店の {hours} 時間前まで予約完了画面のリンクから）"
       }
     ]
+  },
+  "flow": {
+    "caps": "Reservation",
+    "heading": "ご予約",
+    "stepMenu": "メニュー",
+    "stepTime": "日時",
+    "stepInfo": "お客様情報",
+    "changeAria": "{step}を変更",
+    "loadError": "空き状況を読み込めませんでした。通信状況をご確認ください。",
+    "retry": "もう一度読み込む",
+    "cta": "この内容で予約する"
   }
 }

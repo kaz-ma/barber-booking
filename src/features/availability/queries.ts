@@ -8,6 +8,7 @@ import {
   type DayStatus,
   queryAvailabilityDays,
   queryAvailabilityMonth,
+  queryMonthWithSlots,
   readAvailability,
   type SlotStatus,
 } from '@/lib/db/availability-sql'
@@ -125,3 +126,51 @@ const monthPerRequest = cache(async function monthAvailability(
     })(),
   }
 })
+
+export type MonthSlotsDTO = {
+  menu: string
+  month: string
+  /** JST today, 'YYYY-MM-DD'. */
+  today: string
+  prevMonth?: string
+  nextMonth?: string
+  /** Every day of the month; `slots` = bookable start times (JST ISO), empty unless available. */
+  days: (DayDTO & { slots: string[] })[]
+}
+
+/**
+ * The whole month for one menu in a single query (GET /api/availability): day states for the
+ * calendar plus each day's bookable start times, so the page switches days instantly.
+ * `null` = unknown / inactive menu, or a month outside today .. today + max advance days.
+ */
+export async function getMonthSlots(
+  input: { menuSlug: string; month: string },
+  now: Date = new Date(),
+): Promise<MonthSlotsDTO | null> {
+  const { menuSlug, month } = input
+  if (!isMonthString(month) || !/^[a-z0-9-]{1,64}$/.test(menuSlug)) return null
+  const today = jstDate(now)
+  // Cheap guard before touching the database; the exact window comes back with the query.
+  if (month < monthOf(today) || month > monthOf(addDays(today, 400))) return null
+  const { first, last } = monthBounds(month)
+  const res = await readAvailability((db) => queryMonthWithSlots(db, { menuSlug, from: first, to: last, now }))
+  if (!res.today || !res.lastDate) return null
+  const firstMonth = monthOf(res.today)
+  const lastMonth = monthOf(res.lastDate)
+  if (month < firstMonth || month > lastMonth) return null
+  const prev = addMonths(month, -1)
+  const next = addMonths(month, 1)
+  return {
+    menu: menuSlug,
+    month,
+    today: res.today,
+    ...(prev >= firstMonth ? { prevMonth: prev } : {}),
+    ...(next <= lastMonth ? { nextMonth: next } : {}),
+    days: res.days.map((d) => ({
+      date: d.date,
+      status: d.status,
+      ...(d.closedReason ? { closedReason: d.closedReason } : {}),
+      slots: d.status === 'available' ? d.open.map(toJstIso) : [],
+    })),
+  }
+}

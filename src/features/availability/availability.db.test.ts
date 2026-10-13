@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
 import { availabilityDaysSql, disableJit, queryAvailabilityDays, readAvailability } from '@/lib/db/availability-sql'
 import { addMenu, insertBlock, insertRawBooking, jst, resetDb } from '../../../test/db-helpers'
-import { getDayAvailability, getMonthAvailability } from './queries'
+import { getDayAvailability, getMonthAvailability, getMonthSlots } from './queries'
 
 /*
  * Contract tests for the availability SQL (04_data_model.md §6 table, FR-S-02).
@@ -141,6 +141,43 @@ describe('getMonthAvailability', () => {
     expect(jan?.nextMonth).toBeUndefined()
     expect(await getMonthAvailability({ menuSlug: 'cut', month: '2027-02' }, NOON)).toBeNull()
     expect(await getMonthAvailability({ menuSlug: 'cut', month: '2026-10' }, NOON)).toBeNull()
+  })
+})
+
+describe('getMonthSlots (GET /api/availability)', () => {
+  it('returns day states and the bookable start times of each day in one call', async () => {
+    await insertRawBooking(jst('2026-11-04 19:00'), jst('2026-11-04 20:00'))
+    const m = await getMonthSlots({ menuSlug: 'cut', month: '2026-11' }, NOON)
+    expect(m?.today).toBe('2026-11-03')
+    expect(m?.days).toHaveLength(30)
+    expect(m?.nextMonth).toBe('2026-12')
+    expect(m?.prevMonth).toBeUndefined()
+    const byDate = Object.fromEntries((m?.days ?? []).map((d) => [d.date, d]))
+    expect(byDate['2026-11-02']).toMatchObject({ status: 'out_of_range', slots: [] })
+    expect(byDate['2026-11-09']).toMatchObject({ status: 'closed', closedReason: 'regular', slots: [] })
+    const nov4 = byDate['2026-11-04']?.slots.map((s) => s.slice(11, 16)) ?? []
+    expect(nov4).not.toContain('19:00')
+    expect(nov4).not.toContain('18:30') // 18:30-19:30 overlaps the booking
+    expect(nov4).toContain('20:00')
+    expect(byDate['2026-11-04']?.slots[0]).toMatch(/\+09:00$/)
+  })
+
+  it('agrees with the day query', async () => {
+    await insertRawBooking(jst('2026-11-05 20:00'), jst('2026-11-05 21:00'))
+    const m = await getMonthSlots({ menuSlug: 'cut', month: '2026-11' }, NOON)
+    const day = await getDayAvailability({ menuSlug: 'cut', date: '2026-11-05' }, NOON)
+    const open = (day?.slots ?? []).filter((s) => s.status === 'available').map((s) => s.startsAt)
+    expect(open.length).toBeGreaterThan(0)
+    expect(m?.days.find((d) => d.date === '2026-11-05')?.slots).toEqual(open)
+  })
+
+  it('null for an inactive or unknown menu and for months outside the window', async () => {
+    await db.execute(sql`UPDATE menus SET is_active = false WHERE slug = 'bleach'`)
+    expect(await getMonthSlots({ menuSlug: 'bleach', month: '2026-11' }, NOON)).toBeNull()
+    expect(await getMonthSlots({ menuSlug: 'nope', month: '2026-11' }, NOON)).toBeNull()
+    expect(await getMonthSlots({ menuSlug: 'cut', month: '2026-10' }, NOON)).toBeNull()
+    expect(await getMonthSlots({ menuSlug: 'cut', month: '2027-02' }, NOON)).toBeNull()
+    expect(await getMonthSlots({ menuSlug: 'cut', month: 'bad' }, NOON)).toBeNull()
   })
 })
 

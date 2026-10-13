@@ -37,7 +37,7 @@
 
 - 書き込み: すべて Server Action（`features/*/actions.ts`、薄く保ち `service.ts` に委譲）。公開は `createBooking` と `cancelBooking` のみ。
 - 読み取り: ページの Server Component が DAL を直接呼ぶ（`getAvailability` は Suspense 配下で非キャッシュ）。
-- Route Handler は次に限定: `/api/ics/[token]`（ファイル応答）、`/api/cron/*`（Vercel Cron）、`/api/auth/*`（Better Auth）、`/api/admin/inbox-count`・`overlaps`・`customers/suggest`（クライアントからの GET。ポーリング・デバウンス・中断が必要なため）、`/api/admin/push/rotate`（Service Worker から呼ぶため）。
+- Route Handler は次に限定: `/api/ics/[token]`（ファイル応答）、`/api/cron/*`（Vercel Cron）、`/api/auth/*`（Better Auth）、`/api/admin/inbox-count`・`overlaps`・`customers/suggest`（クライアントからの GET。ポーリング・デバウンス・中断が必要なため）、`/api/admin/push/rotate`（Service Worker から呼ぶため）、`/api/availability`（トップの予約欄が月単位の空き状況を取得する GET。2026-10-13 追記、ADR-0010）。
 - 各アクションのパイプライン（08_security.md 3 章）: 公開は Zod → ハニーポット → レート制限 → Turnstile → トランザクション、管理は `requireAdmin` → Zod → トランザクション。
 - 期待されるエラーは判別可能ユニオン（`ActionResult`）で返し、`throw` は予期しない例外だけ。
 - キャンセルリンクの GET は副作用を持たず、実行はページ上の Server Action（リンクプレビューによる誤キャンセルを防ぐ）。

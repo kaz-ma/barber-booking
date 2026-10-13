@@ -84,23 +84,14 @@
     "leadLabel": "Booking closes",
     "leadValue": "<b>{minutes}</b> min before start",
     "noClosedDays": "None",
-    "openMap": "Open in Google Maps",
+    "openMap": "Open map",
     "langCaps": "Languages",
     "langHeading": "Languages and payment",
     "languagesLabel": "Languages",
     "languagesValue": "<ja>日本語</ja> / English",
     "paymentLabel": "Payment",
     "paymentValue": "At the shop (methods to be confirmed)",
-    "openAppleMap": "Open in Apple Maps",
     "postal": "〒{code}",
-    "stationsHeading": "Nearest stations",
-    "stationWalk": "about {minutes} min walk",
-    "routeHeading": "From JR Tennoji Station",
-    "routeStep1": "Leave JR Tennoji Station by the <b>Central Exit</b> and cross the big intersection on the <b>pedestrian bridge</b> to the corner of <b>Abeno Harukas</b>.",
-    "routeStep2": "Walk straight south on <b>Abenosuji</b>, the avenue between Harukas and <b>Abeno Q's Mall</b>, on the Harukas side (left). A <b>streetcar</b> runs down the middle of the avenue.",
-    "routeStep3": "Keep Q's Mall across the street on your right for about 3 minutes. Just past the corner of a narrow street on the left <b>(Tokiwa-dori)</b>, the building on your left is the <b>Kanamura Bldg.</b> Come up to <b>3F (South B)</b>.",
-    "routeFromAbeno": "From Abeno Station (Tanimachi Line), walk north along Abenosuji for about 2 minutes. We are across the street from Q's Mall (east side).",
-    "walkNote": "Walking times are estimates from the route length on the map (80 m per minute).",
     "map": {
       "jr": "JR Tennoji Sta.",
       "jrGate": "Central Exit",
@@ -204,7 +195,9 @@
       "rateLimited": "Too many attempts. Please try again later, or message us on Instagram.",
       "restricted": "Please book via Instagram DM.",
       "error": "We couldn't confirm your booking. Please try again later, or message us on Instagram.",
-      "summaryTitle": "We couldn't send your booking"
+      "summaryTitle": "We couldn't send your booking",
+      "network": "The connection failed. Your details are saved. Reload the page and press \"Confirm booking\" again.",
+      "reload": "Reload the page"
     }
   },
   "availability": {
@@ -609,5 +602,16 @@
         "v": "As set out in the Cancellation Policy (from the confirmation link up to {hours} hours before your visit)"
       }
     ]
+  },
+  "flow": {
+    "caps": "Reservation",
+    "heading": "Book",
+    "stepMenu": "Menu",
+    "stepTime": "Date & time",
+    "stepInfo": "Your details",
+    "changeAria": "Change {step}",
+    "loadError": "Could not load availability. Please check your connection.",
+    "retry": "Try again",
+    "cta": "Review booking"
   }
 }

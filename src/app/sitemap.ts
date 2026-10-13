@@ -4,7 +4,7 @@ import { absoluteUrl } from '@/lib/site'
 
 /** sitemap.xml with hreflang alternates: indexable public pages only (01_sitemap.md §5.3). */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = ['', '/book', '/privacy', '/policy', '/tokusho'] as const
+  const paths = ['', '/privacy', '/policy', '/tokusho'] as const
   return paths.flatMap((path) =>
     routing.locales.map((locale) => ({
       url: absoluteUrl(`/${locale}${path}`),

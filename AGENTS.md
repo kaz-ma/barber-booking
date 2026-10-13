@@ -27,9 +27,9 @@ Postgres (Neon in production, local cluster or CI service in dev) with `btree_gi
 ## Layout (DES-00 §5)
 
 ```
-src/app/(public)/[locale]/…   customer routes (root layout per locale, next-intl)
+src/app/(public)/[locale]/…   customer routes (root layout per locale, next-intl); booking steps live on the top page
 src/app/(admin)/admin/…       admin PWA (ja only, outside next-intl)
-src/app/api/…                 route handlers: ics, cron, auth, admin GET only
+src/app/api/…                 route handlers: ics, cron, auth, availability (GET, ADR-0010), admin GET only
 src/features/<feature>/       actions.ts ('use server', thin) → service.ts (server-only) / queries.ts (DAL)
 src/domain/                   pure functions (phone, kana, pricing, status machine, JST time). No I/O.
 src/lib/                      env, db (schema, availability SQL), rate-limit, tokens, hash, logger, i18n …

@@ -224,7 +224,21 @@ async function newPage(viewport = { width: 390, height: 844 }, locale = 'ja-JP')
 const shot = (page, name, fullPage = true) => page.screenshot({ path: join(SHOTS, `${name}.png`), fullPage })
 const noOverflow = async (page, width) => {
   const sw = await page.evaluate(() => document.documentElement.scrollWidth)
-  assert(sw <= width, `${page.url()} scrollWidth ${sw} > ${width}`)
+  if (sw <= width) return
+  // Name the culprits: the innermost elements sticking out on the right.
+  const wide = await page.evaluate(
+    (w) =>
+      [...document.querySelectorAll('body *')]
+        .filter(
+          (e) =>
+            e.getBoundingClientRect().right > w + 1 &&
+            ![...e.children].some((c) => c.getBoundingClientRect().right > w + 1),
+        )
+        .slice(0, 5)
+        .map((e) => `${e.tagName.toLowerCase()}.${String(e.className).split(' ').join('.')}`),
+    width,
+  )
+  assert(false, `${page.url()} scrollWidth ${sw} > ${width}: ${wide.join(', ')}`)
 }
 /** Every visible link / button / form control is at least 44×44 (WCAG 2.5.8 target, DG-001). */
 const targets44 = async (page) => {
@@ -259,36 +273,23 @@ const noTel = async (page) => {
 }
 const activeDate = (page) => page.evaluate(() => document.activeElement?.getAttribute('data-date') ?? null)
 
-/** Moves to a day with a free slot if the initially selected day (today) has none. */
-async function ensureOpenSlots(page) {
-  for (let i = 0; i < 4; i++) {
-    if ((await page.locator('a.slot').count()) > 0) return
-    const next = page.getByRole('link', { name: /次に空いている日へ|Next available day|次の月を見る|See next month/ })
-    if ((await next.count()) > 0) {
-      await next.first().click()
-    } else {
-      await page.locator('a.cd.open').first().click()
-    }
-    await page.waitForLoadState('networkidle')
-  }
-  assert((await page.locator('a.slot').count()) > 0, 'no open slot found')
-}
-
 /**
- * Move off today: a slot later today can already be past the 2-hour self-cancel deadline when the
- * run happens in the evening (JST), which would hide the cancel button. Pick another open day.
+ * In the date step on the top page: choose an open day that is not today (an evening run can be
+ * past the 2-hour self-cancel deadline for today's slots) and wait for its time buttons.
  */
-async function pickLaterDay(page) {
-  const later = page.locator('a.cd.open:not([aria-current])')
-  if ((await later.count()) === 0) {
-    await page
-      .getByRole('link', { name: /次の月を見る|See next month/ })
-      .first()
-      .click()
-    await page.waitForLoadState('networkidle')
+async function pickLaterOpenDay(page) {
+  await page.locator('table[role="grid"]').waitFor()
+  for (let i = 0; i < 3; i++) {
+    const later = page.locator('button.cd.open:not([aria-current])')
+    if ((await later.count()) > 0) {
+      await later.first().click()
+      await page.locator('.tchip').first().waitFor()
+      return
+    }
+    await page.getByRole('button', { name: /^(次の月|Next month) ?[（(]/ }).click()
+    await page.locator('button.cd.open').first().waitFor()
   }
-  await page.locator('a.cd.open:not([aria-current])').first().click()
-  await page.waitForLoadState('networkidle')
+  throw new Error('no open day found')
 }
 
 // ---------------------------------------------------------------- scenarios
@@ -298,16 +299,13 @@ try {
     const page = await newPage()
     await page.goto(`${BASE}/ja`)
     await oneH1(page)
-    assert((await page.locator('article.menu-card').count()) === 9, '9 menu cards')
-    assert(
-      (await page.locator('article.menu-card a, article.menu-card button').count()) === 0,
-      'menu cards are not links',
-    )
+    assert((await page.locator('label.mrow').count()) === 9, '9 selectable menu rows on the top page')
     const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())
     assert(ld['@type'] === 'HairSalon' && !('telephone' in ld), 'JSON-LD HairSalon without telephone')
     assert((await page.locator('link[rel="alternate"][hreflang="en"]').count()) === 1, 'hreflang en')
     assert((await page.locator('link[rel="alternate"][hreflang="x-default"]').count()) === 1, 'hreflang x-default')
-    assert((await page.getByRole('link', { name: '予約する' }).count()) === 2, 'two 予約する CTAs')
+    assert((await page.getByRole('link', { name: '予約する' }).count()) === 1, 'one 予約する link (header)')
+    assert((await page.getByRole('button', { name: 'この内容で予約する' }).count()) === 0, 'no final button yet')
     assert((await page.locator('a[href*="/book/time"]').count()) === 0, 'no direct link to /book/time (OI-25)')
     await noTel(page)
     await targets44(page)
@@ -315,44 +313,51 @@ try {
     await page.context().close()
   })
 
-  await step('JA full flow: menu → time → info → confirm → done → ics → cancel', async () => {
+  await step('JA full flow on the top page: menu → time → details → review → done → ics → cancel', async () => {
     const page = await newPage()
+    let apiCalls = 0
+    page.on('request', (r) => {
+      if (r.url().includes('/api/availability')) apiCalls++
+    })
     await page.goto(`${BASE}/ja`)
     await page.locator('header').getByRole('link', { name: '予約する' }).click()
-    await page.waitForURL(/\/ja\/book$/)
+    await page.waitForURL(/\/ja#book$/)
     await oneH1(page)
-    assert(
-      (await page.getByRole('link', { name: /空き時間を見て予約する/ }).count()) === 0,
-      'no CTA before a menu is chosen',
-    )
-    await shot(page, '04_menu_initial_ja')
-    await page.locator('label.rcard', { hasText: 'カット' }).first().click()
-    await page.waitForURL(/menu=cut/)
-    const cta = page.getByRole('link', { name: /空き時間を見て予約する/ })
-    assert(await cta.isVisible(), 'sticky CTA after selection')
-    await targets44(page)
-    await shot(page, '04_menu_selected_ja', false)
-    await cta.click()
+    await shot(page, '04_menu_initial_ja', false)
+    await page.locator('label.mrow', { hasText: 'カット' }).first().click()
 
-    await page.waitForURL(/\/ja\/book\/time\?menu=cut/)
+    // ① collapses to a one-line summary; ② opens below on the same page
+    await page.locator('.bstep.done', { hasText: 'カット' }).waitFor()
+    assert((await page.locator('label.mrow').count()) === 0, 'menu list collapsed after choosing')
     await page.locator('table[role="grid"]').waitFor()
-    await oneH1(page)
+    assert(page.url().includes('step=time'), 'step in the URL (history entry)')
     assert((await page.locator('td [aria-current="date"]').count()) === 1, 'today marked with aria-current=date')
-    for (const el of await page.locator('.cd.x, .cd.off, li.slot.x').all()) {
-      assert((await el.locator('a, button, [tabindex]').count()) === 0, '× cells and rows are not focusable')
+    for (const el of await page.locator('.cd.x, .cd.off').all()) {
+      assert((await el.locator('a, button, [tabindex]').count()) === 0, '× cells are not focusable')
     }
-    await shot(page, '02_time_ja')
-    await pickLaterDay(page)
-    await ensureOpenSlots(page)
+    await shot(page, '02_time_ja', false)
+    await pickLaterOpenDay(page)
+    await page.waitForLoadState('networkidle')
+    // switching days is instant: no further request for the same month (ADR-0010)
+    const calls = apiCalls
+    const others = page.locator('button.cd.open:not(.sel):not([aria-current])')
+    if ((await others.count()) > 0) {
+      await others.first().click()
+      await page.locator('.tchip').first().waitFor()
+      assert(apiCalls === calls, `day switch fetched again (${calls} → ${apiCalls})`)
+    }
     await targets44(page)
     await noOverflow(page, 390)
-    await page.locator('a.slot').first().click()
+    await page.locator('.tchip').first().click()
 
-    await page.waitForURL(/\/ja\/book\/info/)
-    await page.getByRole('heading', { name: 'お名前・ふりがな' }).waitFor()
-    await oneH1(page)
-    assert((await page.locator('#phone').count()) === 0, 'later stages hidden initially (AT-09)')
-    await page.getByRole('button', { name: '次へ' }).click()
+    // ③ every field is visible at once, the note included (no "add" button)
+    await page.locator('#name').waitFor()
+    assert((await page.locator('#phone').count()) === 1, 'phone visible with the name')
+    assert((await page.locator('#note').count()) === 1, 'note visible without pressing a button')
+    assert((await page.locator('.bstep.done').count()) === 2, 'menu and time collapsed to summaries')
+    const cta = page.getByRole('button', { name: 'この内容で予約する' })
+    assert(await cta.isVisible(), 'the final button appears with the details step')
+    await cta.click()
     await page.getByText('お名前を入力してください（例: 山田 太郎）').waitFor()
     assert((await page.locator('#name').getAttribute('aria-invalid')) === 'true', 'aria-invalid on name')
     assert((await page.locator('#name').getAttribute('aria-describedby'))?.includes('name-err'), 'error is described')
@@ -360,28 +365,25 @@ try {
     await page.locator('#nameKana').fill('ヤマダ タロウ')
     await page.locator('#nameKana').blur()
     assert((await page.locator('#nameKana').inputValue()) === 'やまだ たろう', 'katakana converted to hiragana on blur')
-    await page.getByRole('button', { name: '次へ' }).click()
-    await page.getByRole('heading', { name: 'ご職業' }).waitFor()
-    assert(await page.getByText('山田 太郎（やまだ たろう）').isVisible(), 'name stage collapsed to a summary')
     await page.locator('label.radio', { hasText: '学生' }).click()
-    await page.locator('#phone').waitFor()
-    // Browser back re-opens the previous stage and keeps the values (AT-09).
+    // Browser back returns to the date step; forward restores the details with the values kept.
     await page.goBack()
-    await page.getByRole('heading', { name: 'ご職業' }).waitFor()
-    assert(await page.getByLabel('学生').isChecked(), 'occupation kept after back')
+    await page.locator('table[role="grid"]').waitFor()
+    assert((await page.locator('#name').count()) === 0, 'back closed the details step')
     await page.goForward()
-    await page.locator('#phone').waitFor()
+    await page.locator('#name').waitFor()
+    assert((await page.locator('#name').inputValue()) === '山田 太郎', 'name kept after back/forward')
+    assert(await page.getByLabel('学生').isChecked(), 'occupation kept after back/forward')
     await page.locator('#phone').fill('0901234')
     await page.locator('#phone').blur()
     await page.getByText('電話番号を正しい形式で入力してください（例: 09012345678）').waitFor()
     await page.locator('#phone').fill('09012345678')
-    await page.getByRole('button', { name: /ご要望を追加/ }).click()
     await page.locator('#note').fill('サイドは短めに')
     assert(await page.getByText('7 / 500').isVisible(), 'note counter')
     await targets44(page)
     await noOverflow(page, 390)
     await shot(page, '05_info_ja')
-    await page.getByRole('button', { name: '確認へ進む' }).click()
+    await cta.click()
 
     await page.waitForURL(/\/ja\/book\/confirm/)
     await page.getByRole('heading', { name: 'ご予約内容の確認' }).waitFor()
@@ -449,25 +451,22 @@ try {
     await page.context().close()
   })
 
-  await step('EN flow: no furigana, JST, English only', async () => {
+  await step('EN flow (old step URL redirects to the top page): no furigana, JST, English only', async () => {
     const page = await newPage({ width: 390, height: 844 }, 'en-GB')
-    await page.goto(`${BASE}/en/book?menu=cut-perm`)
-    const cta = page.getByRole('link', { name: /See available times/ })
-    await cta.click()
-    await page.waitForURL(/\/en\/book\/time/)
+    await page.goto(`${BASE}/en/book/time?menu=cut-perm`)
+    await page.waitForURL(/\/en\?step=time#book$/)
     await page.locator('table[role="grid"]').waitFor()
+    assert((await page.locator('.bstep.done', { hasText: 'Cut & Perm' }).count()) === 1, 'menu from the old link')
     assert(await page.getByText('All times are Japan Standard Time (JST).').isVisible(), 'JST note on /en')
-    await ensureOpenSlots(page)
-    assert((await page.locator('a.slot').first().textContent()).match(/\d:\d\d [AP]M/), '12-hour clock')
-    await page.locator('a.slot').first().click()
-    await page.waitForURL(/\/en\/book\/info/)
-    await page.getByRole('heading', { name: 'Your name' }).waitFor()
+    await pickLaterOpenDay(page)
+    assert((await page.locator('.tchip').first().textContent()).match(/\d:\d\d [AP]M/), '12-hour clock')
+    await page.locator('.tchip').first().click()
+    await page.locator('#name').waitFor()
     assert((await page.locator('#nameKana').count()) === 0, 'no furigana field on /en')
     await page.locator('#name').fill('Emma Wilson')
-    await page.getByRole('button', { name: 'Next' }).click()
     await page.locator('label.radio', { hasText: 'Working adult' }).click()
     await page.locator('#phone').fill('+44 7700 900123')
-    await page.getByRole('button', { name: 'Continue to review' }).click()
+    await page.getByRole('button', { name: 'Review booking' }).click()
     await page.waitForURL(/\/en\/book\/confirm/)
     await page.getByRole('heading', { name: 'Review your booking' }).waitFor()
     assert((await page.locator('.ans', { hasText: 'Date & time' }).textContent()).includes('JST'), 'JST on review')
@@ -500,57 +499,48 @@ try {
 
   await step('Keyboard-only month calendar (roving tabindex, arrows, Home/End, Enter, PageDown)', async () => {
     const page = await newPage()
-    const nextMonth = await page.evaluate(() => {
-      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
-      const d = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    })
-    await page.goto(`${BASE}/ja/book/time?menu=cut&month=${nextMonth}`)
+    await page.goto(`${BASE}/ja?step=time&menu=cut#book`)
     await page.locator('table[role="grid"]').waitFor()
-    let date = null
-    for (let i = 0; i < 25 && !date; i++) {
-      await page.keyboard.press('Tab')
-      date = await activeDate(page)
+    // Move to next month (nothing selected there), when the booking window allows it.
+    const next = page.getByRole('button', { name: /^次の月（/ })
+    if ((await next.count()) > 0) {
+      await next.click()
+      await page.locator('button.cd.open').first().waitFor()
     }
-    assert(date, 'Tab reaches the calendar grid')
-    const open = await page.$$eval('a.cd.open', (els) => els.map((e) => e.getAttribute('data-date')))
-    assert(open[0] === date, 'the tab stop is the first ◎ day when nothing is selected')
-    assert((await page.locator('a.cd.open[tabindex="0"]').count()) === 1, 'exactly one tab stop in the grid')
+    const open = await page.$$eval('button.cd.open', (els) => els.map((e) => e.getAttribute('data-date')))
+    assert(open.length >= 3, 'enough open days for the keyboard test')
+    assert((await page.locator('button.cd.open[tabindex="0"]').count()) === 1, 'exactly one tab stop in the grid')
+    const stop = await page.locator('button.cd.open[tabindex="0"]').getAttribute('data-date')
+    await page.locator(`button[data-date="${stop}"]`).focus()
+    const i0 = open.indexOf(stop)
     await page.keyboard.press('ArrowRight')
-    assert((await activeDate(page)) === open[1], 'ArrowRight → next ◎ day')
+    assert((await activeDate(page)) === open[i0 + 1], 'ArrowRight → next ◎ day')
     await page.keyboard.press('ArrowLeft')
-    assert((await activeDate(page)) === open[0], 'ArrowLeft → previous ◎ day')
-    await page.keyboard.press('ArrowDown')
-    const down = await activeDate(page)
-    assert(down && down > open[0] && open.includes(down), 'ArrowDown → a ◎ day 7+ days later')
+    assert((await activeDate(page)) === open[i0], 'ArrowLeft → previous ◎ day')
     await page.keyboard.press('End')
     assert((await activeDate(page)) === open[open.length - 1], 'End → last ◎ day')
     await page.keyboard.press('Home')
     assert((await activeDate(page)) === open[0], 'Home → first ◎ day')
-    await page.keyboard.press('ArrowRight')
-    const chosen = await activeDate(page)
+    await page.keyboard.press('ArrowDown')
+    const down = await activeDate(page)
+    assert(down && down > open[0] && open.includes(down), 'ArrowDown → a ◎ day 7+ days later')
     await page.keyboard.press('Tab')
     assert((await activeDate(page)) === null, 'Tab leaves the grid (single tab stop)')
     await page.keyboard.press('Shift+Tab')
-    assert((await activeDate(page)) === chosen, 'Shift+Tab returns to the last focused day')
+    assert((await activeDate(page)) === down, 'Shift+Tab returns to the last focused day')
     await page.keyboard.press('Enter')
-    await page.waitForURL(new RegExp(`date=${chosen}`))
-    await page.waitForFunction(() => document.activeElement?.id === 'slots-h')
-    assert(
-      (await page.locator(`td[aria-selected="true"] a[data-date="${chosen}"]`).count()) === 1,
-      'selected day has aria-selected',
-    )
+    await page.locator(`td[aria-selected="true"] button[data-date="${down}"]`).waitFor()
+    await page.locator('.tchip').first().waitFor()
     // Space selects too
-    await page.locator(`a[data-date="${chosen}"]`).focus()
+    await page.locator(`button[data-date="${down}"]`).focus()
     await page.keyboard.press('ArrowRight')
     const spaced = await activeDate(page)
     await page.keyboard.press(' ')
-    await page.waitForURL(new RegExp(`date=${spaced}`))
-    // PageDown → next month (if inside the window), focus stays in the grid
-    const hasNext = (await page.locator('.month a[aria-label^="次の月"]').count()) > 0
-    await page.locator(`a[data-date="${spaced}"]`).focus()
-    await page.keyboard.press(hasNext ? 'PageDown' : 'PageUp')
-    await page.waitForURL(/month=/)
+    await page.locator(`td[aria-selected="true"] button[data-date="${spaced}"]`).waitFor()
+    // PageUp / PageDown change the month; focus stays in the grid
+    await page.locator(`button[data-date="${spaced}"]`).focus()
+    const hasPrev = (await page.locator('.month button[aria-label^="前の月（"]:not([disabled])').count()) > 0
+    await page.keyboard.press(hasPrev ? 'PageUp' : 'PageDown')
     await page.waitForFunction(() => !!document.activeElement?.getAttribute('data-date'))
     await page.context().close()
   })
@@ -560,9 +550,8 @@ try {
     const paths = [
       '/ja',
       '/en',
-      '/ja/book?menu=cut',
-      '/ja/book/time?menu=cut',
-      '/en/book/time?menu=cut',
+      '/ja?step=time&menu=cut',
+      '/en?step=time&menu=cut',
       '/ja/privacy',
       '/ja/policy',
       '/ja/tokusho',
@@ -578,8 +567,8 @@ try {
       await noTel(page)
     }
     await shot(page, '08_notfound_ja_320', false)
-    // info + confirm need a draft
-    await page.goto(`${BASE}/ja/book`)
+    // details + review need a draft
+    await page.goto(`${BASE}/ja`)
     await page.evaluate(() => {
       const start = new Date(Date.now() + 3 * 864e5)
       const d = start.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' })
@@ -599,7 +588,7 @@ try {
         }),
       )
     })
-    for (const p of ['/ja/book/info?step=phone', '/ja/book/confirm', '/en/book/info?step=phone', '/en/book/confirm']) {
+    for (const p of ['/ja?step=info', '/ja/book/confirm', '/en?step=info', '/en/book/confirm']) {
       await page.goto(`${BASE}${p}`)
       await page.waitForLoadState('networkidle')
       await page.locator('h1').waitFor()
@@ -663,9 +652,16 @@ try {
         }),
       })
       assert(report.status === 204, `csp-report answers 204 (${report.status})`)
-      // CR-10: an impossible date is not a server error.
-      const bad = await fetch(`${BASE}/ja/book/time?menu=cut&date=2026-11-31`)
-      assert(bad.status === 200, `invalid date handled (${bad.status})`)
+      // CR-10: an impossible month or an unknown menu is a 404, not a server error.
+      for (const q of ['menu=cut&month=2026-13', 'menu=nope', 'menu=cut&month=1999-01']) {
+        const bad = await fetch(`${BASE}/api/availability?${q}`)
+        assert(bad.status === 404, `invalid availability query handled (${q}: ${bad.status})`)
+        assert(bad.headers.get('cache-control') === 'no-store', 'availability is never cached')
+      }
+      const okRes = await fetch(`${BASE}/api/availability?menu=cut`)
+      const okBody = await okRes.json()
+      assert(okRes.status === 200 && Array.isArray(okBody.days) && okBody.days.length >= 28, 'month payload')
+      assert(!JSON.stringify(okBody).match(/phone|name_ja|customer/), 'no private fields in the payload')
     },
   )
 

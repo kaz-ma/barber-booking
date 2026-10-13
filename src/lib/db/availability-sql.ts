@@ -1,6 +1,9 @@
 import 'server-only'
 import { type SQL, sql } from 'drizzle-orm'
-import { type DbOrTx, db as rootDb, type Tx } from '@/lib/db'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { type Db, type DbOrTx, pool, type Tx } from '@/lib/db'
+import * as schema from './schema'
+import { withDbRetry } from './transient'
 
 /*
  * Availability SQL (04_data_model.md §6 / §6.1, FR-S-02). One query, no per-slot round trips:
@@ -28,15 +31,27 @@ export async function disableJit(tx: Tx): Promise<void> {
   await tx.execute(sql`SET LOCAL jit = off`)
 }
 
-/** Run availability reads in a short read-only transaction with JIT disabled. */
-export function readAvailability<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
-  return rootDb.transaction(
-    async (tx) => {
-      await disableJit(tx)
-      return fn(tx)
-    },
-    { accessMode: 'read only' },
-  )
+/**
+ * Run availability reads in a short read-only transaction with JIT disabled. `BEGIN` and
+ * `SET LOCAL` go out as one simple-protocol message, so a read costs three round trips
+ * (begin+set, query, commit) instead of five; the database is often far from the function.
+ * One retry on a transient connection failure (Neon waking from suspend).
+ */
+export function readAvailability<T>(fn: (db: DbOrTx) => Promise<T>): Promise<T> {
+  return withDbRetry(async () => {
+    const client = await pool.connect()
+    let ok = false
+    try {
+      await client.query('BEGIN READ ONLY; SET LOCAL jit = off')
+      const result = await fn(drizzle(client, { schema }) as unknown as Db)
+      await client.query('COMMIT')
+      ok = true
+      return result
+    } finally {
+      if (!ok) await client.query('ROLLBACK').catch(() => {})
+      client.release()
+    }
+  })
 }
 
 export type SlotStatus = 'available' | 'full' | 'deadline'
@@ -181,4 +196,54 @@ export async function queryAvailabilityMonth(db: DbOrTx, params: AvailabilityPar
     ORDER BY hr.d
   `)
   return res.rows.map((r) => ({ date: r.date, status: r.day_status, closedReason: r.closed_reason }))
+}
+
+type MonthSlotRow = {
+  date: string
+  day_status: DayStatus
+  closed_reason: ClosedReason | null
+  slots: string[] | null
+  today: string | null
+  last_date: string | null
+}
+
+export type MonthSlots = {
+  /** JST today and the last bookable date (null when the menu is unknown or inactive). */
+  today: string | null
+  lastDate: string | null
+  days: (Omit<RawDay, 'slots'> & { open: Date[] })[]
+}
+
+/**
+ * §6.1 month summary plus the bookable start times of every day, in one query: the booking
+ * page switches days on the client without asking again. Past days are out_of_range.
+ */
+export async function queryMonthWithSlots(db: DbOrTx, params: AvailabilityParams): Promise<MonthSlots> {
+  const res = await db.execute<MonthSlotRow>(sql`
+    ${availabilityCtes(params)}
+    SELECT hr.d::text AS date,
+           ${dayStatusExpr(true)} AS day_status,
+           CASE WHEN hr.override_closed THEN 'override'
+                WHEN hr.is_closed       THEN 'regular' END AS closed_reason,
+           CASE WHEN hr.d < (SELECT today FROM p) THEN NULL
+                ELSE json_agg(c.start_at ORDER BY c.start_at) FILTER (WHERE c.slot_status = 'available')
+           END AS slots,
+           (SELECT today FROM p)::text     AS today,
+           (SELECT last_date FROM p)::text AS last_date
+    FROM hours hr
+    LEFT JOIN classified c ON c.d = hr.d
+    GROUP BY hr.d, hr.is_closed, hr.override_closed
+    ORDER BY hr.d
+  `)
+  const first = res.rows[0]
+  return {
+    today: first?.today ?? null,
+    lastDate: first?.last_date ?? null,
+    days: res.rows.map((r) => ({
+      date: r.date,
+      status: r.day_status,
+      closedReason: r.closed_reason,
+      open: (r.slots ?? []).map((s) => new Date(s)),
+    })),
+  }
 }

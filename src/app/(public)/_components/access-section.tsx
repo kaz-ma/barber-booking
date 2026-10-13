@@ -9,8 +9,8 @@ const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
 /**
  * AccessSection (DG-001 §5.2): landmark map → card (name, postal code + 2-line address, walk,
- * hours in 2 lines) → nearest stations → directions → Google / Apple Maps (pinned at the
- * building's coordinates). Hours come from business_hours and settings.lead_time_min. No phone.
+ * hours in 2 lines) → "地図を開く" (Google Maps pinned at the building's coordinates).
+ * Hours come from business_hours and settings.lead_time_min. No phone.
  */
 export function AccessSection({ hours, leadTimeMin }: { hours: HoursSummary; leadTimeMin: number }) {
   const t = useTranslations('home')
@@ -65,33 +65,9 @@ export function AccessSection({ hours, leadTimeMin }: { hours: HoursSummary; lea
           </span>
         </p>
       </div>
-      <div className="card access-route">
-        <h3>{t('stationsHeading')}</h3>
-        <ul className="stations">
-          {shop.access.stations.map((st) => (
-            <li key={st.ja}>
-              <span>{st[locale]}</span>
-              <b>{t('stationWalk', { minutes: st.minutes })}</b>
-            </li>
-          ))}
-        </ul>
-        <h3>{t('routeHeading')}</h3>
-        <ol className="steps">
-          {(['routeStep1', 'routeStep2', 'routeStep3'] as const).map((k) => (
-            <li key={k}>{t.rich(k, { b: (c) => <b>{c}</b> })}</li>
-          ))}
-        </ol>
-        <p className="from-abeno">{t('routeFromAbeno')}</p>
-        <p className="note">{t('walkNote')}</p>
-      </div>
-      <div className="map-buttons">
-        <ExternalButton href={shop.mapUrl} variant="secondary" block icon="mapPin">
-          {t('openMap')}
-        </ExternalButton>
-        <ExternalButton href={shop.appleMapUrl} variant="ghost" block icon="mapPin">
-          {t('openAppleMap')}
-        </ExternalButton>
-      </div>
+      <ExternalButton href={shop.mapUrl} variant="secondary" block icon="mapPin">
+        {t('openMap')}
+      </ExternalButton>
     </section>
   )
 }

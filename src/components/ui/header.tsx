@@ -36,7 +36,7 @@ export function SiteHeader({ showBookCta = true }: { showBookCta?: boolean }) {
         <Brand height={48} />
         <LocaleSwitch />
         {showBookCta ? (
-          <LinkButton href="/book" variant="primary" size="sm">
+          <LinkButton href="/#book" variant="primary" size="sm">
             {t('book')}
           </LinkButton>
         ) : null}

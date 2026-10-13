@@ -8,9 +8,11 @@ import { InstagramLink } from '@/components/ui/instagram-link'
 
 /**
  * S-C-10 error boundary. Shows only the digest (matches server logs / Sentry), never error
- * details; offers retry, 予約する and the single Instagram action (HE-01).
+ * details; offers a full reload (also recovers a page loaded before a redeploy, whose client
+ * code no longer matches the server), 予約する and the single Instagram action (HE-01).
+ * The booking draft lives in sessionStorage, so nothing typed is lost by reloading.
  */
-export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorPage({ error }: { error: Error & { digest?: string } }) {
   const t = useTranslations('errors')
   const tNav = useTranslations('nav')
   return (
@@ -27,10 +29,10 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
           {error.digest ? <p className="mt-2 text-sm text-fg-muted">{t('errorId', { digest: error.digest })}</p> : null}
         </div>
         <div className="nf-actions">
-          <Button variant="secondary" block onClick={reset}>
+          <Button variant="secondary" block onClick={() => window.location.reload()}>
             {t('retry')}
           </Button>
-          <LinkButton href="/book" variant="primary" block trailingIcon="arrowRight">
+          <LinkButton href="/#book" variant="primary" block trailingIcon="arrowRight">
             {tNav('book')}
           </LinkButton>
           <InstagramLink variant="plain" />

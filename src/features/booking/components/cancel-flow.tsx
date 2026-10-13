@@ -76,7 +76,7 @@ export function CancelFlow({
             </div>
           </dl>
         </section>
-        <LinkButton href="/book" variant="primary" block trailingIcon="arrowRight" className="mt-6">
+        <LinkButton href="/#book" variant="primary" block trailingIcon="arrowRight" className="mt-6">
           {t('bookAgain')}
         </LinkButton>
         <p className="note text-center">{t('bookAgainNote')}</p>

@@ -23,6 +23,7 @@ export const BOOKING_ERROR_KEYS = [
   'rateLimited',
   'restricted',
   'error',
+  'network',
 ] as const
 export type BookingErrorKey = (typeof BOOKING_ERROR_KEYS)[number]
 

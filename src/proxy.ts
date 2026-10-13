@@ -17,18 +17,33 @@ import { hitWindow, LIMITS, rateKeys } from '@/lib/rate-limit'
  *                            Server Action POSTs are not counted here: cancelByToken() applies
  *                            the same limit itself and answers `rate_limited` (SR-01, CR-21),
  *                            whatever URL the action is posted to.
+ *   /{locale}/book, /book/time, /book/info
+ *                         -> 308 to the booking section on the top page (/{locale}?step=…#book):
+ *                            the three steps now live there (03_screen_specs v0.8). `menu` is kept.
  *   everything else       -> next-intl locale negotiation (only `/` redirects, 307).
  * This is never the authorization layer; actions and DAL re-check everything.
  */
 const intl = createMiddleware(routing)
 // Token pages share one IP limit with /api/ics (FR-S-04); done pages too (SR-22).
 const CANCEL_PATH = /^\/(ja|en)\/(cancel|book\/done)\//
+// Former step pages (bookmarks, old links): the steps are on the top page now.
+const OLD_STEP_PATH = /^\/(ja|en)\/book(?:\/(time|info))?\/?$/
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     return adminProxy(request)
+  }
+
+  const old = OLD_STEP_PATH.exec(pathname)
+  if (old && request.method === 'GET') {
+    const target = new URL(`/${old[1]}`, request.url)
+    target.searchParams.set('step', old[2] === 'info' ? 'info' : old[2] === 'time' ? 'time' : 'menu')
+    const menu = request.nextUrl.searchParams.get('menu')
+    if (menu && /^[a-z0-9-]{1,64}$/.test(menu)) target.searchParams.set('menu', menu)
+    target.hash = 'book'
+    return NextResponse.redirect(target, 308)
   }
 
   if (CANCEL_PATH.test(pathname) && !isServerAction(request)) {

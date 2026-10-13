@@ -31,26 +31,9 @@ export const shop = {
    * neighbouring building.
    */
   geo: { latitude: 34.643747, longitude: 135.512554 },
-  /**
-   * Walking times: route length on the OpenStreetMap network at 80 m/min (the real-estate
-   * convention), rounded up. scripts/access-map/build.py has the source data.
-   */
-  access: {
-    station: { ja: 'JR天王寺駅', en: 'JR Tennoji Station' },
-    walkMinutes: 7,
-    stations: [
-      { ja: 'Osaka Metro谷町線「阿倍野」駅', en: 'Abeno Sta. (Osaka Metro Tanimachi Line)', minutes: 2 },
-      { ja: '阪堺電車「阿倍野」停留場', en: 'Abeno stop (Hankai Tram)', minutes: 3 },
-      {
-        ja: 'Osaka Metro御堂筋線「天王寺」駅・近鉄「大阪阿部野橋」駅',
-        en: 'Tennoji Sta. (Midosuji Line) / Osaka-Abenobashi Sta. (Kintetsu)',
-        minutes: 5,
-      },
-      { ja: 'JR「天王寺」駅（中央口）', en: 'JR Tennoji Sta. (Central Exit)', minutes: 7 },
-    ],
-  },
+  /** Walking time: route length on the OpenStreetMap network at 80 m/min, rounded up. */
+  access: { station: { ja: 'JR天王寺駅', en: 'JR Tennoji Station' }, walkMinutes: 7 },
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=34.643747%2C135.512554',
-  appleMapUrl: 'https://maps.apple.com/?ll=34.643747,135.512554&q=Neuer%20Barber&z=19',
   instagram: {
     handle: 'neuer.kento',
     /** Profile: "see our work" (top page). */

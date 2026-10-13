@@ -7,7 +7,6 @@ import { cx } from '@/components/ui/cx'
 import { Icon } from '@/components/ui/icon'
 import { addDays, weekdayOf } from '@/domain/time'
 import { formatDateAria, formatMonthTitle } from '@/lib/i18n/display'
-import { Link, useRouter } from '@/lib/i18n/navigation'
 import type { DayDTO } from '../queries'
 
 /** Monday-first header keys (DG-001 §5.5). */
@@ -22,9 +21,10 @@ export type MonthCalendarProps = {
   today: string
   /** Selected date in this month (initially today, OI-24), or null after moving months. */
   selectedDate: string | null
-  menuSlug: string
-  /** Extra query kept on every calendar link (e.g. return=confirm). */
-  keep?: Record<string, string>
+  /** A ◎ day was chosen (instant: the month's slots are already loaded). */
+  onSelectDate: (date: string) => void
+  /** Previous / next month requested. */
+  onMonth: (month: string) => void
 }
 
 type KeyAction = 'prev' | 'next' | 'up' | 'down' | 'home' | 'end'
@@ -39,16 +39,16 @@ const KEYS: Record<string, KeyAction> = {
 
 /**
  * MonthCalendar (S-C-03, FR-C-07, 03_screen_specs §2.6): `<table role="grid">`, Monday first.
- * Only ◎ days are links (one tab stop, roving tabindex); × / past / out-of-range days are plain
- * cells — never focusable — whose text is still readable with a virtual cursor.
+ * Only ◎ days are buttons (one tab stop, roving tabindex); × / past / out-of-range days are plain
+ * cells — never focusable — whose text is still readable with a virtual cursor. Selecting a day
+ * or a month is a callback: the booking section already holds the month's slots (ADR-0010).
  * Keys: ←/→ previous/next ◎ day, ↑/↓ ±7 days (continuing by weeks until a ◎ day), Home/End
  * first/last ◎ day, PageUp/PageDown previous/next month, Enter/Space select.
  */
 export function MonthCalendar(props: MonthCalendarProps) {
-  const { month, days, prevMonth, nextMonth, today, selectedDate, menuSlug, keep = {} } = props
+  const { month, days, prevMonth, nextMonth, today, selectedDate, onSelectDate, onMonth } = props
   const t = useTranslations('availability')
   const locale = useLocale()
-  const router = useRouter()
   const tableRef = useRef<HTMLTableElement>(null)
   const pendingFocus = useRef(false)
 
@@ -59,7 +59,6 @@ export function MonthCalendar(props: MonthCalendarProps) {
   const tabStop = stop.month === month && stop.date && available.includes(stop.date) ? stop.date : initialStop
 
   const monthTitle = formatMonthTitle(month, locale)
-  const monthHref = (m: string) => ({ pathname: '/book/time' as const, query: { ...keep, menu: menuSlug, month: m } })
 
   function focusDate(date: string) {
     setStop({ month, date })
@@ -71,7 +70,7 @@ export function MonthCalendar(props: MonthCalendarProps) {
   useEffect(() => {
     if (!pendingFocus.current) return
     pendingFocus.current = false
-    const target = tableRef.current?.querySelector<HTMLElement>('a[tabindex="0"]')
+    const target = tableRef.current?.querySelector<HTMLElement>('button[tabindex="0"]')
     target?.focus()
   }, [month])
 
@@ -90,7 +89,7 @@ export function MonthCalendar(props: MonthCalendarProps) {
       e.preventDefault()
       if (!m) return
       pendingFocus.current = true
-      router.push(monthHref(m), { scroll: false })
+      onMonth(m)
       return
     }
     const action = KEYS[e.key]
@@ -158,9 +157,9 @@ export function MonthCalendar(props: MonthCalendarProps) {
       return (
         // biome-ignore lint/a11y: explicit gridcell so aria-selected is valid; focus lives on the inner link (roving tabindex)
         <td key={day.date} role="gridcell" aria-selected={isSelected}>
-          <Link
-            href={{ pathname: '/book/time', query: { ...keep, menu: menuSlug, month, date: day.date } }}
-            scroll={false}
+          <button
+            type="button"
+            onClick={() => onSelectDate(day.date)}
             data-date={day.date}
             tabIndex={day.date === tabStop ? 0 : -1}
             onFocus={() => setStop({ month, date: day.date })}
@@ -172,7 +171,7 @@ export function MonthCalendar(props: MonthCalendarProps) {
             <span className="mk" aria-hidden="true">
               ◎
             </span>
-          </Link>
+          </button>
         </td>
       )
     }
@@ -208,14 +207,14 @@ export function MonthCalendar(props: MonthCalendarProps) {
     <div>
       <div className="month">
         {prevMonth ? (
-          <Link
-            href={monthHref(prevMonth)}
-            scroll={false}
+          <button
+            type="button"
+            onClick={() => onMonth(prevMonth)}
             className={buttonClass({ variant: 'secondary', className: 'btn-icon' })}
             aria-label={t('monthTo', { label: t('prevMonth'), month: formatMonthTitle(prevMonth, locale) })}
           >
             <Icon name="chevronLeft" />
-          </Link>
+          </button>
         ) : (
           <button
             type="button"
@@ -230,14 +229,14 @@ export function MonthCalendar(props: MonthCalendarProps) {
           {monthTitle}
         </h2>
         {nextMonth ? (
-          <Link
-            href={monthHref(nextMonth)}
-            scroll={false}
+          <button
+            type="button"
+            onClick={() => onMonth(nextMonth)}
             className={buttonClass({ variant: 'secondary', className: 'btn-icon' })}
             aria-label={t('monthTo', { label: t('nextMonth'), month: formatMonthTitle(nextMonth, locale) })}
           >
             <Icon name="chevronRight" />
-          </Link>
+          </button>
         ) : (
           <button
             type="button"

@@ -79,7 +79,7 @@ async function InvalidView() {
       <h1 className="title-24">{t('notFound')}</h1>
       <p className="mt-3">{t('notFoundBody')}</p>
       <div className="mt-6 grid gap-3">
-        <LinkButton href="/book" variant="primary" block trailingIcon="arrowRight">
+        <LinkButton href="/#book" variant="primary" block trailingIcon="arrowRight">
           {tNav('book')}
         </LinkButton>
         <InstagramLink variant="plain" />

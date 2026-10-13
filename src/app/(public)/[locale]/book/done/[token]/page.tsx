@@ -57,7 +57,7 @@ async function DoneContent({ params }: Pick<PageProps<'/[locale]/book/done/[toke
         </h1>
         <p className="mt-2 text-fg-muted">{t('notFoundBody')}</p>
         <div className="mt-6 grid gap-3">
-          <LinkButton href="/book" variant="primary" block trailingIcon="arrowRight">
+          <LinkButton href="/#book" variant="primary" block trailingIcon="arrowRight">
             {tNav('book')}
           </LinkButton>
           <InstagramLink variant="plain" />

@@ -2,6 +2,7 @@ import 'server-only'
 import { sql } from 'drizzle-orm'
 import { toJstIso } from '@/domain/time'
 import { db } from '@/lib/db'
+import { withDbRetry } from '@/lib/db/transient'
 import { hashCancelToken, hashesEqual, isCancelTokenFormat } from '@/lib/tokens'
 import { VIEW_GRACE_MS } from './service'
 
@@ -47,13 +48,15 @@ type Row = {
 export async function getBookingByToken(token: string, now: Date = new Date()): Promise<BookingByTokenDTO | null> {
   if (!isCancelTokenFormat(token)) return null
   const hash = hashCancelToken(token)
-  const res = await db.execute<Row>(sql`
+  const res = await withDbRetry(() =>
+    db.execute<Row>(sql`
     SELECT b.id, b.public_code, b.status, lower(b.during) AS start_at, upper(b.during) AS end_at,
            b.buffer_min, b.price_jpy, b.is_student, b.locale, b.cancel_token_hash,
            b.cancel_token_expires_at, m.name_ja, m.name_en
     FROM bookings b JOIN menus m ON m.id = b.menu_id
     WHERE b.cancel_token_hash = ${hash} AND b.deleted_at IS NULL
-  `)
+  `),
+  )
   const row = res.rows[0]
   if (!row || !hashesEqual(row.cancel_token_hash, hash)) return null
   const endAt = new Date(row.end_at)

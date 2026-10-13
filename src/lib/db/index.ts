@@ -20,6 +20,9 @@ function createPool(): Pool {
     connectionString: env.DATABASE_URL,
     max: env.NODE_ENV === 'test' ? 10 : 5,
     idleTimeoutMillis: 10_000,
+    // Fail fast instead of hanging when the compute is waking up; withDbRetry() retries once.
+    connectionTimeoutMillis: 8_000,
+    keepAlive: true,
     // DZ-02: pin the session TimeZone so range literals / timestamptz text are stable.
     options: '-c TimeZone=UTC',
   })
