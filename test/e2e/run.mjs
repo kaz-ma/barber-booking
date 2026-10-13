@@ -181,18 +181,22 @@ async function step(name, fn) {
 }
 /**
  * Wait until the web fonts needed for the visible text are loaded before measuring layout.
- * next/font self-hosts Noto Sans JP as unicode-range slices that load on first use; measuring
- * earlier uses the system fallback, whose metrics differ by machine (CI vs local).
+ * next/font self-hosts Noto Sans JP as unicode-range slices and Lato with `display: swap`; both
+ * load on first use. Measuring earlier uses the system fallback, whose metrics differ by machine
+ * (in CI the wider Lato fallback wrapped the done page footer onto a second line).
  */
 async function settleFonts(page) {
   await page.evaluate(async () => {
-    const fam = getComputedStyle(document.body).fontFamily
+    // Every family in use (body: Noto Sans JP; labels and numbers: Lato), not only the body's.
+    const fams = new Set([...document.querySelectorAll('body, body *')].map((el) => getComputedStyle(el).fontFamily))
     const text = document.body.innerText.slice(0, 4000)
     // allSettled: next/font also registers `local()` fallback faces that reject when the local font is missing.
-    await Promise.allSettled([
-      document.fonts.load(`400 16px ${fam}`, text),
-      document.fonts.load(`700 16px ${fam}`, text),
-    ])
+    await Promise.allSettled(
+      [...fams].flatMap((fam) => [
+        document.fonts.load(`400 16px ${fam}`, text),
+        document.fonts.load(`700 16px ${fam}`, text),
+      ]),
+    )
     await document.fonts.ready
   })
 }

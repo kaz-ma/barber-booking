@@ -1979,15 +1979,18 @@
     padding-top: var(--space-2);
     border-top: 1px solid var(--border-subtle);
   }
+  /* Both items must fit on one row at 390px with slack for font-rendering differences
+     (the done page must stay within one 390×844 screen, FR-C-11). */
   .done-foot .btn {
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
   }
   .done-foot .btn-sm {
-    padding: 0 10px;
+    padding: 0 8px;
     gap: 6px;
   }
   .done-foot .btn-ghost {
-    padding: 0 4px;
+    min-width: var(--target-min);
+    padding: 0 2px;
   }
   .deadline-line {
     display: flex;
