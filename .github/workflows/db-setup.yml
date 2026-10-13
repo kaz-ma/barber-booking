@@ -1,0 +1,60 @@
+# Production database setup (REL-001 §5), run by hand from the GitHub Actions tab.
+#
+# Applies the SQL migrations with `drizzle-kit migrate` (never `push`, AGENTS.md rule 1),
+# seeds reference data (menus stay inactive at price 0 — never `--activate-menus` here),
+# and creates the single admin user. Every step is idempotent: re-running is safe.
+#
+# Secrets (Settings → Secrets and variables → Actions, environment "production-db"):
+#   PROD_DATABASE_URL  Neon "Direct connection" string (no -pooler, sslmode=require)
+#   ADMIN_EMAIL        the stylist's email address (same value as Vercel ADMIN_EMAIL)
+# The scripts print no connection string or email; secrets are masked by Actions anyway.
+name: DB setup (production)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'What to run'
+        required: true
+        default: 'migrate+seed+admin'
+        type: choice
+        options:
+          - 'migrate+seed+admin'
+          - 'migrate'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-setup-production
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production-db
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      DATABASE_URL_UNPOOLED: ${{ secrets.PROD_DATABASE_URL }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+    steps:
+      - name: Check secrets are set
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "::error::PROD_DATABASE_URL secret is missing"; exit 1; fi
+          case "$DATABASE_URL" in *-pooler*) echo "::error::Use the Direct connection string (without -pooler)"; exit 1;; esac
+          if [ "${{ inputs.task }}" != "migrate" ] && [ -z "$ADMIN_EMAIL" ]; then echo "::error::ADMIN_EMAIL secret is missing"; exit 1; fi
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Apply migrations
+        run: npm run db:migrate
+      - name: Seed reference data (menus inactive, price 0)
+        if: inputs.task == 'migrate+seed+admin'
+        run: npm run db:seed
+      - name: Create admin user
+        if: inputs.task == 'migrate+seed+admin'
+        run: npm run db:seed-admin
