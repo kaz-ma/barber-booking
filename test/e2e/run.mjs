@@ -274,6 +274,23 @@ async function ensureOpenSlots(page) {
   assert((await page.locator('a.slot').count()) > 0, 'no open slot found')
 }
 
+/**
+ * Move off today: a slot later today can already be past the 2-hour self-cancel deadline when the
+ * run happens in the evening (JST), which would hide the cancel button. Pick another open day.
+ */
+async function pickLaterDay(page) {
+  const later = page.locator('a.cd.open:not([aria-current])')
+  if ((await later.count()) === 0) {
+    await page
+      .getByRole('link', { name: /次の月を見る|See next month/ })
+      .first()
+      .click()
+    await page.waitForLoadState('networkidle')
+  }
+  await page.locator('a.cd.open:not([aria-current])').first().click()
+  await page.waitForLoadState('networkidle')
+}
+
 // ---------------------------------------------------------------- scenarios
 let jaCancelUrl = ''
 try {
@@ -325,6 +342,7 @@ try {
       assert((await el.locator('a, button, [tabindex]').count()) === 0, '× cells and rows are not focusable')
     }
     await shot(page, '02_time_ja')
+    await pickLaterDay(page)
     await ensureOpenSlots(page)
     await targets44(page)
     await noOverflow(page, 390)

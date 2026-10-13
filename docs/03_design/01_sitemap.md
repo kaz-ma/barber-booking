@@ -224,7 +224,7 @@ flowchart TD
 |---|---|---|
 | `@type` | `HairSalon` | schema.org に BarberShop 型はないため HairSalon を使う |
 | `name` / `alternateName` | `config/shop.ts` | 店名 Neuer Barber（OI-09 決定済み）。英語表記・スタイリスト名は【要確認: OI-08】 |
-| `address`（`PostalAddress`） | `config/shop.ts` | 大阪市阿倍野区阿倍野筋2-4-48 金村ビル3階南（B）を出力する（OI-09 決定済み）。完了画面・ICS `LOCATION` と同じ値 |
+| `address`（`PostalAddress`） | `config/shop.ts` | 〒545-0052 大阪市阿倍野区阿倍野筋2丁目4-48 金村ビル3F（南B）を出力する（OI-09 決定済み）。完了画面・ICS `LOCATION` と同じ値 |
 | `telephone` | 出力しない | 電話番号は非掲載（OI-10 決定済み、2026-10-12）。連絡先は `sameAs` の Instagram URL |
 | `openingHoursSpecification` | `business_hours`（cache） | 定休日は出力しない |
 | `availableLanguage` | `["ja", "en"]` | — |

@@ -3,18 +3,19 @@ import { ExternalButton } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { shop } from '@/config/shop'
 import { formatRange, type HoursSummary } from '@/domain/hours'
+import { AccessMap } from './access-map'
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
 /**
- * AccessSection (DG-001 §5.2): map placeholder → card (name, 2-line address, walk, hours in 2
- * lines) → "地図を開く". Hours come from business_hours and settings.lead_time_min. No phone.
+ * AccessSection (DG-001 §5.2): landmark map → card (name, postal code + 2-line address, walk,
+ * hours in 2 lines) → nearest stations → directions → Google / Apple Maps (pinned at the
+ * building's coordinates). Hours come from business_hours and settings.lead_time_min. No phone.
  */
 export function AccessSection({ hours, leadTimeMin }: { hours: HoursSummary; leadTimeMin: number }) {
   const t = useTranslations('home')
   const tAvail = useTranslations('availability')
   const tc = useTranslations('common')
-  const tNav = useTranslations('nav')
   const locale = useLocale() as 'ja' | 'en'
   const closed = hours.closedWeekdays.map((d) => tAvail(`weekdaysLong.${WEEKDAY_KEYS[d] ?? 'sun'}`))
   const ranges = hours.ranges.map((r) => formatRange(r, locale))
@@ -26,19 +27,13 @@ export function AccessSection({ hours, leadTimeMin }: { hours: HoursSummary; lea
         </p>
         <h2 id="access-h">{t('accessHeading')}</h2>
       </div>
-      <div className="map" role="img" aria-label={t('mapAlt')}>
-        <span className="st" aria-hidden="true">
-          {shop.access.station[locale]}
-        </span>
-        <span className="pin" aria-hidden="true">
-          <b>{tNav('wordmark')}</b>
-          <i />
-        </span>
-      </div>
+      <AccessMap />
       <div className="card access">
         <address className="addr">
           <b>{shop.name}</b>
           <span lang={locale === 'en' ? 'en' : 'ja'}>
+            {t('postal', { code: shop.postalCode })}
+            <br />
             {shop.addressLines[locale][0]}
             <br />
             {shop.addressLines[locale][1]}
@@ -70,9 +65,33 @@ export function AccessSection({ hours, leadTimeMin }: { hours: HoursSummary; lea
           </span>
         </p>
       </div>
-      <ExternalButton href={shop.mapUrl} variant="secondary" block icon="mapPin">
-        {t('openMap')}
-      </ExternalButton>
+      <div className="card access-route">
+        <h3>{t('stationsHeading')}</h3>
+        <ul className="stations">
+          {shop.access.stations.map((st) => (
+            <li key={st.ja}>
+              <span>{st[locale]}</span>
+              <b>{t('stationWalk', { minutes: st.minutes })}</b>
+            </li>
+          ))}
+        </ul>
+        <h3>{t('routeHeading')}</h3>
+        <ol className="steps">
+          {(['routeStep1', 'routeStep2', 'routeStep3'] as const).map((k) => (
+            <li key={k}>{t.rich(k, { b: (c) => <b>{c}</b> })}</li>
+          ))}
+        </ol>
+        <p className="from-abeno">{t('routeFromAbeno')}</p>
+        <p className="note">{t('walkNote')}</p>
+      </div>
+      <div className="map-buttons">
+        <ExternalButton href={shop.mapUrl} variant="secondary" block icon="mapPin">
+          {t('openMap')}
+        </ExternalButton>
+        <ExternalButton href={shop.appleMapUrl} variant="ghost" block icon="mapPin">
+          {t('openAppleMap')}
+        </ExternalButton>
+      </div>
     </section>
   )
 }

@@ -700,60 +700,144 @@
     line-height: var(--text-14--lh);
     color: var(--fg-muted);
   }
-  .map {
-    position: relative;
-    aspect-ratio: 16 / 9;
+  /* ---------- access map (inline SVG from OpenStreetMap, access-map.tsx) ---------- */
+  .amap {
+    margin: 0;
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid var(--border-subtle);
-    background:
-      linear-gradient(90deg, transparent 0 58%, var(--bg-card) 58% 62%, transparent 62%),
-      linear-gradient(0deg, transparent 0 30%, var(--bg-card) 30% 33%, transparent 33%),
-      repeating-linear-gradient(90deg, transparent 0 13px, rgb(25 25 25 / 0.5) 13px 14px) 0 76% / 100% 6px no-repeat,
-      linear-gradient(0deg, transparent 0 74%, #c9b99a 74% 79%, transparent 79%),
-      repeating-linear-gradient(32deg, transparent 0 46px, rgb(251 247 239 / 0.9) 46px 49px),
-      repeating-linear-gradient(-58deg, transparent 0 38px, rgb(251 247 239 / 0.9) 38px 40px),
-      var(--bg-sunken);
+    background: var(--bg-card);
   }
-  @media (min-width: 768px) {
-    .map {
-      aspect-ratio: 2 / 1;
-    }
+  .amap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 560px;
+    font-family: var(--font-sans);
   }
-  .map .pin {
-    position: absolute;
-    left: 60%;
-    top: 52%;
-    transform: translate(-50%, -100%);
-    display: grid;
-    justify-items: center;
-    gap: 2px;
+  .amap-land {
+    fill: var(--bg-sunken);
   }
-  .map .pin b {
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-sm);
-    background: var(--fg);
-    color: var(--bg-card);
-    font: 700 var(--text-12) / 16px var(--font-lato);
-    letter-spacing: 0.08em;
-    white-space: nowrap;
+  .amap-landmark path {
+    fill: var(--paper-80);
   }
-  .map .pin i {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--fg);
-    box-shadow: 0 0 0 3px var(--bg-card);
+  .amap-road path {
+    fill: none;
+    stroke: var(--paper-99);
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
-  .map .st {
-    position: absolute;
-    left: var(--space-3);
-    top: 18%;
+  .amap-road.minor path {
+    stroke-width: 4;
+  }
+  .amap-road.major path {
+    stroke-width: 9;
+  }
+  .amap-rail path {
+    fill: none;
+    stroke: var(--ink-45);
+    stroke-width: 1.4;
+  }
+  .amap-tram path {
+    fill: none;
+    stroke: var(--ink-35);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 3;
+  }
+  .amap-bridge path {
+    fill: none;
+    stroke: var(--stone-60);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+  .amap-route {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 0.1 6;
+  }
+  .amap-shop-bldg {
+    fill: var(--accent);
+  }
+  .amap-label text {
+    font-size: 10px;
+    font-weight: 700;
+    fill: var(--fg);
+    paint-order: stroke;
+    stroke: var(--paper-99);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  .amap-label text.lg {
+    font-size: 12px;
+  }
+  .amap-label text.road {
+    font-size: 11px;
+    fill: var(--fg-muted);
+    letter-spacing: 0.2em;
+  }
+  .amap-label text.tram {
+    font-weight: 500;
+    fill: var(--fg-muted);
+  }
+  .amap-marker circle {
+    fill: var(--paper-99);
+    stroke: var(--fg);
+    stroke-width: 2;
+  }
+  .amap-pin circle {
+    fill: var(--accent);
+  }
+  .amap-pin circle.halo {
+    fill: var(--paper-99);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .amap-pin rect {
+    fill: var(--fg);
+  }
+  .amap-pin text {
+    font-size: 12px;
+    font-weight: 700;
+    fill: var(--paper-99);
+  }
+  .amap-pin text.name {
+    font-family: var(--font-lato);
+    letter-spacing: 0.06em;
+  }
+  .amap-north path {
+    fill: var(--fg);
+  }
+  .amap-north text {
+    font: 700 10px var(--font-lato);
+    fill: var(--fg);
+  }
+  .amap figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--border-subtle);
     font-size: var(--text-12);
     line-height: 16px;
-    background: var(--bg-card);
-    padding: 0 4px;
-    border-radius: 2px;
+  }
+  .amap .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+  }
+  .amap .legend i {
+    width: 22px;
+    height: 3px;
+    background: radial-gradient(circle, var(--accent) 1.5px, transparent 1.7px) 0 50% / 6px 3px repeat-x;
+  }
+  .amap .attr {
+    color: var(--fg-muted);
+    text-underline-offset: 2px;
   }
   .access {
     margin: var(--space-4) 0;
@@ -796,6 +880,68 @@
   }
   .access .hrs b {
     font-weight: 700;
+  }
+  .access-route {
+    margin: var(--space-4) 0;
+    padding: var(--space-4);
+  }
+  .access-route h3 {
+    margin: 0 0 var(--space-2);
+    font-weight: 700;
+    font-size: var(--text-16);
+    line-height: var(--text-16--lh);
+  }
+  .access-route h3 + * {
+    margin-top: 0;
+  }
+  .access-route .stations {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-14);
+    line-height: 1.5;
+  }
+  .access-route .stations li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding-bottom: var(--space-1);
+    border-bottom: 1px dotted var(--border-subtle);
+  }
+  .access-route .stations b {
+    flex: none;
+    font-weight: 700;
+  }
+  .access-route .steps {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-left: 1.4em;
+    list-style: decimal;
+    font-size: var(--text-14);
+    line-height: 1.7;
+  }
+  .access-route .steps li::marker {
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .access-route .from-abeno {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-14);
+    line-height: 1.7;
+  }
+  .access-route .note {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-12);
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+  .map-buttons {
+    display: grid;
+    gap: var(--space-1);
   }
   .access .hrs .sep {
     color: var(--fg-muted);

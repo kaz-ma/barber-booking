@@ -21,7 +21,7 @@
   "meta": {
     "siteName": "Neuer Barber",
     "topTitle": "Neuer Barber | Barber in Abeno, Osaka — book until midnight",
-    "topDescription": "Neuer Barber (Kento Osada) in Abeno, Osaka. Open 6:00 PM–midnight, 5 minutes on foot from Tennoji Station. See available times and book online, no sign-up needed.",
+    "topDescription": "Neuer Barber (Kento Osada) in Abeno, Osaka. Open 6:00 PM–midnight, 7 minutes on foot from JR Tennoji Station (2 minutes from Abeno Station). See available times and book online, no sign-up needed.",
     "bookTitle": "Choose a menu | Neuer Barber",
     "bookDescription": "Choose from 9 menus, then see available times and book.",
     "timeTitle": "Choose a time | Neuer Barber",
@@ -77,20 +77,45 @@
     "menuHeading": "Menu",
     "accessCaps": "Access",
     "accessHeading": "Access",
-    "mapAlt": "Map: south of Tennoji Station, along Abenosuji",
-    "walk": "{minutes} min walk from {station}",
+    "mapAlt": "Map: from JR Tennoji Station, walk south along Abenosuji, the avenue between Abeno Harukas and Abeno Q's Mall. The shop is on the 3rd floor of the building just past the Tokiwa-dori corner, across from Q's Mall.",
+    "walk": "About {minutes} min walk from {station}",
     "hoursLabel": "Hours",
     "closedLabel": "Closed",
     "leadLabel": "Booking closes",
     "leadValue": "<b>{minutes}</b> min before start",
     "noClosedDays": "None",
-    "openMap": "Open map",
+    "openMap": "Open in Google Maps",
     "langCaps": "Languages",
     "langHeading": "Languages and payment",
     "languagesLabel": "Languages",
     "languagesValue": "<ja>日本語</ja> / English",
     "paymentLabel": "Payment",
-    "paymentValue": "At the shop (methods to be confirmed)"
+    "paymentValue": "At the shop (methods to be confirmed)",
+    "openAppleMap": "Open in Apple Maps",
+    "postal": "〒{code}",
+    "stationsHeading": "Nearest stations",
+    "stationWalk": "about {minutes} min walk",
+    "routeHeading": "From JR Tennoji Station",
+    "routeStep1": "Leave JR Tennoji Station by the <b>Central Exit</b> and cross the big intersection on the <b>pedestrian bridge</b> to the corner of <b>Abeno Harukas</b>.",
+    "routeStep2": "Walk straight south on <b>Abenosuji</b>, the avenue between Harukas and <b>Abeno Q's Mall</b>, on the Harukas side (left). A <b>streetcar</b> runs down the middle of the avenue.",
+    "routeStep3": "Keep Q's Mall across the street on your right for about 3 minutes. Just past the corner of a narrow street on the left <b>(Tokiwa-dori)</b>, the building on your left is the <b>Kanamura Bldg.</b> Come up to <b>3F (South B)</b>.",
+    "routeFromAbeno": "From Abeno Station (Tanimachi Line), walk north along Abenosuji for about 2 minutes. We are across the street from Q's Mall (east side).",
+    "walkNote": "Walking times are estimates from the route length on the map (80 m per minute).",
+    "map": {
+      "jr": "JR Tennoji Sta.",
+      "jrGate": "Central Exit",
+      "footbridge": "Footbridge",
+      "kintetsu": "Kintetsu Osaka-Abenobashi",
+      "harukas": "Abeno Harukas",
+      "qsmall": "Abeno Q's Mall",
+      "abenosuji": "Abenosuji Ave.",
+      "tram": "Streetcar",
+      "tokiwa": "Tokiwa-dori",
+      "metro": "Abeno Sta. (Metro)",
+      "floor": "3F",
+      "routeLegend": "Walking route (about 7 min from JR Tennoji Central Exit)",
+      "attribution": "Map data © OpenStreetMap contributors"
+    }
   },
   "menu": {
     "duration": "{minutes} min",
@@ -362,7 +387,7 @@
           },
           {
             "k": "Address",
-            "v": "3F South (B), Kanamura Bldg., 2-4-48 Abenosuji, Abeno-ku, Osaka"
+            "v": "3F (South B), Kanamura Bldg., 2-4-48 Abenosuji, Abeno-ku, Osaka 545-0052"
           },
           {
             "k": "Shop",
@@ -553,7 +578,7 @@
       },
       {
         "k": "Address",
-        "v": "3F South (B), Kanamura Bldg., 2-4-48 Abenosuji, Abeno-ku, Osaka"
+        "v": "3F (South B), Kanamura Bldg., 2-4-48 Abenosuji, Abeno-ku, Osaka 545-0052"
       },
       {
         "k": "Phone number",
