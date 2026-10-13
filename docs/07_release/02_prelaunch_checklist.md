@@ -66,7 +66,7 @@ SELECT tgname FROM pg_trigger WHERE NOT tgisinternal ORDER BY tgname;
 |---|---|---|---|---|
 | D1 ★ | REL-001 §6 の必須変数が Production に全部ある | Vercel → Settings → Environment Variables を表と照合（欠けていると本番の実行時にページがエラーになる。fail closed） | 開 | |
 | D2 ★ | `SITE_URL` が公開オリジンと完全一致、末尾スラッシュなし | 完了画面のキャンセル URL・ICS の URL のホストが `<SITE>` | 開 | |
-| D2a ★ | デモ期間の設定が残っていない | `DEMO_MODE` が Production に**ない**（削除後に再デプロイ）。`/ja` の最上部に「テスト公開中」の帯が出ない。デモで公開した価格 0 円のメニューは C2 で確認 | 開 | |
+| D2a ★ | デモ期間の設定が残っていない | `DEMO_MODE` が Production に**ない**（削除後に再デプロイ）。`/ja` の最上部に「テスト公開中」の帯が出ない。デモで公開した価格 0 円のメニューは GitHub Actions「DB setup (production)」の `demo-menus-off` で非公開に戻し（価格を入れたメニューは触らない）、C2 で確認 | 開 | |
 | D3 | Production と Preview で秘密値が別 | `BETTER_AUTH_SECRET`・`VAPID_*`・`CRON_SECRET`・`PII_HASH_SECRET` | 開 | |
 | D4 | `SKIP_ENV_VALIDATION` が設定されていない | 同上 | 開 | |
 | D5 | 秘密値の保管場所が運用マニュアルのアカウント一覧に記載済み | REL-004 §12 | 開 | |
