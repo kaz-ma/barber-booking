@@ -36,6 +36,7 @@ type Props = {
   deleted: boolean
 }
 
+/** Call straight from the click handler: iOS refuses clipboard writes after an await. */
 async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text)
@@ -45,6 +46,8 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
+const withLocale = (url: string, locale: 'ja' | 'en') => url.replace(/\/(ja|en)\/book\/done\//, `/${locale}/book/done/`)
+
 export function BookingActions(props: Props) {
   const { bookingId, status } = props
   const toast = useToast()
@@ -53,6 +56,7 @@ export function BookingActions(props: Props) {
   const [pending, startTransition] = useTransition()
   const [url, setUrl] = useState<string | null>(null)
   const [urlLocale, setUrlLocale] = useState<'ja' | 'en'>(props.locale)
+  const shownUrl = url ? withLocale(url, urlLocale) : null
   const [note, setNote] = useState(props.ownerNote ?? '')
   const [noteSaved, setNoteSaved] = useState(props.ownerNote ?? '')
   const [cancelOpen, setCancelOpen] = useState(false)
@@ -125,6 +129,9 @@ export function BookingActions(props: Props) {
     })
   }
 
+  // Issuing replaces the token (only its hash is stored), so the previous link stops working.
+  // Copying is a separate tap: after the server round trip iOS no longer allows a clipboard
+  // write, and a silent failure left an old, already invalid URL on the clipboard.
   function issueUrl() {
     startTransition(async () => {
       const res = await reissueConfirmationUrlAction({ bookingId, linkLocale: urlLocale })
@@ -134,9 +141,13 @@ export function BookingActions(props: Props) {
         return
       }
       setUrl(res.data.confirmUrl)
-      const ok = await copyText(res.data.confirmUrl)
-      toast.show({ message: ok ? S.manual.urlCopied : S.detail.urlSection, placement: 'bottom', icon: ok })
+      toast.show({ message: S.detail.urlIssued, placement: 'bottom', icon: true })
     })
+  }
+
+  async function copyUrl(text: string) {
+    const ok = await copyText(text)
+    toast.show({ message: ok ? S.manual.urlCopied : S.detail.copyFailed, placement: 'bottom', icon: ok })
   }
 
   function saveNote() {
@@ -242,10 +253,27 @@ export function BookingActions(props: Props) {
                 <span lang="en">English</span>
               </label>
             </div>
-            {url ? <p className="urlrow u">{url}</p> : null}
-            <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={issueUrl}>
-              <Icon name="copy" />
-              {S.detail.urlIssue}
+            {shownUrl ? (
+              <>
+                <a className="urlrow u" href={shownUrl} target="_blank" rel="noopener noreferrer">
+                  {shownUrl}
+                </a>
+                <button className="btn btn-primary btn-block" type="button" onClick={() => copyUrl(shownUrl)}>
+                  <Icon name="copy" />
+                  {S.manual.copyUrl}
+                </button>
+                <a className="btn btn-ghost" href={shownUrl} target="_blank" rel="noopener noreferrer">
+                  {S.detail.urlOpen}
+                </a>
+              </>
+            ) : null}
+            <button
+              className={`btn ${shownUrl ? 'btn-ghost' : 'btn-secondary'} btn-block`}
+              type="button"
+              disabled={pending}
+              onClick={issueUrl}
+            >
+              {shownUrl ? S.detail.urlReissue : S.detail.urlIssue}
             </button>
             <p className="cap">{S.detail.urlIssueNote}</p>
           </div>

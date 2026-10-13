@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '@/lib/db'
 import { queryAvailabilityDays } from '@/lib/db/availability-sql'
+import { hashCancelToken } from '@/lib/tokens'
 import { insertBlock, insertNamedBooking, jst, resetDb, seedAdminSession } from '../../../test/db-helpers'
 import { captureLogs, withFailingTrigger } from '../../../test/log-capture'
 import { getBookingDetail, getCustomerDetail, getDayAgenda, getInbox, getInboxCount, getOverlaps } from './queries'
@@ -13,6 +14,7 @@ import {
   createTimeBlock,
   deleteTimeBlock,
   logoutOtherDevices,
+  reissueConfirmationUrl,
   restoreTimeBlock,
   stepBackBookingStatus,
   subscribePush,
@@ -116,6 +118,37 @@ describe('createManualBooking', () => {
       sql`SELECT customer_id FROM bookings WHERE lower(during) = ${jst('2026-11-04 19:00').toISOString()}::timestamptz`,
     )
     expect(row.customer_id).toBe(customerId)
+  })
+})
+
+describe('confirmation URL', () => {
+  const tokenOf = (url: string) => url.split('/').pop() ?? ''
+  const matches = async (raw: string) =>
+    (
+      await one<{ ok: boolean }>(
+        sql`SELECT count(*) = 1 AS ok FROM bookings WHERE cancel_token_hash = ${hashCancelToken(raw)}`,
+      )
+    ).ok
+
+  it('the URL from saving a manual booking opens it until a new URL is issued, which replaces it', async () => {
+    const created = await createManualBooking(manual({ menuId: await menuId() }), { now: NOW })
+    if (created.status !== 'ok') throw new Error('expected ok')
+    const first = tokenOf(created.data.confirmUrl)
+    expect(await matches(first)).toBe(true)
+
+    const again = await reissueConfirmationUrl({ bookingId: created.data.bookingId, linkLocale: 'en' }, { now: NOW })
+    if (again.status !== 'ok') throw new Error('expected ok')
+    expect(again.data.confirmUrl).toMatch(/^http:\/\/localhost:3000\/en\/book\/done\/[A-Za-z0-9_-]{43}$/)
+    expect(await matches(tokenOf(again.data.confirmUrl))).toBe(true)
+    expect(await matches(first)).toBe(false)
+  })
+
+  it('is not issued for a booking that is no longer confirmed', async () => {
+    const created = await createManualBooking(manual({ menuId: await menuId() }), { now: NOW })
+    if (created.status !== 'ok') throw new Error('expected ok')
+    await db.execute(sql`UPDATE bookings SET status = 'arrived' WHERE id = ${created.data.bookingId}`)
+    const res = await reissueConfirmationUrl({ bookingId: created.data.bookingId, linkLocale: 'ja' }, { now: NOW })
+    expect(res.status).toBe('invalid')
   })
 })
 

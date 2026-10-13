@@ -254,7 +254,7 @@ function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps)
       await navigator.clipboard.writeText(text)
       toast.show({ message, placement: 'top', icon: true })
     } catch {
-      toast.show({ message: text, placement: 'top' })
+      toast.show({ message: S.detail.copyFailed, placement: 'top' })
     }
   }
 
@@ -687,6 +687,9 @@ function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps)
                     <Icon name="copy" />
                     {S.manual.copyDm}
                   </button>
+                  <a className="btn btn-ghost" href={url} target="_blank" rel="noopener noreferrer">
+                    {S.detail.urlOpen}
+                  </a>
                   <p className="cap dm-cap">{S.manual.dmCaption}</p>
                   <p className="dm" style={{ whiteSpace: 'pre-line' }}>
                     {dmText}

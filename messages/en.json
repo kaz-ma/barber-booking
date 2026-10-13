@@ -311,7 +311,7 @@
     "shareText": "Cancellation link for my booking (no. {code})",
     "cancelPolicy": "Policy",
     "notFound": "We couldn't find this booking",
-    "notFoundBody": "The link may be wrong, the booking may already be cancelled or completed, or the link may have expired."
+    "notFoundBody": "The link may be wrong, the booking may already be cancelled or completed, or the link may have expired. If the shop sent you a newer link, please open that one."
   },
   "cancel": {
     "heading": "Cancel your booking",
