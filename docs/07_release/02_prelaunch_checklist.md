@@ -28,7 +28,7 @@
 
 | # | 項目 | 確認方法 | 担当 | 結果 |
 |---|---|---|---|---|
-| B1 ★ | マイグレーション 4 本が適用済み | Neon SQL Editor（`main`）: `SELECT id, created_at FROM drizzle.__drizzle_migrations ORDER BY id;` → 4 行（0000〜0003） | 開 | |
+| B1 ★ | マイグレーション 5 本が適用済み | Neon SQL Editor（`main`）: `SELECT id, created_at FROM drizzle.__drizzle_migrations ORDER BY id;` → 5 行（0000〜0004） | 開 | |
 | B2 ★ | 排他制約 `bookings_no_overlap` が存在する | 下の SQL 1 → 1 行、定義に `EXCLUDE USING gist (resource_id WITH =, during WITH &&) WHERE (status = ANY …confirmed, arrived, in_progress…)`。`psql` なら `\d bookings` の Indexes 欄に `"bookings_no_overlap" EXCLUDE USING gist …` | 開 | |
 | B3 | 拡張 `btree_gist`・`pg_trgm` | `SELECT extname, extversion FROM pg_extension WHERE extname IN ('btree_gist','pg_trgm');` → 2 行 | 開 | |
 | B4 | 半開区間 CHECK とトリガ | 下の SQL 2 → `bookings_during_half_open` と `bookings_updated_at` など 4 トリガ | 開 | |
@@ -64,8 +64,9 @@ SELECT tgname FROM pg_trigger WHERE NOT tgisinternal ORDER BY tgname;
 
 | # | 項目 | 確認方法 | 担当 | 結果 |
 |---|---|---|---|---|
-| D1 ★ | REL-001 §6 の必須変数が Production に全部ある | Vercel → Settings → Environment Variables を表と照合（A3 のビルド成功でも検出されるが、`RESEND_API_KEY`・`ADMIN_EMAIL` は任意扱いのため目視） | 開 | |
+| D1 ★ | REL-001 §6 の必須変数が Production に全部ある | Vercel → Settings → Environment Variables を表と照合（欠けていると本番の実行時にページがエラーになる。fail closed） | 開 | |
 | D2 ★ | `SITE_URL` が公開オリジンと完全一致、末尾スラッシュなし | 完了画面のキャンセル URL・ICS の URL のホストが `<SITE>` | 開 | |
+| D2a ★ | デモ期間の設定が残っていない | `DEMO_MODE` が Production に**ない**（削除後に再デプロイ）。`/ja` の最上部に「テスト公開中」の帯が出ない。デモで公開した価格 0 円のメニューは C2 で確認 | 開 | |
 | D3 | Production と Preview で秘密値が別 | `BETTER_AUTH_SECRET`・`VAPID_*`・`CRON_SECRET`・`PII_HASH_SECRET` | 開 | |
 | D4 | `SKIP_ENV_VALIDATION` が設定されていない | 同上 | 開 | |
 | D5 | 秘密値の保管場所が運用マニュアルのアカウント一覧に記載済み | REL-004 §12 | 開 | |

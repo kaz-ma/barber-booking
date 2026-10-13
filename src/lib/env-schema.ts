@@ -78,6 +78,11 @@ export function serverSchema(strict: boolean) {
     SENTRY_CSP_REPORT_URI: z.url().optional(),
     /** `1` switches the public CSP from Report-Only to enforcing without a code change (SR-11). */
     CSP_ENFORCE: z.enum(['0', '1']).optional(),
+    /**
+     * `1` = demo / trial period before launch: every customer page shows a "test preview" banner
+     * and asks search engines not to index. Read at build time, so change it with a redeploy.
+     */
+    DEMO_MODE: z.enum(['0', '1']).optional(),
   }
 }
 

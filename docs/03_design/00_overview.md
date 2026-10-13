@@ -188,6 +188,7 @@ flowchart LR
 | `SENTRY_DSN` | server | 任意（Sentry 導入まで未使用） | Vercel | サーバー側エラー送信 | — | FR-S-11 |
 | `SENTRY_CSP_REPORT_URI` | server | 任意 | Vercel | CSP 違反レポートの送信先。未設定時は同一オリジンの `/api/csp-report`（08_security.md 8 章） | Sentry Security endpoint | NFR-SC-06 |
 | `CSP_ENFORCE` | server | 任意 | Vercel | `1` で公開ページの CSP を Report-Only から強制（`Content-Security-Policy`）に切り替える。Report-Only で 1 週間違反 0 件を確認した後（AT-26）。コード変更不要 | `1` または空 | NFR-SC-06 |
+| `DEMO_MODE` | server | 任意 | Vercel | `1` で正式公開前のデモ期間に、全顧客ページの最上部へ「テスト公開中です。ここでの予約は実際には有効になりません。」の帯を出し、`robots: noindex, nofollow` を付ける。ビルド時に読むので変更後は再デプロイ。正式公開時に削除する | `1` または空 | — |
 | `TURNSTILE_VERIFY_URL` | test | 任意（**テスト専用**。本番には設定しない） | E2E（`test/e2e/run.mjs` が設定） | siteverify の代替エンドポイント（E2E のローカルスタブ。単回使用と `cdata` の返却を再現）。`VERCEL_ENV=production` では無視 | `http://127.0.0.1:<port>/siteverify` | FR-S-05 |
 | `NEXT_PUBLIC_SENTRY_DSN`・`SENTRY_AUTH_TOKEN` | public / build | Sentry 導入時に追加（現状 `env.ts` に未定義） | Vercel | ブラウザ側エラー送信、ソースマップのアップロード | — | FR-S-11 |
 | `PROD_DATABASE_URL`・`BACKUP_AGE_RECIPIENT`（または `BACKUP_PASSPHRASE`） | CI | バックアップに必須 | GitHub Secrets（environment: backup） | `backup.yml` の接続先（Neon の直結 URL、読み取り専用ロール推奨）と暗号化公開鍵（無ければパスフレーズで gpg 対称暗号） | `age1…` | FR-S-08 |

@@ -71,7 +71,7 @@
 | 方式 | 手順 | 制約 |
 |---|---|---|
 | A. 送信元ドメインを認証（推奨） | Resend → Domains → Add Domain → 表示された SPF（TXT）・DKIM（TXT/CNAME）・（任意）DMARC をドメインの DNS に追加 → Verified になったら API Keys → Create（権限 Sending access） | 認証できるドメインが必要（独自ドメイン取得後、または開発者のドメイン）。`*.vercel.app` は認証できない |
-| B. 独自ドメイン取得前のつなぎ | Resend アカウントを `ADMIN_EMAIL` と同じアドレスで作り、`RESEND_FROM` を未設定（既定 `予約管理 <onboarding@resend.dev>`）にする | `onboarding@resend.dev` はアカウント所有者のアドレス宛にしか届かない【要実機確認】。独自ドメイン取得後に A へ切り替える |
+| B. 独自ドメイン取得前のつなぎ | Resend アカウントを `ADMIN_EMAIL` と同じアドレスで作り、`RESEND_FROM` を `予約管理 <onboarding@resend.dev>` にする | `onboarding@resend.dev` はアカウント所有者のアドレス宛にしか届かない【要実機確認】。独自ドメイン取得後に A へ切り替える |
 
 `RESEND_FROM` の形式: `予約管理 <login@example.jp>`（表示名＋認証済みドメインのアドレス）。
 
@@ -150,7 +150,7 @@ unset PROD_DB_URL
 
 ## 6. 環境変数
 
-Vercel → Settings → Environment Variables。値は `src/lib/env.ts` で検証され、`next.config.ts` が読み込むため、**必須値が欠けるとビルドが失敗する**（デプロイされない）。`NEXT_PUBLIC_` の変数は使わない（公開値もサーバーから props で渡す）。
+Vercel → Settings → Environment Variables。値は `src/lib/env.ts`（`src/lib/env-schema.ts`）で検証される。ビルド自体は秘密なしでも通るが、**本番・Preview の実行時に必須値が 1 つでも欠けるとページがエラーになる**（fail closed。中途半端な状態で動かさない）。`NEXT_PUBLIC_` の変数は使わない（公開値もサーバーから props で渡す）。
 
 「Preview（staging）」は Vercel の Preview 環境で **Git ブランチ `staging` を指定**して登録する値（§8）。PR ごとの Preview には「Preview（全体）」の値が使われる。
 
@@ -160,9 +160,9 @@ Vercel → Settings → Environment Variables。値は `src/lib/env.ts` で検�
 | `DATABASE_URL` | 必須 / 必須 | Neon 連携で自動注入 | Neon `main` のプール接続（`-pooler`） | Neon `staging` ブランチのプール接続 | ビルド時にも読む（メニュー等を焼き込む） |
 | `DATABASE_URL_UNPOOLED` | 任意 / 任意 | Neon 連携で自動注入 | Neon `main` の直結 | Neon `staging` の直結 | マイグレーション・`pg_dump` 用。アプリは使わない |
 | `BETTER_AUTH_SECRET` | 必須 / 必須 | §2.2 | 生成値 A | 生成値 B（本番と別） | 32 文字以上 |
-| `ADMIN_EMAIL` | 実質必須 / 実質必須 | 【クライアント】 | 管理者のメールアドレス | 同じでよい | 未設定だと誰も管理画面に入れない |
-| `RESEND_API_KEY` | 実質必須 / 任意 | Resend → API Keys | Sending access のキー | staging で OTP を試すなら同じキー | 未設定の本番では 6 桁コードが届かない（§2.3） |
-| `RESEND_FROM` | 推奨 / 任意 | §2.3 | `予約管理 <login@<認証済みドメイン>>` | 同左 | 未設定時は `onboarding@resend.dev`（所有者宛のみ） |
+| `ADMIN_EMAIL` | 必須 / 必須 | 【クライアント】 | 管理者のメールアドレス | 同じでよい | 未設定だと誰も管理画面に入れない |
+| `RESEND_API_KEY` | 必須 / 必須 | Resend → API Keys | Sending access のキー | staging で OTP を試すなら同じキー | 未設定の本番では 6 桁コードが届かない（§2.3） |
+| `RESEND_FROM` | 必須 / 必須 | §2.3 | `予約管理 <login@<認証済みドメイン>>`（ドメイン認証前は `予約管理 <onboarding@resend.dev>`） | 同左 | `onboarding@resend.dev` は Resend アカウント所有者のアドレス宛にしか届かない |
 | `VAPID_PUBLIC_KEY` | 必須 / 必須 | §2.2 | 鍵ペア A の公開鍵 | 鍵ペア B の公開鍵 | 変更禁止（購読が全部無効になる） |
 | `VAPID_PRIVATE_KEY` | 必須 / 必須 | §2.2 | 鍵ペア A の秘密鍵 | 鍵ペア B の秘密鍵 | Sensitive にする |
 | `VAPID_SUBJECT` | 必須 / 必須 | 【クライアント/開発者】連絡先 | `mailto:<連絡先>` | 同左 | `mailto:` か `https://` で始める。Safari は `https://localhost` を拒否 |
@@ -170,6 +170,7 @@ Vercel → Settings → Environment Variables。値は `src/lib/env.ts` で検�
 | `TURNSTILE_SITE_KEY` | 必須 / 必須 | Cloudflare（§7.2） | 本番ウィジェットのサイトキー | 同じウィジェット（ホスト名に staging を追加）または staging 用ウィジェット | テスト用ダミーキーは使わない（siteverify が返すホスト名が `SITE_URL` と一致しないため確定が失敗する） |
 | `TURNSTILE_SECRET_KEY` | 必須 / 必須 | Cloudflare | 同ウィジェットのシークレット | 同左 | Sensitive |
 | `PII_HASH_SECRET` | 必須 / 必須 | §2.2 | 生成値 | 別の生成値 | 変更しない |
+| `DEMO_MODE` | 任意 / 任意 | — | 正式公開前のデモ期間だけ `1` | 同左 | 全顧客ページに「テスト公開中」の帯を出し、検索エンジンに登録しない（noindex）。ビルド時に読むので変更後は再デプロイ。**正式公開時に削除** |
 | `SENTRY_DSN` | 任意 / 任意 | Sentry（未実装） | — | — | 監視スライス実装時に設定 |
 | `SENTRY_CSP_REPORT_URI` | 任意 / 任意 | Sentry → Security Headers | — | — | 設定すると CSP に `report-uri` が付く |
 | `TEST_DATABASE_URL` | 設定しない | — | — | — | ローカル・CI のテスト専用 |

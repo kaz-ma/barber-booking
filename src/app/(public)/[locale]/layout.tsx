@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { locale as rootLocale } from 'next/root-params'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
+import { env } from '@/lib/env'
 import { routing } from '@/lib/i18n/routing'
 import { siteUrl } from '@/lib/site'
 
@@ -32,6 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('topTitle'),
     applicationName: t('siteName'),
     formatDetection: { telephone: false },
+    ...(env.DEMO_MODE === '1' ? { robots: { index: false, follow: false } } : {}),
   }
 }
 
@@ -45,6 +47,7 @@ export default async function LocaleLayout({ children }: LayoutProps<'/[locale]'
         <a className="skip-link" href="#main">
           {t('skipToContent')}
         </a>
+        {env.DEMO_MODE === '1' ? <p className="demo-banner">{t('demoBanner')}</p> : null}
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

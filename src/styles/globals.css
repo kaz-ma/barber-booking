@@ -464,6 +464,17 @@
   .skip-link:focus {
     top: var(--space-2);
   }
+  /* DEMO_MODE=1 only: one compact line so the done page stays close to one screen. */
+  .demo-banner {
+    margin: 0;
+    padding: 4px var(--space-4);
+    background: var(--fg);
+    color: var(--bg-card);
+    font-size: var(--text-12);
+    line-height: 16px;
+    font-weight: 700;
+    text-align: center;
+  }
 
   /* ---------- footer ---------- */
   .site-foot {

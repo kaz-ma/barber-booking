@@ -1,5 +1,6 @@
 {
   "common": {
+    "demoBanner": "Test preview: bookings made here are not real.",
     "next": "Next",
     "back": "Back",
     "change": "Change",
