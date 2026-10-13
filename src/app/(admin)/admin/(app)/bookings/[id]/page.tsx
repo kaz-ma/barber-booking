@@ -68,109 +68,46 @@ async function Detail({ params }: Pick<PageProps<'/admin/bookings/[id]'>, 'param
         <h1>{S.detail.title}</h1>
         <span className={`${statusChipClass(b.status)} end`}>{S.status[b.status] ?? b.status}</span>
       </header>
-      <main className="wrap dt">
-        <section className="who" aria-labelledby="nm">
-          <p className="when">
+      <main className="wrap v2-detail">
+        {deleted ? <p className="v2-note">{S.detail.deleted}</p> : null}
+        <section className="v2-card" aria-labelledby="nm">
+          <p className="v2-when">
             <span>{formatDateJa(date)}</span>
-            <span className="t num">
+            <b className="num">
               {cancelled ? (
                 <s>
-                  {formatTimeOnDate(start, date)}
-                  <span>–</span>
-                  {formatTimeOnDate(new Date(b.end), date)}
+                  {formatTimeOnDate(start, date)}–{formatTimeOnDate(new Date(b.end), date)}
                 </s>
               ) : (
                 <>
-                  {formatTimeOnDate(start, date)}
-                  <span>–</span>
-                  {formatTimeOnDate(new Date(b.end), date)}
+                  {formatTimeOnDate(start, date)}–{formatTimeOnDate(new Date(b.end), date)}
                 </>
               )}
-            </span>
+            </b>
           </p>
-          <h2 id="nm">
+          <h2 id="nm" className="v2-name">
             {name}
             {b.customer.nameKana ? <span className="kana">{b.customer.nameKana}</span> : null}
           </h2>
+          <ul className="v2-facts">
+            <li>
+              {b.menu.nameJa}（{b.durationMin}分）
+              {b.isStudent ? <span className="pill">{S.detail.student}</span> : null}
+              {b.priceJpy > 0 ? <span className="num"> ¥{b.priceJpy.toLocaleString('ja-JP')}</span> : null}
+            </li>
+            <li className="muted">
+              {S.detail.source}: {S.source[b.source] ?? b.source}
+            </li>
+          </ul>
+          {b.note ? <p className="v2-memo">{b.note}</p> : null}
           {b.customer.phoneE164 ? (
-            <a className="btn btn-secondary btn-sm" href={`tel:${b.customer.phoneE164}`}>
+            <a className="btn btn-secondary btn-block" href={`tel:${b.customer.phoneE164}`}>
               <Icon name="phone" />
-              {S.detail.call}
+              <span className="num">{phone}</span>
+              {b.customer.phoneUnverified ? <small>{S.detail.phoneUnverified}</small> : null}
             </a>
           ) : null}
         </section>
-
-        {deleted ? (
-          <p className="banner info done-banner" role="status">
-            <Icon name="info" />
-            <span>{S.detail.deleted}</span>
-          </p>
-        ) : null}
-
-        <dl className="kv card">
-          <div>
-            <dt>{S.detail.menu}</dt>
-            <dd>{S.detail.menuValue(b.menu.nameJa, b.durationMin, b.bufferMin)}</dd>
-          </div>
-          <div>
-            <dt>{S.detail.price}</dt>
-            <dd>
-              <span className="num">¥{b.priceJpy.toLocaleString('ja-JP')}</span>
-              {b.isStudent ? S.detail.studentPrice : ''}
-            </dd>
-          </div>
-          <div>
-            <dt>{S.detail.occupation}</dt>
-            <dd>{b.isStudent ? S.detail.student : S.detail.worker}</dd>
-          </div>
-          <div>
-            <dt>{S.detail.phone}</dt>
-            <dd className="num">
-              {phone ?? S.detail.phoneNone}
-              {phone && b.customer.phoneUnverified ? S.detail.phoneUnverified : ''}
-            </dd>
-          </div>
-          <div>
-            <dt>{S.detail.note}</dt>
-            <dd style={{ whiteSpace: 'pre-wrap' }}>{b.note ?? S.detail.noteNone}</dd>
-          </div>
-          <div>
-            <dt>{S.detail.source}</dt>
-            <dd>
-              <span className="pill">{S.source[b.source] ?? b.source}</span> {S.sourceLong[b.source] ?? ''}
-            </dd>
-          </div>
-          <div>
-            <dt>{S.detail.publicCode}</dt>
-            <dd className="num">{b.publicCode}</dd>
-          </div>
-          <div>
-            <dt>{S.detail.createdAt}</dt>
-            <dd>
-              {formatDateJa(jstDate(new Date(b.createdAt)))}{' '}
-              <span className="num">{formatTimeOnDate(new Date(b.createdAt), jstDate(new Date(b.createdAt)))}</span>
-            </dd>
-          </div>
-          <div>
-            <dt>{S.detail.consent}</dt>
-            <dd>
-              {b.consentVersions.length > 0
-                ? b.consentVersions.map((c) => `${S.detail.consentKinds[c.kind] ?? c.kind} ${c.version}`).join(' ／ ')
-                : S.detail.consentNone}
-            </dd>
-          </div>
-          <div>
-            <dt>{S.detail.customer}</dt>
-            <dd>
-              <Link className="kv-link" href={`/admin/customers/${b.customer.id}`}>
-                <span>
-                  {S.detail.customerStats(b.customer.visitCount, b.customer.noShowCount, b.customer.lateCancelCount)}
-                </span>
-                <Icon name="chev-r" />
-              </Link>
-            </dd>
-          </div>
-        </dl>
 
         <BookingActions
           bookingId={b.id}
@@ -183,9 +120,42 @@ async function Detail({ params }: Pick<PageProps<'/admin/bookings/[id]'>, 'param
           deleted={deleted}
         />
 
-        <section className="audit sunken" aria-labelledby="au-h">
-          <h3 id="au-h">{S.detail.history}</h3>
-          <ol>
+        <details className="v2-more">
+          <summary>{S.detail.more}</summary>
+          <dl className="kv">
+            <div>
+              <dt>{S.detail.publicCode}</dt>
+              <dd className="num">{b.publicCode}</dd>
+            </div>
+            <div>
+              <dt>{S.detail.createdAt}</dt>
+              <dd>
+                {formatDateJa(jstDate(new Date(b.createdAt)))}{' '}
+                <span className="num">{formatTimeOnDate(new Date(b.createdAt), jstDate(new Date(b.createdAt)))}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>{S.detail.consent}</dt>
+              <dd>
+                {b.consentVersions.length > 0
+                  ? b.consentVersions.map((c) => `${S.detail.consentKinds[c.kind] ?? c.kind} ${c.version}`).join(' ／ ')
+                  : S.detail.consentNone}
+              </dd>
+            </div>
+            <div>
+              <dt>{S.detail.customer}</dt>
+              <dd>
+                <Link className="kv-link" href={`/admin/customers/${b.customer.id}`}>
+                  <span>
+                    {S.detail.customerStats(b.customer.visitCount, b.customer.noShowCount, b.customer.lateCancelCount)}
+                  </span>
+                  <Icon name="chev-r" />
+                </Link>
+              </dd>
+            </div>
+          </dl>
+          <h3 className="v2-sub-h">{S.detail.history}</h3>
+          <ol className="v2-hist">
             {b.history.map((h) => {
               const d = jstDate(new Date(h.at))
               return (
@@ -198,7 +168,7 @@ async function Detail({ params }: Pick<PageProps<'/admin/bookings/[id]'>, 'param
               )
             })}
           </ol>
-        </section>
+        </details>
       </main>
     </>
   )

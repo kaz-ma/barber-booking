@@ -9,7 +9,7 @@ const manifest: MetadataRoute.Manifest = {
   id: '/admin',
   name: '予約管理',
   short_name: '予約管理',
-  description: 'Neuer Barber の予約を受けて管理する店主専用アプリ（今日の予約・受信箱・通知）',
+  description: 'Neuer Barber の予約を受けて管理する店主専用アプリ（予約・お知らせ・通知）',
   lang: 'ja',
   dir: 'ltr',
   start_url: '/admin',

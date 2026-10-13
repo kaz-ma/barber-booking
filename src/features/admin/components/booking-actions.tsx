@@ -15,6 +15,7 @@ import { S } from '../strings'
 import { useNowMinute } from './client-hooks'
 import { Icon } from './icon'
 import { useInbox } from './inbox-provider'
+import { Sheet } from './sheet'
 import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
 
@@ -54,7 +55,7 @@ export function BookingActions(props: Props) {
   const [urlLocale, setUrlLocale] = useState<'ja' | 'en'>(props.locale)
   const [note, setNote] = useState(props.ownerNote ?? '')
   const [noteSaved, setNoteSaved] = useState(props.ownerNote ?? '')
-  const [lateMinutes, setLateMinutes] = useState('')
+  const [cancelOpen, setCancelOpen] = useState(false)
 
   useEffect(() => {
     if (!props.unacknowledged) return
@@ -152,88 +153,44 @@ export function BookingActions(props: Props) {
     })
   }
 
-  const progressIndex = status === 'confirmed' ? 0 : status === 'arrived' ? 1 : status === 'in_progress' ? 2 : 3
   const active = ['confirmed', 'arrived', 'in_progress'].includes(status) && !props.deleted
   const backTo = props.deleted ? null : stepBackTarget(status)
   const overdue = status === 'confirmed' && nowMs !== null && nowMs > new Date(props.startIso).getTime() + 30 * 60_000
-
-  const step = (index: number, label: string, to: BookingStatus, why: string) => {
-    const current = progressIndex === index && active
-    const done = progressIndex > index
-    return (
-      <li>
-        <span className={`n ${current ? 'cur' : ''}`} aria-hidden="true">
-          {done ? '✓' : index + 1}
-        </span>
-        {current ? (
-          <button
-            className="btn btn-primary"
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              change(to, to === 'arrived' && lateMinutes !== '' ? { lateMinutes: Number(lateMinutes) } : {})
-            }
-          >
-            <Icon name="check" />
-            {label}
-          </button>
-        ) : (
-          <>
-            <button
-              className="btn btn-secondary is-off"
-              type="button"
-              aria-disabled="true"
-              aria-describedby={done ? undefined : `why-${index}`}
-            >
-              {label}
-            </button>
-            {done ? null : (
-              <p className="cap why" id={`why-${index}`}>
-                {why}
-              </p>
-            )}
-          </>
-        )}
-      </li>
-    )
-  }
+  // One button for the next step only (来店 → 施術開始 → 完了).
+  const next: { to: BookingStatus; label: string } | null =
+    status === 'confirmed'
+      ? { to: 'arrived', label: S.detail.toArrived }
+      : status === 'arrived'
+        ? { to: 'in_progress', label: S.detail.toInProgress }
+        : status === 'in_progress'
+          ? { to: 'completed', label: S.detail.toCompleted }
+          : null
 
   return (
     <>
-      {active ? (
-        <>
-          <h3 className="sec-h">
-            {S.detail.statusSection}
-            <span className="cap">{S.detail.statusFlow}</span>
-          </h3>
-          <ol className="prog">
-            {step(0, S.detail.toArrived, 'arrived', '')}
-            {step(1, S.detail.toInProgress, 'in_progress', S.detail.whyInProgress)}
-            {step(2, S.detail.toCompleted, 'completed', S.detail.whyCompleted)}
-          </ol>
+      {active && next ? (
+        <section className="v2-actions" aria-label={S.detail.statusSection}>
+          {overdue ? <p className="v2-note">{S.detail.noShowHint}</p> : null}
+          <button
+            className="btn btn-primary btn-block"
+            type="button"
+            disabled={pending}
+            onClick={() => change(next.to)}
+          >
+            <Icon name="check" />
+            {next.label}
+          </button>
           {status === 'confirmed' ? (
-            <div className="field mt-2" style={{ maxWidth: '12em' }}>
-              <label className="label" htmlFor="late">
-                {S.detail.lateMinutes}
-                <span className="req">{S.optional}</span>
-              </label>
-              <input
-                id="late"
-                className="input num"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={180}
-                value={lateMinutes}
-                onChange={(e) => setLateMinutes(e.target.value)}
-              />
-            </div>
+            <button className="btn btn-secondary btn-block" type="button" onClick={() => setCancelOpen(true)}>
+              <Icon name="x" />
+              {S.detail.cancelOpen}
+            </button>
           ) : null}
-        </>
+        </section>
       ) : null}
 
       {backTo ? (
-        <div className="center-row mt-2">
+        <div className="center-row">
           <button className="btn btn-ghost" type="button" disabled={pending} onClick={() => stepBack(backTo)}>
             <Icon name="back" />
             {S.detail.stepBack(S.status[backTo] ?? backTo)}
@@ -241,116 +198,7 @@ export function BookingActions(props: Props) {
         </div>
       ) : null}
 
-      {status === 'confirmed' && !props.deleted ? (
-        <>
-          <h3 className="sec-h">{S.detail.cancelSection}</h3>
-          {overdue ? (
-            <p className="banner warn" role="status">
-              <Icon name="alert" />
-              <span>{S.detail.noShowHint}</span>
-            </p>
-          ) : null}
-          <p className="cx-note">
-            <Icon name="info" />
-            <span>{S.detail.cancelNote}</span>
-          </p>
-          <div className="cx">
-            <button className="btn btn-secondary" type="button" disabled={pending} onClick={() => change('no_show')}>
-              <Icon name="x" />
-              <b>{S.detail.noShow}</b>
-              <small>{S.detail.noShowSub}</small>
-            </button>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              disabled={pending}
-              onClick={() => change('cancelled_by_owner')}
-            >
-              <Icon name="x" />
-              <b>{S.detail.ownerCancel}</b>
-              <small>{S.detail.ownerCancelSub}</small>
-            </button>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              disabled={pending}
-              onClick={() => change('cancelled_late')}
-            >
-              <Icon name="x" />
-              <b>{S.detail.lateCancel}</b>
-              <small>{S.detail.lateCancelSub}</small>
-            </button>
-            {props.source !== 'web' ? (
-              <button className="btn btn-secondary" type="button" disabled={pending} onClick={removeEntry}>
-                <Icon name="x" />
-                <b>{S.detail.deleteEntry}</b>
-                <small>{S.detail.deleteEntrySub}</small>
-              </button>
-            ) : null}
-          </div>
-        </>
-      ) : null}
-
-      <section className="url-sec" aria-labelledby="url-h">
-        <h3 className="sec-h" id="url-h">
-          {S.detail.urlSection}
-        </h3>
-        {status === 'confirmed' && !props.deleted ? (
-          <div className="stack">
-            <fieldset className="field">
-              <legend className="label">{S.detail.urlLocale}</legend>
-              <div className="seg-row">
-                <label>
-                  <input
-                    className="vh-input"
-                    type="radio"
-                    name="loc"
-                    checked={urlLocale === 'ja'}
-                    onChange={() => setUrlLocale('ja')}
-                  />
-                  <span>日本語</span>
-                </label>
-                <label>
-                  <input
-                    className="vh-input"
-                    type="radio"
-                    name="loc"
-                    checked={urlLocale === 'en'}
-                    onChange={() => setUrlLocale('en')}
-                  />
-                  <span lang="en">English</span>
-                </label>
-              </div>
-            </fieldset>
-            {url ? (
-              <div className="urlrow">
-                <span className="u">{url}</span>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  type="button"
-                  onClick={async () => {
-                    const ok = await copyText(url)
-                    toast.show({ message: ok ? S.manual.urlCopied : url, placement: 'bottom', icon: ok })
-                  }}
-                >
-                  <Icon name="copy" />
-                  {S.copy}
-                </button>
-              </div>
-            ) : null}
-            <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={issueUrl}>
-              <Icon name="copy" />
-              {S.detail.urlIssue}
-            </button>
-            <p className="cap">{S.detail.urlHelp}</p>
-            <p className="cap">{S.detail.urlIssueNote}</p>
-          </div>
-        ) : (
-          <p className="cap">{S.detail.urlUnavailable}</p>
-        )}
-      </section>
-
-      <div className="field memo">
+      <div className="field v2-memo-field">
         <label className="label" htmlFor="memo">
           {S.detail.memo}
           <span className="req">{S.detail.memoHelp}</span>
@@ -358,7 +206,7 @@ export function BookingActions(props: Props) {
         <textarea
           id="memo"
           className="input"
-          rows={3}
+          rows={2}
           maxLength={500}
           placeholder={S.detail.memoPlaceholder}
           value={note}
@@ -366,6 +214,88 @@ export function BookingActions(props: Props) {
           onBlur={saveNote}
         />
       </div>
+
+      {status === 'confirmed' && !props.deleted ? (
+        <details className="v2-more">
+          <summary>{S.detail.urlSection}</summary>
+          <div className="stack">
+            <p className="cap">{S.detail.urlHelp}</p>
+            <div className="seg-row">
+              <label>
+                <input
+                  className="vh-input"
+                  type="radio"
+                  name="loc"
+                  checked={urlLocale === 'ja'}
+                  onChange={() => setUrlLocale('ja')}
+                />
+                <span>日本語</span>
+              </label>
+              <label>
+                <input
+                  className="vh-input"
+                  type="radio"
+                  name="loc"
+                  checked={urlLocale === 'en'}
+                  onChange={() => setUrlLocale('en')}
+                />
+                <span lang="en">English</span>
+              </label>
+            </div>
+            {url ? <p className="urlrow u">{url}</p> : null}
+            <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={issueUrl}>
+              <Icon name="copy" />
+              {S.detail.urlIssue}
+            </button>
+            <p className="cap">{S.detail.urlIssueNote}</p>
+          </div>
+        </details>
+      ) : null}
+
+      <Sheet open={cancelOpen} onClose={() => setCancelOpen(false)} title={S.detail.cancelSection}>
+        <div className="v2-choices">
+          <p className="cap">{S.detail.cancelNote}</p>
+          {(
+            [
+              ['cancelled_by_owner', S.detail.ownerCancel, S.detail.ownerCancelSub],
+              ['no_show', S.detail.noShow, S.detail.noShowSub],
+              ['cancelled_late', S.detail.lateCancel, S.detail.lateCancelSub],
+            ] as const
+          ).map(([to, label, sub]) => (
+            <button
+              key={to}
+              className="v2-choice"
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                setCancelOpen(false)
+                change(to)
+              }}
+            >
+              <span>
+                <b>{label}</b>
+                <small>{sub}</small>
+              </span>
+            </button>
+          ))}
+          {props.source !== 'web' ? (
+            <button
+              className="v2-choice"
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                setCancelOpen(false)
+                removeEntry()
+              }}
+            >
+              <span>
+                <b>{S.detail.deleteEntry}</b>
+                <small>{S.detail.deleteEntrySub}</small>
+              </span>
+            </button>
+          ) : null}
+        </div>
+      </Sheet>
     </>
   )
 }

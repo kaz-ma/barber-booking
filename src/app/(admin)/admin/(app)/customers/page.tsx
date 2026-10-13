@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { requireAdminPage } from '@/features/admin/auth'
 import { Icon } from '@/features/admin/components/icon'
-import { SettingsHeader, SettingsNav } from '@/features/admin/components/settings-nav'
+import { SettingsHeader } from '@/features/admin/components/settings-nav'
 import { searchCustomers } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
 
@@ -13,9 +13,8 @@ export const metadata: Metadata = { title: '顧客' }
 export default function CustomersPage({ searchParams }: PageProps<'/admin/customers'>) {
   return (
     <div className="has-tabbar">
-      <SettingsHeader />
+      <SettingsHeader title={S.settings.customers} back />
       <main className="wrap set">
-        <SettingsNav current="customers" />
         <Suspense fallback={<p className="help">{S.loading}</p>}>
           <Customers searchParams={searchParams} />
         </Suspense>

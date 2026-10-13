@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { lastStartMin } from '@/domain/hours'
 import { formatMinutes } from '@/domain/jst-format'
-import { moveMenuAction, setMenuActiveAction, upsertMenuAction } from '../actions'
+import { setMenuActiveAction, upsertMenuAction } from '../actions'
 import type { AdminMenu } from '../queries'
 import { errorText, S } from '../strings'
 import { Icon } from './icon'
@@ -152,39 +152,10 @@ export function MenusSettings({
 
   return (
     <>
-      <div className="m-tools">
-        <h2>
-          {S.menus.head}
-          <span className="cap" style={{ display: 'block', fontWeight: 500 }}>
-            {S.menus.headCap}
-          </span>
-        </h2>
-      </div>
+      <p className="v2-cap v2-lead">{S.menus.headCap}</p>
       <ul className="list m-list">
-        {menus.map((m, i) => (
+        {menus.map((m) => (
           <li key={m.id} className={m.isActive ? '' : 'is-hidden'}>
-            <span className="menu-move">
-              <button
-                className="icon-btn"
-                type="button"
-                aria-label={S.menus.up(m.nameJa)}
-                disabled={i === 0 || pending}
-                onClick={() => run(() => moveMenuAction({ menuId: m.id, direction: 'up' }))}
-              >
-                <span style={{ display: 'inline-flex', transform: 'rotate(180deg)' }}>
-                  <Icon name="chev-d" />
-                </span>
-              </button>
-              <button
-                className="icon-btn"
-                type="button"
-                aria-label={S.menus.down(m.nameJa)}
-                disabled={i === menus.length - 1 || pending}
-                onClick={() => run(() => moveMenuAction({ menuId: m.id, direction: 'down' }))}
-              >
-                <Icon name="chev-d" />
-              </button>
-            </span>
             <button className="m-main" type="button" style={{ textAlign: 'left' }} onClick={() => setForm(toForm(m))}>
               <span className="nm">
                 {m.nameJa}
@@ -208,9 +179,6 @@ export function MenusSettings({
                 )}
                 <span>
                   {S.menus.duration} <b>{m.durationMin}</b> 分
-                </span>
-                <span>
-                  {S.menus.buffer} <b>{m.bufferAfterMin}</b> 分
                 </span>
               </span>
             </button>
@@ -236,11 +204,6 @@ export function MenusSettings({
         <Icon name="plus" />
         {S.menus.add}
       </button>
-      <p className="tmp-note">
-        <Icon name="info" />
-        <span>{S.menus.note}</span>
-      </p>
-
       <Sheet
         open={form !== null}
         onClose={() => setForm(null)}

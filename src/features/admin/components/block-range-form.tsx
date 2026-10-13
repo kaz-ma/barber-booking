@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import { jstInstant } from '@/domain/jst-format'
-import { toJstIso } from '@/domain/time'
+import { addDays, toJstIso } from '@/domain/time'
 import { createTimeBlockAction, deleteTimeBlockAction } from '../actions'
 import { errorText, S } from '../strings'
 import type { OverlapDTO } from '../types'
@@ -13,30 +13,40 @@ import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
 
 /*
- * S-A-06 期間指定 (DES-03 §8): kind, start / end (5-minute steps, ≤ 60 days), label. Overlapping
- * active bookings are listed and the block is only saved with 「それでもブロック」 (the bookings
- * stay). Multi-day closures use 臨時休業 (`closed`).
+ * S-A-06 休みを入れる (simplified 2026-10-13): kind, one date with 終日 (whole day, optionally up
+ * to a last date) or a 30-minute start / end, and an optional label. Overlapping active bookings
+ * are listed and the block is only saved with 「それでもブロック」 (the bookings stay).
  */
 
 type Kind = 'break' | 'private' | 'closed'
 const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5))
 const isoOf = (date: string, time: string) => (date && time ? toJstIso(jstInstant(date, toMin(time))) : '')
+/** 00:00 … 24:00 every 30 minutes; 24:00 means midnight at the end of the day. */
+const TIMES = Array.from(
+  { length: 49 },
+  (_, i) => `${String(Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`,
+)
 
 export function BlockRangeForm({ initialDate }: { initialDate: string }) {
   const router = useRouter()
   const toast = useToast()
-  const [kind, setKind] = useState<Kind>('closed')
+  const [kind, setKind] = useState<Kind>('break')
   const [startDate, setStartDate] = useState(initialDate)
-  const [startTime, setStartTime] = useState('18:00')
-  const [endDate, setEndDate] = useState(initialDate)
-  const [endTime, setEndTime] = useState('23:55')
+  const [allDay, setAllDay] = useState(false)
+  const [lastDate, setLastDate] = useState(initialDate)
+  const [startTime, setStartTime] = useState('20:00')
+  const [endTime, setEndTime] = useState('21:00')
   const [label, setLabel] = useState('')
   const [fetched, setFetched] = useState<OverlapDTO[]>([])
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  const start = isoOf(startDate, startTime)
-  const end = isoOf(endDate, endTime)
+  const start = allDay ? isoOf(startDate, '00:00') : isoOf(startDate, startTime)
+  const end = allDay
+    ? isoOf(addDays(lastDate < startDate ? startDate : lastDate, 1), '00:00')
+    : endTime === '24:00'
+      ? isoOf(addDays(startDate, 1), '00:00')
+      : isoOf(startDate, endTime)
   const valid = Boolean(start && end && Date.parse(end) > Date.parse(start))
 
   const overlaps = valid ? fetched : []
@@ -70,8 +80,12 @@ export function BlockRangeForm({ initialDate }: { initialDate: string }) {
       }
       router.push(`/admin?date=${startDate}`)
       toast.show({
-        message: S.sheet.blockedToast(`${startDate.slice(5).replace('-', '/')} ${startTime}–${endTime}`),
-        sub: res.data.publicImpactUntil ? S.sheet.impactToastUntil(endTime) : S.sheet.impactToastNone,
+        message: S.sheet.blockedToast(
+          `${startDate.slice(5).replace('-', '/')} ${allDay ? S.blockForm.allDay : `${startTime}–${endTime}`}`,
+        ),
+        sub: res.data.publicImpactUntil
+          ? S.sheet.impactToastUntil(allDay ? '24:00' : endTime)
+          : S.sheet.impactToastNone,
         undo: async () => {
           await deleteTimeBlockAction({ blockId: res.data.blockId })
         },
@@ -87,7 +101,7 @@ export function BlockRangeForm({ initialDate }: { initialDate: string }) {
         </Link>
         <h1>{S.blockForm.title}</h1>
       </header>
-      <main className="wrap form has-cta">
+      <main className="wrap form has-cta v2-form">
         <fieldset className="field">
           <legend className="label">{S.sheet.kindLegend}</legend>
           <div className="seg-row">
@@ -99,51 +113,66 @@ export function BlockRangeForm({ initialDate }: { initialDate: string }) {
             ))}
           </div>
         </fieldset>
-        <fieldset className="field">
-          <legend className="label">{S.blockForm.start}</legend>
-          <div className="range-row">
+        <div className="field">
+          <label className="label" htmlFor="bdate">
+            {S.blockForm.date}
+          </label>
+          <input
+            id="bdate"
+            className="input num"
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              if (!e.target.value) return
+              setStartDate(e.target.value)
+              if (lastDate < e.target.value) setLastDate(e.target.value)
+            }}
+          />
+        </div>
+        <label className="v2-switch">
+          <input type="checkbox" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
+          <span>{S.blockForm.allDay}</span>
+        </label>
+        {allDay ? (
+          <div className="field">
+            <label className="label" htmlFor="blast">
+              {S.blockForm.lastDate}
+              <span className="req">{S.blockForm.lastDateHelp}</span>
+            </label>
             <input
+              id="blast"
               className="input num"
               type="date"
-              aria-label={`${S.blockForm.start} ${S.blockForm.date}`}
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value)
-                if (e.target.value > endDate) setEndDate(e.target.value)
-              }}
-            />
-            <input
-              className="input num"
-              type="time"
-              step={300}
-              aria-label={`${S.blockForm.start} ${S.blockForm.time}`}
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
-          </div>
-        </fieldset>
-        <fieldset className="field">
-          <legend className="label">{S.blockForm.end}</legend>
-          <div className="range-row">
-            <input
-              className="input num"
-              type="date"
-              aria-label={`${S.blockForm.end} ${S.blockForm.date}`}
-              value={endDate}
               min={startDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-            <input
-              className="input num"
-              type="time"
-              step={300}
-              aria-label={`${S.blockForm.end} ${S.blockForm.time}`}
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
+              value={lastDate}
+              onChange={(e) => e.target.value && setLastDate(e.target.value)}
             />
           </div>
-          <p className="help">{S.sheet.rangeSub}</p>
-        </fieldset>
+        ) : (
+          <div className="v2-times">
+            <label className="field">
+              <span className="label">{S.blockForm.start}</span>
+              <select className="input num" value={startTime} onChange={(e) => setStartTime(e.target.value)}>
+                {TIMES.slice(0, -1).map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <span aria-hidden="true">〜</span>
+            <label className="field">
+              <span className="label">{S.blockForm.end}</span>
+              <select className="input num" value={endTime} onChange={(e) => setEndTime(e.target.value)}>
+                {TIMES.slice(1).map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
         <div className="field">
           <label className="label" htmlFor="blabel">
             {S.sheet.label}

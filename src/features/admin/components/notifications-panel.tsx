@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { logoutOtherDevicesAction, sendTestPushAction, unsubscribePushAction } from '../actions'
-import type { DeviceSession, DeviceSubscription } from '../queries'
 import { S } from '../strings'
-import { hardNavigate, useIsClient, useStandalone } from './client-hooks'
+import { hardNavigate } from './client-hooks'
 import { Icon } from './icon'
 import { deviceLabel } from './push-client'
 import { usePush } from './push-provider'
@@ -15,37 +14,23 @@ import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
 
 /*
- * S-A-10 通知設定・端末 (FR-A-09, 12, 16; DES-03 §9; AT-13, 14, 14b, 19). One path:
- * home screen → launch → login → 通知をオンにする → テスト通知 → 届いた / 届かない (作り直し).
- * The subscription (not Notification.permission) decides the state.
+ * S-A-10 通知とログイン (FR-A-09, 12, 16; DES-03 §9; AT-13, 14, 14b, 19; simplified 2026-10-13).
+ * Two cards: 通知 (state → one button → テスト通知, 作り直し only when a test goes wrong) and
+ * ログイン (Face ID, ログアウト, lost-device logout). The subscription (not
+ * Notification.permission) decides the state. Device and session lists were dropped: the
+ * lost-device button revokes everything else in one step.
  */
 
-type TestResult = { subscriptionId: string; platform: string; httpStatus: number | null; error?: string }
+type Tested = 'none' | 'ok' | 'failed'
 
-const fmt = (iso: string) => `${iso.slice(5, 10).replace('-', '/').replace(/^0/, '')} ${iso.slice(11, 16)}`
-
-export function NotificationsPanel({
-  sessions,
-  subscriptions,
-  passkeys,
-}: {
-  sessions: DeviceSession[]
-  subscriptions: DeviceSubscription[]
-  passkeys: number
-}) {
+export function NotificationsPanel({ passkeys }: { passkeys: number }) {
   const router = useRouter()
   const toast = useToast()
   const push = usePush()
   const [pending, startTransition] = useTransition()
-  const [results, setResults] = useState<TestResult[] | null>(null)
-  const [asked, setAsked] = useState<'none' | 'yes' | 'no'>('none')
-  const standalone = useStandalone()
   const [busy, setBusy] = useState(false)
-
-  const isClient = useIsClient()
+  const [tested, setTested] = useState<Tested>('none')
   const subscribed = push.state === 'subscribed'
-  const steps = [standalone, standalone, true, subscribed]
-  const currentStep = steps.findIndex((d) => !d)
 
   async function enable() {
     setBusy(true)
@@ -55,8 +40,7 @@ export function NotificationsPanel({
   }
 
   function test() {
-    setResults(null)
-    setAsked('none')
+    setTested('none')
     startTransition(async () => {
       const res = await sendTestPushAction()
       const failure = describeFailure(res)
@@ -64,7 +48,8 @@ export function NotificationsPanel({
         toast.show({ message: failure ?? S.notif.errorSave })
         return
       }
-      setResults(res.data.results)
+      const ok = res.data.results.some((r) => r.httpStatus !== null && r.httpStatus < 300)
+      setTested(ok ? 'ok' : 'failed')
     })
   }
 
@@ -72,23 +57,9 @@ export function NotificationsPanel({
     setBusy(true)
     const state = await push.rebuild()
     setBusy(false)
-    setResults(null)
-    setAsked('none')
+    setTested('none')
     toast.show({ message: state === 'subscribed' ? S.notif.rebuilt : S.notif.errorSave })
     router.refresh()
-  }
-
-  function removeSub(sub: DeviceSubscription) {
-    startTransition(async () => {
-      const res = await unsubscribePushAction({ subscriptionId: sub.id })
-      const failure = describeFailure(res)
-      if (failure) {
-        toast.show({ message: failure })
-        return
-      }
-      if (sub.endpoint === push.endpoint) await push.disable()
-      router.refresh()
-    })
   }
 
   function logoutOthers() {
@@ -124,279 +95,100 @@ export function NotificationsPanel({
     })
   }
 
-  const blocked = push.state === 'blocked'
-
   return (
     <>
-      {blocked ? (
-        <section className="card blk-card" aria-labelledby="bk-h">
-          <h2 id="bk-h">
-            <Icon name="belloff" />
-            {S.notif.blockedTitle}
-          </h2>
-          <p>{S.notif.blockedBody}</p>
-          <ol className="osteps">
-            {S.notif.blockedSteps.map((t, i) => (
-              <li key={t}>
-                <span className="n" aria-hidden="true">
-                  {i + 1}
-                </span>
-                <span>{t}</span>
-              </li>
-            ))}
-          </ol>
-          <figure className="ios">
-            <p className="crumb" aria-hidden="true">
-              {S.notif.blockedCrumb}
-            </p>
-            <ul aria-hidden="true">
-              <li className="hl">
-                <span>{S.notif.blockedRows[0]}</span>
-                <span className="tg" />
-              </li>
-              <li>
-                <span>{S.notif.blockedRows[1]}</span>
-                <span className="muted">{S.notif.on}</span>
-              </li>
-              <li>
-                <span>{S.notif.blockedRows[2]}</span>
-                <span className="muted">{S.notif.on}</span>
-              </li>
-            </ul>
-            <figcaption>{S.notif.blockedFig}</figcaption>
-          </figure>
-          <button className="btn btn-primary btn-block" type="button" disabled={busy} onClick={enable}>
-            <Icon name="refresh" />
-            {S.notif.tryAgain}
-          </button>
-          <p className="again">{S.notif.blockedAgain}</p>
-        </section>
-      ) : (
-        <section className="card onb" aria-labelledby="onb-h" aria-live="polite">
-          <ol className="stepper" aria-label={S.notif.stepsLabel}>
-            {S.notif.steps.map((label, i) => {
-              const done = steps[i]
-              const cur = i === currentStep
-              return (
-                <li key={label} className={done ? 'done' : cur ? 'cur' : ''} aria-current={cur ? 'step' : undefined}>
-                  <span className="dot">{done ? <Icon name="check" /> : i + 1}</span>
-                  {label}
-                  {done ? <span className="vh">{S.notif.done}</span> : null}
+      <section className="v2-card v2-ncard" aria-labelledby="nt-h" aria-live="polite">
+        <p className={`v2-state ${subscribed ? 'on' : 'off'}`}>
+          <Icon name={subscribed ? 'bell' : 'belloff'} />
+          <b id="nt-h">{subscribed ? S.notif.stateOn : S.notif.stateOff}</b>
+        </p>
+
+        {push.state === 'unsupported' ? (
+          <p className="v2-cap">{S.notif.unsupported}</p>
+        ) : push.state === 'not-standalone' ? (
+          <>
+            <p className="v2-cap">{S.notif.notStandalone}</p>
+            <Link className="btn btn-primary btn-block" href="/admin/install">
+              {S.notif.openInstall}
+            </Link>
+          </>
+        ) : push.state === 'blocked' ? (
+          <>
+            <p className="v2-cap">{S.notif.blockedBody}</p>
+            <ol className="v2-steps">
+              {S.notif.blockedSteps.map((t, i) => (
+                <li key={t}>
+                  <span className="n" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  {t}
                 </li>
-              )
-            })}
-          </ol>
-          {push.state === 'unsupported' ? (
-            <>
-              <h2 id="onb-h">{S.notif.unsupported}</h2>
-              <p>{S.notif.fallbackBody}</p>
-            </>
-          ) : push.state === 'not-standalone' ? (
-            <>
-              <h2 id="onb-h">{S.notif.onbTitle}</h2>
-              <p>{S.notif.notStandalone}</p>
-              <Link className="btn btn-primary btn-block" href="/admin/install">
-                {S.notif.openInstall}
-              </Link>
-            </>
-          ) : subscribed ? (
-            <>
-              <h2 id="onb-h">{S.notif.onTitle}</h2>
-              <p>{S.notif.onbBody}</p>
-            </>
-          ) : (
-            <>
-              <h2 id="onb-h">{S.notif.onbTitle}</h2>
-              <p>{S.notif.onbBody}</p>
-              <button
-                className="btn btn-primary btn-block"
-                type="button"
-                disabled={busy || push.state === 'checking'}
-                onClick={enable}
-              >
-                <Icon name="bell" />
-                {busy ? S.notif.enabling : S.notif.enable}
-              </button>
-              <p className="cap c">{S.notif.enableCap}</p>
-              {push.state === 'no-key' ? <p className="field-error">{S.notif.testNotConfigured}</p> : null}
-            </>
-          )}
-          <div className="verify">
-            <b>{S.notif.verifyHead}</b>
-            <button
-              className={`btn btn-secondary btn-block ${subscribed ? '' : 'is-off'}`}
-              type="button"
-              aria-disabled={!subscribed || pending}
-              aria-describedby={subscribed ? undefined : 'tp-h'}
-              onClick={() => subscribed && !pending && test()}
-            >
+              ))}
+            </ol>
+            <button className="btn btn-primary btn-block" type="button" disabled={busy} onClick={enable}>
+              <Icon name="refresh" />
+              {S.notif.tryAgain}
+            </button>
+          </>
+        ) : subscribed ? (
+          <>
+            <p className="v2-cap">{S.notif.onBody}</p>
+            <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={test}>
               <Icon name="send" />
               {pending ? S.notif.testing : S.notif.test}
             </button>
-            {!subscribed ? (
-              <p className="cap" id="tp-h">
-                {S.notif.testDisabledWhy}
-              </p>
-            ) : null}
-            {results ? (
-              <div className="stack" role="status">
-                {results.length === 0 ? (
-                  <p className="help">{S.notif.testNone}</p>
-                ) : (
-                  <ul className="test-results">
-                    {results.map((r) => {
-                      const sub = subscriptions.find((s) => s.id === r.subscriptionId)
-                      const label = sub ? deviceLabel(sub.userAgent) : r.platform
-                      return (
-                        <li key={r.subscriptionId}>
-                          <Icon name={r.httpStatus && r.httpStatus < 300 ? 'check' : 'alert'} />
-                          {S.notif.testResult(
-                            label,
-                            r.httpStatus && r.httpStatus < 300
-                              ? S.notif.testSent(r.httpStatus)
-                              : S.notif.testFailed(r.error ?? String(r.httpStatus ?? '')),
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-                {asked === 'none' ? (
-                  <>
-                    <p className="status-line">
-                      <b>{S.notif.arrivedQ}</b>
-                    </p>
-                    <div className="btn-row">
-                      <button className="btn btn-secondary" type="button" onClick={() => setAsked('no')}>
-                        {S.notif.notArrived}
-                      </button>
-                      <button className="btn btn-primary" type="button" onClick={() => setAsked('yes')}>
-                        {S.notif.arrived}
-                      </button>
-                    </div>
-                  </>
-                ) : asked === 'yes' ? (
-                  <p className="status-line">
-                    <Icon name="check" /> {S.notif.arrivedOk}
-                  </p>
-                ) : (
-                  <>
-                    <p className="help">{S.notif.rebuildLead}</p>
-                    <button className="btn btn-primary btn-block" type="button" disabled={busy} onClick={rebuild}>
-                      <Icon name="refresh" />
-                      {S.notif.rebuild}
-                    </button>
-                  </>
-                )}
+            {tested === 'ok' ? (
+              <div className="v2-tested" role="status">
+                <p>{S.notif.testOk}</p>
+                <button className="v2-link" type="button" disabled={busy} onClick={rebuild}>
+                  {S.notif.notArrived}
+                </button>
+              </div>
+            ) : tested === 'failed' ? (
+              <div className="v2-tested" role="status">
+                <p>{S.notif.testNg}</p>
+                <button className="btn btn-primary btn-block" type="button" disabled={busy} onClick={rebuild}>
+                  <Icon name="refresh" />
+                  {S.notif.rebuild}
+                </button>
               </div>
             ) : null}
-          </div>
-        </section>
-      )}
-
-      <h2 className="sec-h">{S.notif.subsHead}</h2>
-      <ul className="list dev">
-        {!subscribed && push.state !== 'unsupported' ? (
-          <li>
-            <Icon name="phone-dev" />
-            <span className="grow">
-              <b>{isClient ? deviceLabel(navigator.userAgent) : ''}</b> <span className="me">{S.notif.thisDevice}</span>
-              <span className="cap">{S.notif.notRegistered}</span>
-            </span>
-          </li>
-        ) : null}
-        {subscriptions.map((s) => (
-          <li key={s.id}>
-            <Icon name={s.platform === 'desktop' ? 'laptop' : 'phone-dev'} />
-            <span className="grow">
-              <b>{deviceLabel(s.userAgent)}</b>{' '}
-              {s.endpoint === push.endpoint ? <span className="me">{S.notif.thisDevice}</span> : null}
-              <span className="cap">
-                <span className="num">{S.notif.lastSeen(fmt(s.lastSeenAt))}</span>
-                {s.lastSuccessAt ? <> ・ {S.notif.lastSuccess(fmt(s.lastSuccessAt))}</> : null}
-                {s.failCount > 0 ? (
-                  <>
-                    {' '}
-                    ・ <span className="fail">{S.notif.failCount(s.failCount)}</span>
-                  </>
-                ) : null}
-              </span>
-            </span>
-            <button className="btn btn-secondary btn-sm" type="button" disabled={pending} onClick={() => removeSub(s)}>
-              {S.notif.remove}
+          </>
+        ) : (
+          <>
+            <p className="v2-cap">{S.notif.offBody}</p>
+            <button
+              className="btn btn-primary btn-block"
+              type="button"
+              disabled={busy || push.state === 'checking'}
+              onClick={enable}
+            >
+              <Icon name="bell" />
+              {busy ? S.notif.enabling : S.notif.enable}
             </button>
-          </li>
-        ))}
-        {subscriptions.length === 0 && subscribed ? (
-          <li>
-            <span className="grow cap">{S.notif.subsNone}</span>
-          </li>
-        ) : null}
-      </ul>
+            <p className="v2-cap c">{S.notif.enableCap}</p>
+            {push.state === 'no-key' ? <p className="field-error">{S.notif.testNotConfigured}</p> : null}
+          </>
+        )}
+      </section>
 
-      <h2 className="sec-h">{S.notif.sessionsHead}</h2>
-      <ul className="list dev">
-        {sessions.map((s) => (
-          <li key={s.id}>
-            <Icon
-              name={
-                /Macintosh|Windows|Linux/.test(s.userAgent ?? '') && !/Mobile/.test(s.userAgent ?? '')
-                  ? 'laptop'
-                  : 'phone-dev'
-              }
-            />
-            <span className="grow">
-              <b>{deviceLabel(s.userAgent)}</b> {s.current ? <span className="me">{S.notif.thisDevice}</span> : null}
-              <span className="cap">{s.current ? S.notif.lastUsedNow : S.notif.lastUsed(fmt(s.updatedAt))}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      <div className="logout">
-        <button
-          className="btn btn-secondary btn-block"
-          type="button"
-          aria-describedby="lo-h"
-          disabled={pending}
-          onClick={logoutOthers}
-        >
-          <Icon name="logout" />
-          {S.notif.logoutOthers}
+      <h2 className="v2-sec-h">{S.notif.loginHead}</h2>
+      <section className="v2-card v2-lcard">
+        <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={addPasskey}>
+          <Icon name="faceid" />
+          {passkeys > 0 ? S.notif.passkeyAddMore : S.notif.passkeyAdd}
         </button>
-        <p className="cap" id="lo-h">
-          {S.notif.logoutOthersHelp}
-        </p>
-        <button className="btn btn-ghost" type="button" disabled={pending} onClick={logout}>
+        <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={logout}>
+          <Icon name="logout" />
           {S.notif.logout}
         </button>
-      </div>
-
-      <h2 className="sec-h">
-        {S.notif.passkeyHead}
-        <span className="cap">{S.notif.passkeyCount(passkeys)}</span>
-      </h2>
-      <button className="btn btn-secondary btn-block" type="button" disabled={pending} onClick={addPasskey}>
-        <Icon name="faceid" />
-        {S.notif.passkeyAdd}
-      </button>
-
-      <h2 className="sec-h">{S.notif.otherHead}</h2>
-      <div className="info-cards">
-        <div className="sunken">
-          <Icon name="clock" />
-          <span>
-            <b>{S.notif.digestTitle}</b>
-            {S.notif.digestBody}
-          </span>
-        </div>
-        <div className="sunken">
-          <Icon name="refresh" />
-          <span>
-            <b>{S.notif.fallbackTitle}</b>
-            {S.notif.fallbackBody}
-          </span>
-        </div>
-      </div>
+      </section>
+      <p className="v2-lost">
+        <button className="v2-link" type="button" disabled={pending} onClick={logoutOthers}>
+          {S.notif.logoutOthers}
+        </button>
+        <span className="v2-cap">{S.notif.logoutOthersHelp}</span>
+      </p>
     </>
   )
 }

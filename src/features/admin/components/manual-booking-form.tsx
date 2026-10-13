@@ -267,9 +267,136 @@ function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps)
           <Icon name="back" />
         </Link>
         <h1>{S.manual.title}</h1>
-        <span className="cap end">{S.manual.draftNote}</span>
       </header>
-      <main className="wrap form has-cta">
+      <main className="wrap form has-cta v2-form">
+        <h2 className="v2-sec-h">{S.manual.secWhen}</h2>
+        <div className="field">
+          <label className="label" htmlFor="menu">
+            {S.manual.menu}
+            <span className="req">{S.required}</span>
+          </label>
+          <span className="select">
+            <select id="menu" className="input" value={draft.menuId} onChange={(e) => set('menuId', e.target.value)}>
+              {menus.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {S.manual.menuOption(m.nameJa, m.durationMin, m.priceJpy, m.isActive)}
+                </option>
+              ))}
+            </select>
+            <Icon name="chev-d" />
+          </span>
+        </div>
+
+        <div className="when-row">
+          <div className="field">
+            <label className="label" htmlFor="date">
+              {S.manual.date}
+              <span className="req">{S.required}</span>
+            </label>
+            <input
+              id="date"
+              className="input num"
+              type="date"
+              value={draft.date}
+              onChange={(e) => e.target.value && set('date', e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label className="label" htmlFor="start">
+              {S.manual.start}
+              <span className="req">{S.manual.startHelp}</span>
+            </label>
+            <span className="select">
+              <select
+                ref={startRef}
+                id="start"
+                className={`input num ${draft.start ? '' : 'is-empty'}`}
+                value={draft.start}
+                aria-invalid={hasOverlap ? true : undefined}
+                aria-describedby={hasOverlap ? 'ov' : undefined}
+                onChange={(e) => set('start', e.target.value)}
+              >
+                <option value="">--:--</option>
+                {START_OPTIONS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chev-d" />
+            </span>
+          </div>
+        </div>
+        {endLabel && menu ? (
+          <p className="help end-note">
+            {S.manual.endNote(endLabel, menu.nameJa, menu.durationMin, menu.bufferAfterMin)}
+          </p>
+        ) : null}
+        {outsideHours && !hasOverlap ? (
+          <p className="warn-note" role="status">
+            <Icon name="alert" />
+            {S.manual.outsideHours}
+          </p>
+        ) : null}
+        {blockOverlap && !hasOverlap ? (
+          <p className="warn-note" role="status">
+            <Icon name="alert" />
+            {S.manual.blockWarn}
+          </p>
+        ) : null}
+
+        {hasOverlap ? (
+          <div className="alert" role="alert" id="ov">
+            <p className="alert-ttl">
+              <Icon name="alert" />
+              {S.manual.overlapTitle}
+            </p>
+            {bookingOverlaps.map((o) => (
+              <p key={o.id}>
+                <span className="num">
+                  {hhmm(nowMinutes(draft.date, new Date(o.start)))}–{hhmm(nowMinutes(draft.date, new Date(o.end)))}
+                </span>
+                {S.manual.overlapMid}
+                <b>{o.label}</b>
+                {S.manual.overlapTail}
+              </p>
+            ))}
+            {near.length > 0 ? (
+              <>
+                <p className="cap" id="near-h">
+                  {S.manual.nearFree}
+                </p>
+                <fieldset className="chips" aria-labelledby="near-h">
+                  {near.map((t) => (
+                    <button key={t} className="time-chip" type="button" onClick={() => set('start', t)}>
+                      {t}
+                    </button>
+                  ))}
+                </fieldset>
+              </>
+            ) : null}
+          </div>
+        ) : menu ? (
+          <div>
+            <p className="free-cap" id="free-h">
+              {S.manual.freeTitle(formatDateJa(draft.date))}
+              <small>{S.manual.freeHelp(menu.nameJa, menu.durationMin, menu.bufferAfterMin)}</small>
+            </p>
+            {freeStarts.length > 0 ? (
+              <fieldset className="chips" aria-labelledby="free-h">
+                {freeStarts.slice(0, 12).map((t) => (
+                  <button key={t} className="time-chip" type="button" onClick={() => set('start', t)}>
+                    {t}
+                  </button>
+                ))}
+              </fieldset>
+            ) : (
+              <p className="help">{S.manual.freeNone}</p>
+            )}
+          </div>
+        ) : null}
+
+        <h2 className="v2-sec-h">{S.manual.secWho}</h2>
         <div className="field combo">
           <label className="label" htmlFor="name">
             {S.manual.name}
@@ -426,132 +553,7 @@ function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps)
           {fieldErrors.phone ? <p className="field-error">{fieldErrors.phone}</p> : null}
         </div>
 
-        <div className="field">
-          <label className="label" htmlFor="menu">
-            {S.manual.menu}
-            <span className="req">{S.required}</span>
-          </label>
-          <span className="select">
-            <select id="menu" className="input" value={draft.menuId} onChange={(e) => set('menuId', e.target.value)}>
-              {menus.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {S.manual.menuOption(m.nameJa, m.durationMin, m.priceJpy, m.isActive)}
-                </option>
-              ))}
-            </select>
-            <Icon name="chev-d" />
-          </span>
-        </div>
-
-        <div className="when-row">
-          <div className="field">
-            <label className="label" htmlFor="date">
-              {S.manual.date}
-              <span className="req">{S.required}</span>
-            </label>
-            <input
-              id="date"
-              className="input num"
-              type="date"
-              value={draft.date}
-              onChange={(e) => e.target.value && set('date', e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label className="label" htmlFor="start">
-              {S.manual.start}
-              <span className="req">{S.manual.startHelp}</span>
-            </label>
-            <span className="select">
-              <select
-                ref={startRef}
-                id="start"
-                className={`input num ${draft.start ? '' : 'is-empty'}`}
-                value={draft.start}
-                aria-invalid={hasOverlap ? true : undefined}
-                aria-describedby={hasOverlap ? 'ov' : undefined}
-                onChange={(e) => set('start', e.target.value)}
-              >
-                <option value="">--:--</option>
-                {START_OPTIONS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-              <Icon name="chev-d" />
-            </span>
-          </div>
-        </div>
-        {endLabel && menu ? (
-          <p className="help end-note">
-            {S.manual.endNote(endLabel, menu.nameJa, menu.durationMin, menu.bufferAfterMin)}
-          </p>
-        ) : null}
-        {outsideHours && !hasOverlap ? (
-          <p className="warn-note" role="status">
-            <Icon name="alert" />
-            {S.manual.outsideHours}
-          </p>
-        ) : null}
-        {blockOverlap && !hasOverlap ? (
-          <p className="warn-note" role="status">
-            <Icon name="alert" />
-            {S.manual.blockWarn}
-          </p>
-        ) : null}
-
-        {hasOverlap ? (
-          <div className="alert" role="alert" id="ov">
-            <p className="alert-ttl">
-              <Icon name="alert" />
-              {S.manual.overlapTitle}
-            </p>
-            {bookingOverlaps.map((o) => (
-              <p key={o.id}>
-                <span className="num">
-                  {hhmm(nowMinutes(draft.date, new Date(o.start)))}–{hhmm(nowMinutes(draft.date, new Date(o.end)))}
-                </span>
-                {S.manual.overlapMid}
-                <b>{o.label}</b>
-                {S.manual.overlapTail}
-              </p>
-            ))}
-            {near.length > 0 ? (
-              <>
-                <p className="cap" id="near-h">
-                  {S.manual.nearFree}
-                </p>
-                <fieldset className="chips" aria-labelledby="near-h">
-                  {near.map((t) => (
-                    <button key={t} className="time-chip" type="button" onClick={() => set('start', t)}>
-                      {t}
-                    </button>
-                  ))}
-                </fieldset>
-              </>
-            ) : null}
-          </div>
-        ) : menu ? (
-          <div>
-            <p className="free-cap" id="free-h">
-              {S.manual.freeTitle(formatDateJa(draft.date))}
-              <small>{S.manual.freeHelp(menu.nameJa, menu.durationMin, menu.bufferAfterMin)}</small>
-            </p>
-            {freeStarts.length > 0 ? (
-              <fieldset className="chips" aria-labelledby="free-h">
-                {freeStarts.slice(0, 12).map((t) => (
-                  <button key={t} className="time-chip" type="button" onClick={() => set('start', t)}>
-                    {t}
-                  </button>
-                ))}
-              </fieldset>
-            ) : (
-              <p className="help">{S.manual.freeNone}</p>
-            )}
-          </div>
-        ) : null}
-
+        <h2 className="v2-sec-h">{S.manual.secOther}</h2>
         <fieldset className="field">
           <legend className="label">
             {S.manual.source}
@@ -637,53 +639,62 @@ function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps)
             <div className="stack">
               {saved.warnings.includes('outside_hours') ? <p className="warn-note">{S.manual.outsideHours}</p> : null}
               {saved.warnings.includes('block_overlap') ? <p className="warn-note">{S.manual.blockWarn}</p> : null}
-              <fieldset className="field">
-                <legend className="label">{S.manual.urlLocale}</legend>
-                <div className="seg-row">
-                  <label>
-                    <input
-                      className="vh-input"
-                      type="radio"
-                      name="loc"
-                      checked={linkLocale === 'ja'}
-                      onChange={() => setLinkLocale('ja')}
-                    />
-                    <span>日本語</span>
-                  </label>
-                  <label>
-                    <input
-                      className="vh-input"
-                      type="radio"
-                      name="loc"
-                      checked={linkLocale === 'en'}
-                      onChange={() => setLinkLocale('en')}
-                    />
-                    <span lang="en">English</span>
-                  </label>
-                </div>
-              </fieldset>
-              <input className="urlbox" readOnly value={url} aria-label={S.manual.urlLabel} />
-              <button className="btn btn-primary btn-block" type="button" onClick={() => copy(url, S.manual.urlCopied)}>
-                <Icon name="copy" />
-                {S.manual.copyUrl}
-              </button>
-              <button
-                className="btn btn-secondary btn-block"
-                type="button"
-                onClick={() => copy(dmText, S.manual.dmCopied)}
-              >
-                <Icon name="copy" />
-                {S.manual.copyDm}
-              </button>
-              <p className="cap dm-cap">{S.manual.dmCaption}</p>
-              <p className="dm" style={{ whiteSpace: 'pre-line' }}>
-                {dmText}
-              </p>
-              <Link className="btn btn-secondary btn-block" href={`/admin/bookings/${saved.bookingId}`}>
-                {S.manual.openDetail}
-              </Link>
-              <Link className="btn btn-ghost" href={`/admin?date=${saved.draft.date}`}>
+              <Link className="btn btn-primary btn-block" href={`/admin?date=${saved.draft.date}`}>
                 {S.manual.closeToToday}
+              </Link>
+              <details className="v2-more">
+                <summary>{S.manual.sendToCustomer}</summary>
+                <div className="stack">
+                  <fieldset className="field">
+                    <legend className="label">{S.manual.urlLocale}</legend>
+                    <div className="seg-row">
+                      <label>
+                        <input
+                          className="vh-input"
+                          type="radio"
+                          name="loc"
+                          checked={linkLocale === 'ja'}
+                          onChange={() => setLinkLocale('ja')}
+                        />
+                        <span>日本語</span>
+                      </label>
+                      <label>
+                        <input
+                          className="vh-input"
+                          type="radio"
+                          name="loc"
+                          checked={linkLocale === 'en'}
+                          onChange={() => setLinkLocale('en')}
+                        />
+                        <span lang="en">English</span>
+                      </label>
+                    </div>
+                  </fieldset>
+                  <input className="urlbox" readOnly value={url} aria-label={S.manual.urlLabel} />
+                  <button
+                    className="btn btn-secondary btn-block"
+                    type="button"
+                    onClick={() => copy(url, S.manual.urlCopied)}
+                  >
+                    <Icon name="copy" />
+                    {S.manual.copyUrl}
+                  </button>
+                  <button
+                    className="btn btn-secondary btn-block"
+                    type="button"
+                    onClick={() => copy(dmText, S.manual.dmCopied)}
+                  >
+                    <Icon name="copy" />
+                    {S.manual.copyDm}
+                  </button>
+                  <p className="cap dm-cap">{S.manual.dmCaption}</p>
+                  <p className="dm" style={{ whiteSpace: 'pre-line' }}>
+                    {dmText}
+                  </p>
+                </div>
+              </details>
+              <Link className="btn btn-ghost" href={`/admin/bookings/${saved.bookingId}`}>
+                {S.manual.openDetail}
               </Link>
             </div>
           </>

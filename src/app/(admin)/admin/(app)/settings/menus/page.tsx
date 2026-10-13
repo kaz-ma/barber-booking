@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { requireAdminPage } from '@/features/admin/auth'
 import { MenusSettings } from '@/features/admin/components/menus-settings'
-import { SettingsHeader, SettingsNav } from '@/features/admin/components/settings-nav'
+import { SettingsHeader } from '@/features/admin/components/settings-nav'
 import { getAdminHours, getAdminMenus, getAdminSettings } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
 
@@ -12,9 +12,8 @@ export const metadata: Metadata = { title: 'メニュー' }
 export default function MenusPage() {
   return (
     <div className="has-tabbar">
-      <SettingsHeader />
+      <SettingsHeader title={S.settings.menus} back />
       <main className="wrap set">
-        <SettingsNav current="menus" />
         <Suspense fallback={<p className="help">{S.loading}</p>}>
           <Menus />
         </Suspense>

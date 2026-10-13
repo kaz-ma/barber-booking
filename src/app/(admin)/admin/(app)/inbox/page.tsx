@@ -5,9 +5,9 @@ import { InboxList } from '@/features/admin/components/inbox-list'
 import { getInbox } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
 
-export const metadata: Metadata = { title: '受信箱' }
+export const metadata: Metadata = { title: 'お知らせ' }
 
-/** S-A-07 受信箱 (FR-A-11). Refreshed by the 20-second poll via router.refresh(). */
+/** S-A-07 お知らせ (FR-A-11). Refreshed by the 20-second poll via router.refresh(). */
 export default function InboxPage() {
   return (
     <div className="has-tabbar">

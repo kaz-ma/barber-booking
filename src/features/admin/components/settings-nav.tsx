@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { S } from '../strings'
+import { Icon, type IconName } from './icon'
 
 type Item = 'hours' | 'menus' | 'notifications' | 'customers'
 
@@ -7,30 +8,57 @@ const ITEMS: {
   key: Item
   href: '/admin/settings/hours' | '/admin/settings/menus' | '/admin/settings/notifications' | '/admin/customers'
   label: string
+  sub: string
+  icon: IconName
 }[] = [
-  { key: 'hours', href: '/admin/settings/hours', label: S.settings.hours },
-  { key: 'menus', href: '/admin/settings/menus', label: S.settings.menus },
-  { key: 'notifications', href: '/admin/settings/notifications', label: S.settings.notifications },
-  { key: 'customers', href: '/admin/customers', label: S.settings.customers },
+  { key: 'menus', href: '/admin/settings/menus', label: S.settings.menus, sub: S.settings.menusSub, icon: 'note' },
+  { key: 'hours', href: '/admin/settings/hours', label: S.settings.hours, sub: S.settings.hoursSub, icon: 'clock' },
+  {
+    key: 'notifications',
+    href: '/admin/settings/notifications',
+    label: S.settings.notifications,
+    sub: S.settings.notificationsSub,
+    icon: 'bell',
+  },
+  {
+    key: 'customers',
+    href: '/admin/customers',
+    label: S.settings.customers,
+    sub: S.settings.customersSub,
+    icon: 'userplus',
+  },
 ]
 
-/** Settings segment navigation (07/08 comps). */
-export function SettingsNav({ current }: { current: Item }) {
+/** Settings index (simplified 2026-10-13): one row per area instead of segment tabs. */
+export function SettingsList() {
   return (
-    <nav className="segnav" aria-label={S.settings.nav}>
+    <ul className="v2-setlist">
       {ITEMS.map((i) => (
-        <Link key={i.key} href={i.href} aria-current={i.key === current ? 'page' : undefined}>
-          {i.label}
-        </Link>
+        <li key={i.key}>
+          <Link href={i.href}>
+            <Icon name={i.icon} />
+            <span>
+              <b>{i.label}</b>
+              <small>{i.sub}</small>
+            </span>
+            <Icon name="chev-r" />
+          </Link>
+        </li>
       ))}
-    </nav>
+    </ul>
   )
 }
 
-export function SettingsHeader() {
+/** Header of the settings screens; sub-screens get "←" back to the list. */
+export function SettingsHeader({ title = S.settings.title, back = false }: { title?: string; back?: boolean }) {
   return (
     <header className="ah set-head paper">
-      <h1>{S.settings.title}</h1>
+      {back ? (
+        <Link className="icon-btn" href="/admin/settings" aria-label={S.settings.backToList}>
+          <Icon name="back" />
+        </Link>
+      ) : null}
+      <h1>{title}</h1>
     </header>
   )
 }

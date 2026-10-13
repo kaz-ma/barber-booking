@@ -6,18 +6,17 @@ import { S } from '../strings'
 import { Icon, type IconName } from './icon'
 import { useInbox } from './inbox-provider'
 
-/** BottomTabs (DG §2): 今日 / 週 / 受信箱 / 設定. Hidden on full-screen task pages. */
+/** BottomTabs (simplified 2026-10-13): 予約 / お知らせ / 設定. Hidden on full-screen task pages. */
 const TABS: {
-  href: '/admin' | '/admin/week' | '/admin/inbox' | '/admin/settings/hours'
+  href: '/admin' | '/admin/inbox' | '/admin/settings'
   label: string
   icon: IconName
   match: (p: string) => boolean
 }[] = [
-  { href: '/admin', label: S.tabs.today, icon: 'today', match: (p) => p === '/admin' },
-  { href: '/admin/week', label: S.tabs.week, icon: 'week', match: (p) => p.startsWith('/admin/week') },
+  { href: '/admin', label: S.tabs.today, icon: 'today', match: (p) => p === '/admin' || p.startsWith('/admin/week') },
   { href: '/admin/inbox', label: S.tabs.inbox, icon: 'inbox', match: (p) => p.startsWith('/admin/inbox') },
   {
-    href: '/admin/settings/hours',
+    href: '/admin/settings',
     label: S.tabs.settings,
     icon: 'settings',
     match: (p) => p.startsWith('/admin/settings') || p.startsWith('/admin/customers'),
@@ -54,16 +53,5 @@ export function TabBar() {
         })}
       </ul>
     </nav>
-  )
-}
-
-/** Header button "未確認 n" (blue), live from the polling provider. */
-export function InboxButton() {
-  const { count } = useInbox()
-  return (
-    <Link className={`inbox-btn ${count === 0 ? 'is-off' : ''}`} href="/admin/inbox" aria-label={S.inboxBadge(count)}>
-      <span className="t">{S.unread}</span>
-      <b>{count}</b>
-    </Link>
   )
 }

@@ -7,7 +7,7 @@
 | ID | DES-ADR |
 | 版 | v0.5 |
 | 日付 | 2026-10-13 |
-| 変更履歴 | v0.5（2026-10-13）: ADR-0010（トップ 1 枚の予約と月単位の空き状況 GET）を追加、ADR-0004 の Route Handler 一覧に追記。v0.4（2026-10-12）: レビュー修正の反映。ADR-0008 を Accepted（実装済み）に、ADR-0009 を Node `>=22.13.0`・CI の E2E・Postgres の digest 固定に、ADR-0005 の日付ライブラリを ADR-0009 への参照に、ADR-0003 のマイグレーションを 5 本に更新。v0.3（2026-10-12）: 実装との同期。ADR-0009（TypeScript 6 と pg ドライバ）を追加、ADR-0003・0006・0007 に実装の詳細を追記（決定は変更なし）。v0.2（2026-10-10）: ADR-0006 の改訂（フォールバック確定）を反映。OI-11・OI-12・OI-19 の決定に伴い「今後 ADR 化する候補」を更新 |
+| 変更履歴 | v0.6（2026-10-13）: ADR-0011（管理 PWA を 3 タブ・一覧中心の簡素な構成に）を追加。v0.5（2026-10-13）: ADR-0010（トップ 1 枚の予約と月単位の空き状況 GET）を追加、ADR-0004 の Route Handler 一覧に追記。v0.4（2026-10-12）: レビュー修正の反映。ADR-0008 を Accepted（実装済み）に、ADR-0009 を Node `>=22.13.0`・CI の E2E・Postgres の digest 固定に、ADR-0005 の日付ライブラリを ADR-0009 への参照に、ADR-0003 のマイグレーションを 5 本に更新。v0.3（2026-10-12）: 実装との同期。ADR-0009（TypeScript 6 と pg ドライバ）を追加、ADR-0003・0006・0007 に実装の詳細を追記（決定は変更なし）。v0.2（2026-10-10）: ADR-0006 の改訂（フォールバック確定）を反映。OI-11・OI-12・OI-19 の決定に伴い「今後 ADR 化する候補」を更新 |
 | 関連要件 | PRE-07（統合レポートの判断表を既定とし、変更は ADR に記録する）、CON-08 |
 
 ## 書式
@@ -30,6 +30,7 @@ MADR を簡略化した次の見出しで、1 決定 1 ファイル（`NNNN-keba
 | [ADR-0008](0008-no-customer-snapshot-in-bookings.md) | 予約行に顧客スナップショットを持たない | Accepted（2026-10-12、実装済み） | 10.1, 10.3 |
 | [ADR-0009](0009-typescript-6-and-pg-driver.md) | TypeScript 6 と pg ドライバの採用（設計からの変更）。Node `>=22.13`（本番・CI は 24）、happy-dom、E2E はスクリプト（CI で実行）、CI の Postgres は digest 固定、日時は `Intl` のみ | Accepted（2026-10-12 追記） | NFR-EN-01, NFR-EN-02, NFR-SC-08 |
 | [ADR-0010](0010-one-page-booking-and-month-availability-endpoint.md) | 予約はトップページ 1 枚、空き状況は月単位の `GET /api/availability` で一括取得（DB 3 往復、一時的な接続失敗は 1 回再試行） | Accepted（2026-10-13） | FR-C-01〜08, AGENTS.md 規則 3 |
+| [ADR-0011](0011-admin-pwa-simplified-three-tabs.md) | 管理 PWA を 3 タブ（予約・お知らせ・設定）にし、週ストリップ＋一覧、次の操作 1 ボタン、設定は一覧に簡素化 | Accepted（2026-10-13） | FR-A-02〜12, FR-A-16 |
 
 ## 今後 ADR 化する候補
 

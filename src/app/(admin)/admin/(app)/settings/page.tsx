@@ -1,6 +1,16 @@
-import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
+import { SettingsHeader, SettingsList } from '@/features/admin/components/settings-nav'
 
-/** /admin/settings -> the first settings screen. */
+export const metadata: Metadata = { title: '設定' }
+
+/** /admin/settings: the list of settings areas (simplified 2026-10-13). */
 export default function SettingsIndex() {
-  redirect('/admin/settings/hours')
+  return (
+    <div className="has-tabbar">
+      <SettingsHeader />
+      <main className="wrap v2-day">
+        <SettingsList />
+      </main>
+    </div>
+  )
 }

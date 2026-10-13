@@ -3,36 +3,48 @@
 import Link from 'next/link'
 import { useEffect, useState, useTransition } from 'react'
 import { deleteTimeBlockAction, restoreTimeBlockAction } from '../actions'
-import type { AgendaBlock, DayAgenda } from '../queries'
+import type { AgendaBlock, AgendaBooking, DayAgenda } from '../queries'
 import { S } from '../strings'
 import { Icon } from './icon'
 import { usePush } from './push-provider'
-import { QuickSheet } from './quick-sheet'
 import { Sheet } from './sheet'
 import { hhmm } from './time-utils'
-import { Timeline } from './timeline'
 import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
 
-/** Client part of S-A-02: timeline, FAB + QuickActionSheet, block sheet, offline state. */
-export function TodayView({
-  agenda,
-  isToday,
-  leadTimeMin,
-}: {
-  agenda: DayAgenda
-  isToday: boolean
-  leadTimeMin: number
-}) {
+function gaps(agenda: DayAgenda): { s: number; e: number }[] {
+  const { hours } = agenda
+  if (hours.isClosed || hours.openMin === null || hours.closeMin === null) return []
+  const busy = [
+    ...agenda.bookings.map((b) => ({ s: b.startMin, e: b.endMin })),
+    ...agenda.blocks.map((b) => ({ s: b.startMin, e: b.endMin })),
+  ].sort((a, b) => a.s - b.s)
+  const out: { s: number; e: number }[] = []
+  let cursor = hours.openMin
+  for (const b of busy) {
+    if (b.s > cursor) out.push({ s: cursor, e: Math.min(b.s, hours.closeMin) })
+    cursor = Math.max(cursor, b.e)
+  }
+  if (cursor < hours.closeMin) out.push({ s: cursor, e: hours.closeMin })
+  return out.map((g) => ({ s: Math.ceil(g.s / 15) * 15, e: Math.floor(g.e / 15) * 15 })).filter((g) => g.e - g.s >= 30)
+}
+
+/**
+ * Client part of S-A-02 (simplified 2026-10-13): the day's bookings and breaks as one list in
+ * time order, then the free time as buttons (tap → manual booking at that time), and the "＋"
+ * button with two choices: 予約を追加 / 休みを入れる. Tapping a break offers to delete it.
+ */
+export function DayView({ agenda }: { agenda: DayAgenda }) {
   const toast = useToast()
-  const [sheet, setSheet] = useState<{ open: boolean; anchor: number | null; at: number }>({
-    open: false,
-    anchor: null,
-    at: 0,
-  })
+  const [addOpen, setAddOpen] = useState(false)
   const [block, setBlock] = useState<AgendaBlock | null>(null)
   const [pending, startTransition] = useTransition()
   const online = useOnline()
+  const free = gaps(agenda)
+  const items = [
+    ...agenda.bookings.map((b) => ({ key: `b-${b.id}`, start: b.startMin, b, k: null as AgendaBlock | null })),
+    ...agenda.blocks.map((k) => ({ key: `k-${k.id}`, start: k.startMin, b: null as AgendaBooking | null, k })),
+  ].sort((a, z) => a.start - z.start)
 
   function removeBlock(b: AgendaBlock) {
     startTransition(async () => {
@@ -58,41 +70,107 @@ export function TodayView({
   return (
     <>
       {!online ? (
-        <div className="wrap res">
-          <p className="banner info" role="status">
-            <Icon name="wifioff" />
-            <span>{S.offline(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }))}</span>
-          </p>
-        </div>
+        <p className="v2-note" role="status">
+          <Icon name="wifioff" />
+          {S.offline(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }))}
+        </p>
       ) : null}
-      <main className="tl-wrap">
-        <Timeline
-          agenda={agenda}
-          isToday={isToday}
-          onGap={(min) => online && setSheet({ open: true, anchor: min, at: Date.now() })}
-          onBlock={(b) => setBlock(b)}
-        />
-      </main>
+      {agenda.hours.isClosed ? (
+        <p className="v2-note">{agenda.hours.isOverride ? S.day.closedOverride : S.day.closed}</p>
+      ) : null}
+
+      {items.length === 0 ? (
+        <p className="v2-empty">{S.day.empty}</p>
+      ) : (
+        <ol className="v2-list" aria-label={S.day.listLabel}>
+          {items.map((it) =>
+            it.b ? (
+              <li key={it.key}>
+                <Link className="v2-bk" href={`/admin/bookings/${it.b.id}`}>
+                  <span className="t num">
+                    {hhmm(it.b.startMin)}
+                    <small>〜{hhmm(it.b.endMin)}</small>
+                  </span>
+                  <span className="v2-who">
+                    <b>
+                      {it.b.name ?? S.day.noName}
+                      {it.b.unacknowledged ? <i className="v2-new">{S.day.newBadge}</i> : null}
+                    </b>
+                    <span className="v2-sub">
+                      {it.b.menuName}
+                      {it.b.isStudent ? S.today.student : ''}
+                      {it.b.hasNote ? <span className="v2-memo"> ・{S.day.hasNote}</span> : null}
+                    </span>
+                  </span>
+                  <Icon name="chev-r" />
+                </Link>
+              </li>
+            ) : it.k ? (
+              <li key={it.key}>
+                <button className="v2-blk" type="button" onClick={() => setBlock(it.k)}>
+                  <span className="t num">
+                    {hhmm(it.k.startMin)}
+                    <small>〜{hhmm(it.k.endMin)}</small>
+                  </span>
+                  <span className="v2-who">
+                    <b>{S.blockKind[it.k.kind] ?? it.k.kind}</b>
+                    {it.k.label ? <span className="v2-sub">{it.k.label}</span> : null}
+                  </span>
+                </button>
+              </li>
+            ) : null,
+          )}
+        </ol>
+      )}
+      {agenda.cancelledCount > 0 ? <p className="v2-cap">{S.today.cancelledCount(agenda.cancelledCount)}</p> : null}
+
+      {free.length > 0 ? (
+        <section className="v2-free" aria-labelledby="free-h">
+          <h3 id="free-h">{S.day.freeHead}</h3>
+          <ul>
+            {free.map((g) => (
+              <li key={g.s}>
+                <Link href={`/admin/bookings/new?date=${agenda.date}&start=${hhmm(g.s)}`}>
+                  <span className="num">
+                    {hhmm(g.s)}〜{hhmm(g.e)}
+                  </span>
+                  <Icon name="plus" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <button
         className={`fab ${toast.visible ? 'lifted' : ''} ${online ? '' : 'is-off'}`}
         type="button"
         aria-haspopup="dialog"
         aria-disabled={!online}
-        onClick={() => online && setSheet({ open: true, anchor: null, at: Date.now() })}
+        aria-label={S.day.addAria}
+        onClick={() => online && setAddOpen(true)}
       >
         <Icon name="plus" />
         {S.today.fab}
       </button>
-      <QuickSheet
-        open={sheet.open}
-        onClose={() => setSheet((cur) => ({ ...cur, open: false }))}
-        date={agenda.date}
-        isToday={isToday}
-        closeMin={agenda.hours.isClosed ? null : agenda.hours.closeMin}
-        leadTimeMin={leadTimeMin}
-        anchorMin={sheet.anchor}
-        openedAt={sheet.at}
-      />
+      <Sheet open={addOpen} onClose={() => setAddOpen(false)} title={S.day.addTitle}>
+        <div className="v2-choices">
+          <Link className="v2-choice" href={`/admin/bookings/new?date=${agenda.date}`}>
+            <Icon name="userplus" />
+            <span>
+              <b>{S.day.addBooking}</b>
+              <small>{S.day.addBookingSub}</small>
+            </span>
+          </Link>
+          <Link className="v2-choice" href={`/admin/blocks/new?date=${agenda.date}`}>
+            <Icon name="block" />
+            <span>
+              <b>{S.day.addBlock}</b>
+              <small>{S.day.addBlockSub}</small>
+            </span>
+          </Link>
+        </div>
+      </Sheet>
       <Sheet open={block !== null} onClose={() => setBlock(null)} title={S.sheet.blockDetailTitle}>
         {block ? (
           <div className="stack">
@@ -125,34 +203,29 @@ export function ResubscribeBanner() {
   const [busy, setBusy] = useState(false)
   if (push.state !== 'unsubscribed' && push.state !== 'blocked') return null
   return (
-    <div className="wrap res">
-      <section className="banner warn" aria-labelledby="rs-h">
+    <div className="wrap">
+      <p className="v2-alert" role="status">
         <Icon name="belloff" />
-        <div>
-          <b id="rs-h">{S.notif.resubTitle}</b>
-          {S.notif.resubBody}
-          <br />
-          {push.state === 'blocked' ? (
-            <Link className="btn btn-secondary btn-sm" href="/admin/settings/notifications">
-              {S.notif.blockedTitle}
-            </Link>
-          ) : (
-            <button
-              className="btn btn-primary btn-sm"
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true)
-                await push.enable()
-                setBusy(false)
-              }}
-            >
-              <Icon name="bell" />
-              {S.notif.enable}
-            </button>
-          )}
-        </div>
-      </section>
+        <span>{S.day.pushOff}</span>
+        {push.state === 'blocked' ? (
+          <Link className="btn btn-secondary btn-sm" href="/admin/settings/notifications">
+            {S.day.pushFix}
+          </Link>
+        ) : (
+          <button
+            className="btn btn-primary btn-sm"
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              await push.enable()
+              setBusy(false)
+            }}
+          >
+            {S.day.pushOn}
+          </button>
+        )}
+      </p>
     </div>
   )
 }

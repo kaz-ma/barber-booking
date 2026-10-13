@@ -1,5 +1,5 @@
 import 'server-only'
-import { and, asc, desc, eq, gte, sql } from 'drizzle-orm'
+import { asc, eq, gte, sql } from 'drizzle-orm'
 import { ACTIVE_STATUSES, type BookingStatus } from '@/domain/booking-status'
 import { jstInstant, minutesFromJstMidnight } from '@/domain/jst-format'
 import { toHiragana } from '@/domain/kana'
@@ -7,15 +7,7 @@ import { isValidE164, normalizePhone } from '@/domain/phone'
 import { addDays, jstDate, toJstIso } from '@/domain/time'
 import { isUuid } from '@/domain/uuid'
 import { db } from '@/lib/db'
-import {
-  authPasskey,
-  authSession,
-  businessHourOverrides,
-  businessHours,
-  menus,
-  pushSubscriptions,
-  settings,
-} from '@/lib/db/schema'
+import { authPasskey, businessHourOverrides, businessHours, menus, settings } from '@/lib/db/schema'
 import { countUnacknowledged } from '@/lib/notify'
 import { findOverlaps, hoursForDate } from './calendar'
 import type { HoursForDate, OverlapDTO } from './types'
@@ -680,57 +672,6 @@ export async function getAdminSettings(): Promise<AdminSettings> {
     cancelDeadlineMin: s?.cancelDeadlineMin ?? 120,
     allowSameDay: s?.allowSameDay ?? true,
     digestHourJst: s?.digestHourJst ?? 21,
-  }
-}
-
-export type DeviceSession = { id: string; userAgent: string | null; updatedAt: string; current: boolean }
-export type DeviceSubscription = {
-  id: string
-  endpoint: string
-  platform: string
-  userAgent: string | null
-  lastSeenAt: string
-  lastSuccessAt: string | null
-  failCount: number
-  createdAt: string
-  current: boolean
-}
-
-/** S-A-10 device lists. Raw IPs are not exposed. */
-export async function listDevices(
-  userId: string,
-  currentSessionId: string,
-): Promise<{ sessions: DeviceSession[]; subscriptions: DeviceSubscription[] }> {
-  const [sessions, subs] = await Promise.all([
-    db
-      .select({ id: authSession.id, userAgent: authSession.userAgent, updatedAt: authSession.updatedAt })
-      .from(authSession)
-      .where(and(eq(authSession.userId, userId), gte(authSession.expiresAt, new Date())))
-      .orderBy(desc(authSession.updatedAt)),
-    db
-      .select()
-      .from(pushSubscriptions)
-      .where(eq(pushSubscriptions.userId, userId))
-      .orderBy(desc(pushSubscriptions.lastSeenAt)),
-  ])
-  return {
-    sessions: sessions.map((s) => ({
-      id: s.id,
-      userAgent: s.userAgent,
-      updatedAt: toJstIso(s.updatedAt),
-      current: s.id === currentSessionId,
-    })),
-    subscriptions: subs.map((s) => ({
-      id: s.id,
-      endpoint: s.endpoint,
-      platform: s.platform,
-      userAgent: s.userAgent,
-      lastSeenAt: toJstIso(s.lastSeenAt),
-      lastSuccessAt: s.lastSuccessAt ? toJstIso(s.lastSuccessAt) : null,
-      failCount: s.failCount,
-      createdAt: toJstIso(s.createdAt),
-      current: s.sessionId === currentSessionId,
-    })),
   }
 }
 
