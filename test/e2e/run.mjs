@@ -384,7 +384,6 @@ try {
     await page.waitForFunction(() => document.activeElement?.id === 'done-h')
     await settleFonts(page)
     const height = await page.evaluate(() => document.documentElement.scrollHeight)
-    console.log(`    done page height (ja): ${height}px`)
     assert(height <= 844, `JA done page height ${height} > 844`)
     await noTel(page)
     await targets44(page)
