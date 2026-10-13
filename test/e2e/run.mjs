@@ -179,6 +179,21 @@ async function step(name, fn) {
     throw e
   }
 }
+/**
+ * Wait until the web fonts needed for the visible text are loaded before measuring layout.
+ * next/font self-hosts Noto Sans JP as unicode-range slices that load on first use; measuring
+ * earlier uses the system fallback, whose metrics differ by machine (CI vs local).
+ */
+async function settleFonts(page) {
+  await page.evaluate(async () => {
+    const fam = getComputedStyle(document.body).fontFamily
+    const text = document.body.innerText.slice(0, 4000)
+    // allSettled: next/font also registers `local()` fallback faces that reject when the local font is missing.
+    await Promise.allSettled([document.fonts.load(`400 16px ${fam}`, text), document.fonts.load(`700 16px ${fam}`, text)])
+    await document.fonts.ready
+  })
+}
+
 async function newPage(viewport = { width: 390, height: 844 }, locale = 'ja-JP') {
   const ctx = await browser.newContext({
     viewport,
@@ -364,7 +379,9 @@ try {
     await page.getByRole('heading', { name: 'ご予約を承りました' }).waitFor()
     await oneH1(page)
     await page.waitForFunction(() => document.activeElement?.id === 'done-h')
+    await settleFonts(page)
     const height = await page.evaluate(() => document.documentElement.scrollHeight)
+    console.log(`    done page height (ja): ${height}px`)
     assert(height <= 844, `JA done page height ${height} > 844`)
     await noTel(page)
     await targets44(page)
@@ -435,6 +452,7 @@ try {
     await page.getByRole('button', { name: 'Confirm booking' }).click()
     await page.waitForURL(/\/en\/book\/done\//)
     await page.getByRole('heading', { name: 'Your booking is confirmed' }).waitFor()
+    await settleFonts(page)
     const height = await page.evaluate(() => document.documentElement.scrollHeight)
     assert(height <= 844, `EN done page height ${height} > 844`)
     // No Japanese outside elements marked lang="ja" (FR-C-13, NFR-EN-05).
