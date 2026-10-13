@@ -47,6 +47,7 @@ export default async function TopPage() {
     url: absoluteUrl(`/${locale}`),
     image: absoluteUrl(shop.emblem.src as `/${string}`),
     address: { '@type': 'PostalAddress', ...shop.postalAddress },
+    geo: { '@type': 'GeoCoordinates', ...shop.geo },
     openingHoursSpecification: openingHoursSpecification(hours),
     availableLanguage: ['ja', 'en'],
     sameAs: [shop.instagram.url],
