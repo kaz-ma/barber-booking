@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { toHiragana } from '@/domain/kana'
@@ -25,12 +25,18 @@ type Load = { status: 'loading' } | { status: 'error' } | { status: 'ok'; data: 
 const FRESH_MS = 60_000
 
 const monthKey = (menu: string, month: string) => `${menu}|${month}`
+/** Open / close animation of a step (A2); matches `bstep-open` / `bstep-close` in globals.css. */
+const STEP_ANIM_MS = 300
+
+const motionOk = () =>
+  typeof window.matchMedia === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function writeStep(step: Step, mode: 'push' | 'replace') {
   const url = new URL(window.location.href)
   url.searchParams.set('step', step)
   url.searchParams.delete('taken')
   url.searchParams.delete('menu')
+  url.searchParams.delete('start')
   const state = { ...(window.history.state ?? {}), bookingStep: step }
   if (mode === 'push') window.history.pushState(state, '', url)
   else window.history.replaceState(state, '', url)
@@ -56,6 +62,19 @@ type Initial = {
   focus: boolean
   /** JST today on the client ('' while prerendering: the clock is read only in the browser). */
   today: string
+  /** Came from a booking link (?menu=&start=, B1): re-check the time against live availability. */
+  linked: boolean
+}
+
+/** A start time in a booking link, JST wall time: 2026-10-20T19:00 (or full ISO with +09:00). */
+const LINK_START = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::00)?(?:\+09:00)?$/
+
+/** Normalises a booking link's time to the JST ISO form the slots use, or null. */
+function linkStartOf(raw: string | null): string | null {
+  const m = raw ? LINK_START.exec(raw) : null
+  if (!m) return null
+  const iso = `${m[1]}:00+09:00`
+  return Number.isNaN(Date.parse(iso)) ? null : iso
 }
 
 /** Selection to start from: the URL (?menu=, ?step=, ?taken=) first, then the session draft. */
@@ -65,8 +84,11 @@ function initialFrom(draft: Draft | null, menus: MenuPickerItem[]): Initial {
   const fromUrl = valid(params.get('menu'))
   const menuSlug = fromUrl || valid(draft?.menuSlug)
   const taken = params.get('taken')
+  // Booking link from the shop (B1): menu and time chosen, the customer only fills in details.
+  const linkStart = fromUrl ? linkStartOf(params.get('start')) : null
+  const linked = linkStart !== null
   const keepTime = !!draft?.startsAt && draft.menuSlug === menuSlug && !taken
-  const startsAt = keepTime ? (draft?.startsAt ?? '') : ''
+  const startsAt = linkStart ?? (keepTime ? (draft?.startsAt ?? '') : '')
   const d = draft ?? EMPTY_DRAFT
   const asked = params.get('step')
   let open: Step = 'menu'
@@ -80,6 +102,7 @@ function initialFrom(draft: Draft | null, menus: MenuPickerItem[]): Initial {
     banner: taken === '1' ? 'taken' : taken === 'deadline' ? 'deadline' : null,
     focus: !!(asked || taken || fromUrl),
     today: jstDate(new Date()),
+    linked,
   }
 }
 
@@ -91,6 +114,7 @@ const SERVER_INITIAL: Initial = {
   banner: null,
   focus: false,
   today: '',
+  linked: false,
 }
 
 export function BookingSection(props: Props) {
@@ -132,6 +156,11 @@ function BookingSteps({
   const headRefs = useRef<Partial<Record<Step, HTMLHeadingElement | null>>>({})
   const fieldRefs = useRef<Partial<Record<InfoField, HTMLElement | null>>>({})
   const pendingFocus = useRef<Step | null>(initial.focus ? initial.open : null)
+  // A2: the step that is folding away (kept mounted while it shrinks) and the one unfolding.
+  const [closing, setClosing] = useState<Step | null>(null)
+  const [opening, setOpening] = useState<Step | null>(null)
+  const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const animated = useRef(false)
   const ready = interactive
 
   const menu = menus.find((m) => m.slug === menuSlug)
@@ -143,25 +172,35 @@ function BookingSteps({
     setMonths(cache.current)
   }, [])
 
+  const inflight = useRef<Record<string, Promise<MonthSlotsDTO | null>>>({})
   const ensureMonth = useCallback(
     async (slug: string, m: string, refresh = false) => {
       const key = monthKey(slug, m)
       const hit = cache.current[key]
       const stale = refresh && hit?.status === 'ok' && Date.now() - hit.at > FRESH_MS
-      if (hit && hit.status !== 'error' && !stale) return hit.status === 'ok' ? hit.data : null
+      if (hit?.status === 'ok' && !stale) return hit.data
+      // Already on its way: share that request instead of answering "no data".
+      const running = inflight.current[key]
+      if (running) return running
       if (!hit || hit.status === 'error') put(key, { status: 'loading' })
-      try {
-        const res = await fetch(`/api/availability?${new URLSearchParams({ menu: slug, month: m })}`, {
-          cache: 'no-store',
-        })
-        if (!res.ok) throw new Error(String(res.status))
-        const data = (await res.json()) as MonthSlotsDTO
-        put(key, { status: 'ok', data, at: Date.now() })
-        return data
-      } catch {
-        put(key, { status: 'error' })
-        return null
-      }
+      const req = (async () => {
+        try {
+          const res = await fetch(`/api/availability?${new URLSearchParams({ menu: slug, month: m })}`, {
+            cache: 'no-store',
+          })
+          if (!res.ok) throw new Error(String(res.status))
+          const data = (await res.json()) as MonthSlotsDTO
+          put(key, { status: 'ok', data, at: Date.now() })
+          return data
+        } catch {
+          put(key, { status: 'error' })
+          return null
+        } finally {
+          delete inflight.current[key]
+        }
+      })()
+      inflight.current[key] = req
+      return req
     },
     [put],
   )
@@ -173,6 +212,31 @@ function BookingSteps({
     if (initial.menuSlug) updateDraft({ menuSlug: initial.menuSlug, startsAt: initial.startsAt })
     if (initial.focus) writeStep(initial.open, 'replace')
   }, [interactive, initial])
+
+  // A booking link can be old: if its time is no longer bookable, fall back to the date step
+  // on that day with the "taken" notice (the review page re-checks again anyway).
+  useEffect(() => {
+    if (!interactive || !initial.linked || !initial.menuSlug || !initial.startsAt) return
+    const at = Date.parse(initial.startsAt)
+    const day = initial.startsAt.slice(0, 10)
+    let stop = false
+    void ensureMonth(initial.menuSlug, monthOf(day)).then((data) => {
+      if (stop) return
+      const ok = data?.days.find((d) => d.date === day)?.slots.some((s) => Date.parse(s) === at) ?? false
+      if (ok) return
+      setStartsAt('')
+      updateDraft({ menuSlug: initial.menuSlug, startsAt: '' })
+      setMonth(monthOf(day))
+      setDate(data ? day : null)
+      setBanner('taken')
+      setOpen('time')
+      pendingFocus.current = 'time'
+      writeStep('time', 'replace')
+    })
+    return () => {
+      stop = true
+    }
+  }, [interactive, initial, ensureMonth])
 
   // Load the month shown in the date step; prefetch the next one so "次の月" is instant too.
   const shownMonth = month ?? currentMonth
@@ -190,16 +254,25 @@ function BookingSteps({
   }, [ready, menuSlug, open, shownMonth, date, ensureMonth])
 
   // Browser back / forward moves between steps.
+  const onPopStep = useEffectEvent((next: Step) => openStep(next))
   useEffect(() => {
     const onPop = (e: PopStateEvent) => {
       const s = ((e.state as { bookingStep?: Step } | null)?.bookingStep ??
         new URL(window.location.href).searchParams.get('step')) as Step | null
-      setOpen(s && STEPS.includes(s) ? s : 'menu')
-      pendingFocus.current = s && STEPS.includes(s) ? s : 'menu'
+      const next = s && STEPS.includes(s) ? s : 'menu'
+      onPopStep(next)
+      pendingFocus.current = next
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  useEffect(
+    () => () => {
+      if (animTimer.current) clearTimeout(animTimer.current)
+    },
+    [],
+  )
 
   // Bring the step that just opened into view and give it focus (screen readers announce it).
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs after the open step renders
@@ -210,11 +283,30 @@ function BookingSteps({
     const head = headRefs.current[step]
     if (!head) return
     head.focus({ preventScroll: true })
-    head.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // Scroll once the previous step has folded away, so the target no longer moves.
+    const wait = animated.current ? STEP_ANIM_MS : 0
+    animated.current = false
+    const t = setTimeout(() => head.scrollIntoView({ behavior: 'smooth', block: 'start' }), wait)
+    return () => clearTimeout(t)
   }, [open, ready])
 
-  function go(step: Step) {
+  /** Opens a step; the previous one folds into its summary while the new one unfolds (A2). */
+  function openStep(step: Step) {
+    if (step !== open && motionOk()) {
+      animated.current = true
+      setClosing(open)
+      setOpening(step)
+      if (animTimer.current) clearTimeout(animTimer.current)
+      animTimer.current = setTimeout(() => {
+        setClosing(null)
+        setOpening(null)
+      }, STEP_ANIM_MS)
+    }
     setOpen(step)
+  }
+
+  function go(step: Step) {
+    openStep(step)
     pendingFocus.current = step
     writeStep(step, 'push')
   }
@@ -454,7 +546,14 @@ function BookingSteps({
                   </>
                 ) : null}
               </div>
-              {isOpen ? <div className="bstep-body">{renderBody(step)}</div> : null}
+              {isOpen || closing === step ? (
+                <div
+                  className={`bstep-anim${closing === step && !isOpen ? ' closing' : opening === step && isOpen ? ' opening' : ''}`}
+                  inert={closing === step && !isOpen ? true : undefined}
+                >
+                  <div className="bstep-body">{renderBody(step)}</div>
+                </div>
+              ) : null}
             </li>
           )
         })}

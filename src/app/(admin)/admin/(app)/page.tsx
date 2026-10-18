@@ -2,11 +2,12 @@ import type { Metadata, Route } from 'next'
 import Link from 'next/link'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
+import { BarberPole } from '@/components/ui/barber-pole'
 import { formatDateJa, weekdayJa, weekStart } from '@/domain/jst-format'
 import { addDays, isDateString, jstDate } from '@/domain/time'
 import { requireAdminPage } from '@/features/admin/auth'
 import { DayView, ResubscribeBanner } from '@/features/admin/components/today-view'
-import { getDayAgenda, getWeek } from '@/features/admin/queries'
+import { getAdminMenus, getDayAgenda, getWeek } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
 
 export const metadata: Metadata = { title: '予約' }
@@ -35,7 +36,10 @@ async function Day({ searchParams }: Pick<PageProps<'/admin'>, 'searchParams'>) 
   const date = isDateString(raw) ? raw : today
   await requireAdminPage(date === today ? '/admin' : `/admin?date=${date}`)
   const start = weekStart(date)
-  const [agenda, week] = await Promise.all([getDayAgenda(date), getWeek(start)])
+  const [agenda, week, menus] = await Promise.all([getDayAgenda(date), getWeek(start), getAdminMenus()])
+  const linkMenus = menus
+    .filter((m) => m.isActive)
+    .map((m) => ({ slug: m.slug, nameJa: m.nameJa, nameEn: m.nameEn, durationMin: m.durationMin }))
   const isToday = date === today
   const href = (d: string) => (d === today ? '/admin' : `/admin?date=${d}`) as Route
   const month = Number(date.slice(5, 7))
@@ -91,7 +95,7 @@ async function Day({ searchParams }: Pick<PageProps<'/admin'>, 'searchParams'>) 
           {formatDateJa(date)}
           {isToday ? <span className="v2-chip">{S.today.todayChip}</span> : null}
         </h2>
-        <DayView agenda={agenda} />
+        <DayView agenda={agenda} menus={linkMenus} />
       </main>
     </>
   )
@@ -106,6 +110,7 @@ function DaySkeleton() {
         </div>
       </header>
       <div className="wrap v2-day">
+        <BarberPole className="v2-pole" />
         <div className="skeleton" />
         <div className="skeleton" />
       </div>

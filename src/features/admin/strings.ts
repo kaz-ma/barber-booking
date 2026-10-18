@@ -357,6 +357,26 @@ export const S = {
     saveFailed: '保存できませんでした。入力内容はそのまま残っています。',
   },
 
+  link: {
+    title: '予約リンクを送る',
+    lead: 'お客様がリンクを開くと、メニューと日時が選ばれた状態で予約画面が出ます。お名前などはお客様が自分で入力します。',
+    menu: 'メニュー',
+    times: (date: string) => `${date}の空き（押して選ぶ）`,
+    none: 'この日はこのメニューが入る空きがありません。上の週から別の日を選んでください。',
+    loadError: '空き状況を読み込めませんでした。少し待ってからもう一度開いてください。',
+    copyDm: 'DM 用の文面をコピー',
+    copyUrl: 'リンクだけコピー',
+    dmCopied: 'DM 用の文面をコピーしました',
+    urlCopied: 'リンクをコピーしました',
+    dmJa: (date: string, time: string, menu: string, url: string) =>
+      `ご予約はこちらからお願いします（${date} ${time}〜 ${menu}）\n${url}\nお名前などを入れて「予約を確定する」まで進めてください。`,
+    dmEn: (date: string, time: string, menu: string, url: string) =>
+      `Here is your booking link (${date} ${time} JST, ${menu}):\n${url}\nPlease enter your details and tap "Confirm booking".`,
+    open: '予約リンクを送る',
+    openSub: 'お客様が自分で名前などを入力します',
+    fromFree: 'この空き時間をお客様に送る',
+  },
+
   inbox: {
     title: 'お知らせ',
     ackAll: 'すべて確認済み',

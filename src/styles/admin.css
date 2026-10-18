@@ -3579,3 +3579,43 @@ button.v2-choice {
   height: 16px;
   margin-right: 4px;
 }
+.v2-pole {
+  margin: var(--space-3) 0;
+}
+/* B1 予約リンク */
+.v2-free-send {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.v2-free-send .ic {
+  width: 18px;
+  height: 18px;
+}
+.v2-times-pick {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+.v2-times-pick button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--info);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--info);
+  font-weight: 700;
+}
+.v2-times-pick button.sel {
+  background: var(--info);
+  color: var(--on-info);
+}
+.v2-link-sheet .dm {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  font-size: var(--text-14);
+  overflow-wrap: anywhere;
+}

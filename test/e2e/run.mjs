@@ -242,6 +242,16 @@ const noOverflow = async (page, width) => {
 }
 /** Every visible link / button / form control is at least 44×44 (WCAG 2.5.8 target, DG-001). */
 const targets44 = async (page) => {
+  // Let press / unfold animations settle first (they scale elements briefly); the endless
+  // loading stripe is skipped.
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY)
+        .map((a) => a.finished.catch(() => {})),
+    ),
+  )
   const small = await page.evaluate(() => {
     const out = []
     for (const el of document.querySelectorAll('a[href], button, input, textarea, summary')) {
@@ -328,6 +338,8 @@ try {
 
     // ① collapses to a one-line summary; ② opens below on the same page
     await page.locator('.bstep.done', { hasText: 'カット' }).waitFor()
+    // The list folds away (A2, 300 ms) before it is removed.
+    await page.locator('label.mrow').first().waitFor({ state: 'detached', timeout: 2000 })
     assert((await page.locator('label.mrow').count()) === 0, 'menu list collapsed after choosing')
     await page.locator('table[role="grid"]').waitFor()
     assert(page.url().includes('step=time'), 'step in the URL (history entry)')
@@ -369,6 +381,7 @@ try {
     // Browser back returns to the date step; forward restores the details with the values kept.
     await page.goBack()
     await page.locator('table[role="grid"]').waitFor()
+    await page.locator('#name').waitFor({ state: 'detached', timeout: 2000 })
     assert((await page.locator('#name').count()) === 0, 'back closed the details step')
     await page.goForward()
     await page.locator('#name').waitFor()
@@ -448,6 +461,31 @@ try {
     await page.goto(`${BASE}${jaCancelUrl}`)
     await page.getByRole('heading', { name: 'この予約は見つかりません' }).waitFor()
     await shot(page, '07_cancel_invalid_ja', false)
+    await page.context().close()
+  })
+
+  await step('Booking link from the shop (B1): menu and time chosen; an outdated time falls back', async () => {
+    const page = await newPage()
+    // A real open time from the same endpoint the shop's link sheet uses.
+    const month = await (await fetch(`${BASE}/api/availability?menu=cut&month=${new Date().toISOString().slice(0, 7)}`)).json()
+    let day = month.days.filter((d) => d.slots.length > 0).at(-1)
+    if (!day && month.nextMonth) {
+      const next = await (await fetch(`${BASE}/api/availability?menu=cut&month=${month.nextMonth}`)).json()
+      day = next.days.find((d) => d.slots.length > 0)
+    }
+    assert(day, 'an open day exists')
+    const start = day.slots.at(-1).slice(0, 16)
+    await page.goto(`${BASE}/ja?menu=cut&start=${start}#book`)
+    await page.locator('#name').waitFor()
+    assert((await page.locator('.bstep.done').count()) === 2, 'menu and time are already chosen')
+    assert(
+      (await page.locator('.bstep.done .bsum').nth(1).textContent()).includes(start.slice(11, 16)),
+      'the linked time is shown',
+    )
+    await page.goto(`${BASE}/ja?menu=cut&start=${start.slice(0, 11)}03:00#book`)
+    await page.locator('table[role="grid"]').waitFor()
+    await page.getByRole('heading', { name: '選んだ時間は埋まりました' }).waitFor()
+    assert((await page.locator('#name').count()) === 0, 'an unbookable linked time opens the date step')
     await page.context().close()
   })
 

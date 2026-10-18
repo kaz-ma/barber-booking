@@ -2692,3 +2692,171 @@
     scroll-behavior: auto;
   }
 }
+
+/* =====================================================================
+   Motion (2026-10-18, A2 / A4 / A5). Quiet, paper-like movement only; everything here is
+   switched off under prefers-reduced-motion (block at the end).
+   ===================================================================== */
+
+/* A2: a step folds into its one-line summary while the next one unfolds (booking-section.tsx). */
+.bstep-anim {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.bstep-anim > .bstep-body {
+  min-height: 0;
+}
+.bstep-anim.opening,
+.bstep-anim.closing {
+  overflow: hidden;
+}
+.bstep-anim.opening {
+  animation: bstep-open 300ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.bstep-anim.closing {
+  animation: bstep-close 260ms cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+@keyframes bstep-open {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+@keyframes bstep-close {
+  from {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+.bstep.done .bsum,
+.bstep.done .bstep-head .no {
+  animation: fade-in 280ms ease-out both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A2: press feedback on the things customers tap. */
+.mrow,
+.tchip,
+button.cd {
+  transition:
+    transform 120ms ease-out,
+    background-color var(--duration-short3, 150ms) var(--ease-standard, ease);
+}
+.mrow:active,
+button.cd:active {
+  transform: scale(0.985);
+}
+.tchip:active {
+  transform: scale(0.95);
+}
+.tchip.sel,
+.cd.sel {
+  animation: chip-pop 220ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+@keyframes chip-pop {
+  from {
+    transform: scale(0.92);
+  }
+}
+
+/* A5: barber-pole stripe used while something loads (BarberPole). */
+.pole {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border: 1px solid var(--fg);
+  border-radius: var(--radius-full);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--accent) 0 7px,
+    var(--bg-card) 7px 14px,
+    #22304a 14px 17px,
+    var(--bg-card) 17px 24px
+  );
+  background-size: 34px 100%;
+  animation: pole-run 900ms linear infinite;
+}
+@keyframes pole-run {
+  to {
+    background-position: 34px 0;
+  }
+}
+
+/* A4: the walking route draws itself when the map scrolls into view (access-map.tsx).
+   Only once the script has armed it (.anim): without JS the route is simply shown. The dotted
+   route is revealed through a mask whose solid stroke is drawn with pathLength = 1. */
+.amap.anim .route-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.amap.anim.in-view .route-draw {
+  animation: route-draw 1800ms cubic-bezier(0.45, 0, 0.25, 1) 200ms forwards;
+}
+.amap .route-end {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.amap.anim .route-end {
+  opacity: 0;
+}
+.amap.anim.in-view .route-end {
+  animation: pin-drop 420ms cubic-bezier(0.3, 1.5, 0.5, 1) 1900ms forwards;
+}
+@keyframes route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bstep-anim.opening,
+  .bstep-anim.closing,
+  .bstep.done .bsum,
+  .bstep.done .bstep-head .no,
+  .tchip.sel,
+  .cd.sel {
+    animation: none;
+  }
+  .mrow:active,
+  button.cd:active,
+  .tchip:active {
+    transform: none;
+  }
+  .pole {
+    animation-duration: 4s;
+  }
+  .amap.anim .route-draw {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .amap.anim .route-end {
+    opacity: 1;
+    animation: none;
+  }
+}

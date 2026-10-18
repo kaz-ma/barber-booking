@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { deleteTimeBlockAction, restoreTimeBlockAction } from '../actions'
 import type { AgendaBlock, AgendaBooking, DayAgenda } from '../queries'
 import { S } from '../strings'
+import { BookingLinkSheet, type LinkMenu } from './booking-link-sheet'
 import { Icon } from './icon'
 import { usePush } from './push-provider'
 import { Sheet } from './sheet'
@@ -34,9 +35,10 @@ function gaps(agenda: DayAgenda): { s: number; e: number }[] {
  * time order, then the free time as buttons (tap → manual booking at that time), and the "＋"
  * button with two choices: 予約を追加 / 休みを入れる. Tapping a break offers to delete it.
  */
-export function DayView({ agenda }: { agenda: DayAgenda }) {
+export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[] }) {
   const toast = useToast()
   const [addOpen, setAddOpen] = useState(false)
+  const [linkOpen, setLinkOpen] = useState(false)
   const [block, setBlock] = useState<AgendaBlock | null>(null)
   const [pending, startTransition] = useTransition()
   const online = useOnline()
@@ -139,6 +141,12 @@ export function DayView({ agenda }: { agenda: DayAgenda }) {
               </li>
             ))}
           </ul>
+          {menus.length > 0 ? (
+            <button className="v2-link v2-free-send" type="button" onClick={() => setLinkOpen(true)}>
+              <Icon name="send" />
+              {S.link.fromFree}
+            </button>
+          ) : null}
         </section>
       ) : null}
 
@@ -162,6 +170,22 @@ export function DayView({ agenda }: { agenda: DayAgenda }) {
               <small>{S.day.addBookingSub}</small>
             </span>
           </Link>
+          {menus.length > 0 ? (
+            <button
+              className="v2-choice"
+              type="button"
+              onClick={() => {
+                setAddOpen(false)
+                setLinkOpen(true)
+              }}
+            >
+              <Icon name="send" />
+              <span>
+                <b>{S.link.open}</b>
+                <small>{S.link.openSub}</small>
+              </span>
+            </button>
+          ) : null}
           <Link className="v2-choice" href={`/admin/blocks/new?date=${agenda.date}`}>
             <Icon name="block" />
             <span>
@@ -171,6 +195,7 @@ export function DayView({ agenda }: { agenda: DayAgenda }) {
           </Link>
         </div>
       </Sheet>
+      <BookingLinkSheet open={linkOpen} onClose={() => setLinkOpen(false)} date={agenda.date} menus={menus} />
       <Sheet open={block !== null} onClose={() => setBlock(null)} title={S.sheet.blockDetailTitle}>
         {block ? (
           <div className="stack">

@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { BarberPole } from '@/components/ui/barber-pole'
 import { buttonClass } from '@/components/ui/button'
 import { cx } from '@/components/ui/cx'
 import { Icon } from '@/components/ui/icon'
@@ -289,6 +290,7 @@ export function toWeeks(days: DayDTO[]): { key: string; cells: Cell[] }[] {
 export function MonthCalendarSkeleton({ label }: { label: string }) {
   return (
     <div aria-busy="true" aria-label={label} role="status">
+      <BarberPole className="mb-3" />
       <div className="month">
         <span />
         <span className="mx-auto block h-7 w-32 rounded-sm bg-bg-sunken" />

@@ -11,6 +11,7 @@ import {
   STATION_BUILDINGS,
   TRAMWAY,
 } from './access-map-geometry'
+import { MapReveal } from './map-reveal'
 
 /**
  * Landmark-based access map (inline SVG, no third-party tiles or scripts). Geometry comes from
@@ -22,7 +23,7 @@ export function AccessMap() {
   const tHome = useTranslations('home')
   const { shop, jrGate, kintetsu, abenoMetro, harukas, qsmall, tokiwa, footbridge } = POINTS
   return (
-    <figure className="amap">
+    <MapReveal>
       <svg viewBox={`0 0 ${MAP_SIZE.width} ${MAP_SIZE.height}`} role="img" aria-labelledby="amap-desc">
         <desc id="amap-desc">{tHome('mapAlt')}</desc>
         <rect className="amap-land" width={MAP_SIZE.width} height={MAP_SIZE.height} />
@@ -58,7 +59,10 @@ export function AccessMap() {
             <path key={d} d={d} />
           ))}
         </g>
-        <path className="amap-route" d={ROUTE} />
+        <mask id="amap-route-mask" maskUnits="userSpaceOnUse">
+          <path className="route-draw" d={ROUTE} pathLength={1} fill="none" stroke="#fff" strokeWidth={10} />
+        </mask>
+        <path className="amap-route" d={ROUTE} mask="url(#amap-route-mask)" />
         <path className="amap-shop-bldg" d={BLOCKS.shop} />
 
         <g className="amap-label">
@@ -107,16 +111,18 @@ export function AccessMap() {
         </g>
 
         <g className="amap-pin" transform={`translate(${shop.x} ${shop.y})`}>
-          <circle r={9} className="halo" />
-          <circle r={5} />
-          <g transform="translate(14 -13)">
-            <rect width={126} height={26} rx={3} />
-            <text x={8} y={17} className="name" lang="en">
-              Neuer Barber
-            </text>
-            <text x={118} y={17} textAnchor="end" className="floor">
-              {t('floor')}
-            </text>
+          <g className="route-end">
+            <circle r={9} className="halo" />
+            <circle r={5} />
+            <g transform="translate(14 -13)">
+              <rect width={126} height={26} rx={3} />
+              <text x={8} y={17} className="name" lang="en">
+                Neuer Barber
+              </text>
+              <text x={118} y={17} textAnchor="end" className="floor">
+                {t('floor')}
+              </text>
+            </g>
           </g>
         </g>
 
@@ -134,6 +140,6 @@ export function AccessMap() {
         </span>
         <span className="attr">{t('attribution')}</span>
       </figcaption>
-    </figure>
+    </MapReveal>
   )
 }

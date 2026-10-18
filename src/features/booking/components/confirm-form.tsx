@@ -4,6 +4,7 @@ import type { Route } from 'next'
 import { useRouter as useNextRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { type FormEvent, type ReactNode, useActionState, useEffect, useRef, useState } from 'react'
+import { BarberPole } from '@/components/ui/barber-pole'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -101,7 +102,13 @@ export function ConfirmForm({
     }
   }, [state, nextRouter, router])
 
-  if (state?.status === 'ok') return <p role="status">{t('confirm.submitting')}</p>
+  if (state?.status === 'ok')
+    return (
+      <div className="grid gap-3 py-6" role="status">
+        <BarberPole />
+        <p>{t('confirm.submitting')}</p>
+      </div>
+    )
   if (!draft || !menu || !draft.startsAt || firstIncompleteStage(draft, locale)) {
     return <div className="min-h-96" aria-hidden="true" />
   }
@@ -250,6 +257,7 @@ export function ConfirmForm({
           >
             {pending ? t('confirm.submitting') : t('confirm.submit')}
           </Button>
+          {pending ? <BarberPole className="mt-2" /> : null}
           <p className="hint" id="submit-hint">
             {consent ? t('confirm.hintReady') : t('confirm.hintUnchecked')}
           </p>
