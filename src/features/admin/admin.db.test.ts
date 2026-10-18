@@ -10,6 +10,7 @@ import {
   acknowledgeAll,
   acknowledgeBooking,
   anonymizeCustomer,
+  autoAdvanceBookings,
   createManualBooking,
   createTimeBlock,
   deleteTimeBlock,
@@ -149,6 +150,59 @@ describe('confirmation URL', () => {
     await db.execute(sql`UPDATE bookings SET status = 'arrived' WHERE id = ${created.data.bookingId}`)
     const res = await reissueConfirmationUrl({ bookingId: created.data.bookingId, linkLocale: 'ja' }, { now: NOW })
     expect(res.status).toBe('invalid')
+  })
+})
+
+describe('autoAdvanceBookings (B2)', () => {
+  const statusOf = async (id: string) =>
+    (await one<{ status: string }>(sql`SELECT status FROM bookings WHERE id = ${id}`)).status
+
+  it('starts bookings whose time has come and finishes ended ones; leaves future and cancelled alone', async () => {
+    const now = jst('2026-11-03 19:20')
+    const ended = await insertNamedBooking(jst('2026-11-03 18:00'), jst('2026-11-03 19:00'))
+    const running = await insertNamedBooking(jst('2026-11-03 19:00'), jst('2026-11-03 20:00'), { status: 'arrived' })
+    const future = await insertNamedBooking(jst('2026-11-03 21:00'), jst('2026-11-03 22:00'))
+    const cancelled = await insertNamedBooking(jst('2026-11-03 18:00'), jst('2026-11-03 19:00'), {
+      status: 'cancelled_by_owner',
+    })
+    expect(await autoAdvanceBookings({ now })).toEqual({ started: 1, completed: 1 })
+    expect(await statusOf(ended.bookingId)).toBe('completed')
+    expect(await statusOf(running.bookingId)).toBe('in_progress')
+    expect(await statusOf(future.bookingId)).toBe('confirmed')
+    expect(await statusOf(cancelled.bookingId)).toBe('cancelled_by_owner')
+    const visit = await one<{ v: string }>(
+      sql`SELECT last_visit_at::text AS v FROM customers WHERE id = ${ended.customerId}`,
+    )
+    expect(new Date(visit.v).toISOString()).toBe(jst('2026-11-03 19:00').toISOString())
+    const audits = await one<{ n: number }>(
+      sql`SELECT count(*)::int AS n FROM audit_log WHERE action = 'booking.auto_status' AND actor = 'system'`,
+    )
+    expect(audits.n).toBe(2)
+    // Idempotent.
+    expect(await autoAdvanceBookings({ now })).toEqual({ started: 0, completed: 0 })
+  })
+
+  it('does not move a booking again after the owner stepped it back', async () => {
+    const b = await insertNamedBooking(jst('2026-11-03 19:00'), jst('2026-11-03 20:00'))
+    await autoAdvanceBookings({ now: jst('2026-11-03 19:05') })
+    expect(await statusOf(b.bookingId)).toBe('in_progress')
+    await stepBackBookingStatus(b.bookingId, { now: jst('2026-11-03 19:06') })
+    await stepBackBookingStatus(b.bookingId, { now: jst('2026-11-03 19:06') })
+    expect(await statusOf(b.bookingId)).toBe('confirmed')
+    await autoAdvanceBookings({ now: jst('2026-11-03 19:10') })
+    await autoAdvanceBookings({ now: jst('2026-11-03 20:30') })
+    expect(await statusOf(b.bookingId)).toBe('confirmed')
+  })
+
+  it('a finished booking can be corrected to no-show; the visit is taken back', async () => {
+    const b = await insertNamedBooking(jst('2026-11-03 18:00'), jst('2026-11-03 19:00'))
+    await autoAdvanceBookings({ now: jst('2026-11-03 19:30') })
+    const res = await updateBookingStatus({ bookingId: b.bookingId, to: 'no_show' }, { now: jst('2026-11-03 19:40') })
+    expect(res.status).toBe('ok')
+    const c = await one<{ no_show_count: number; last_visit_at: string | null }>(
+      sql`SELECT no_show_count, last_visit_at FROM customers WHERE id = ${b.customerId}`,
+    )
+    expect(c).toEqual({ no_show_count: 1, last_visit_at: null })
   })
 })
 

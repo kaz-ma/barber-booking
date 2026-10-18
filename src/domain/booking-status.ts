@@ -25,8 +25,10 @@ const TRANSITIONS: Record<BookingStatus, Partial<Record<BookingStatus, readonly 
     no_show: ['owner'],
   },
   arrived: { in_progress: ['owner'] },
-  in_progress: { completed: ['owner'] },
-  completed: {},
+  // B2: past bookings move on by themselves (autoAdvanceBookings), so "the customer never came"
+  // is recorded afterwards as a correction from 施術中 / 終了.
+  in_progress: { completed: ['owner'], no_show: ['owner'] },
+  completed: { no_show: ['owner'] },
   cancelled_by_customer: {},
   // Undo within 5 seconds (owner only); a 23P01 on undo means the slot was taken meanwhile.
   cancelled_by_owner: { confirmed: ['owner'] },

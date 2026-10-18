@@ -8,6 +8,7 @@ import { addDays, isDateString, jstDate } from '@/domain/time'
 import { requireAdminPage } from '@/features/admin/auth'
 import { DayView, ResubscribeBanner } from '@/features/admin/components/today-view'
 import { getAdminMenus, getDayAgenda, getWeek } from '@/features/admin/queries'
+import { settleBookingStatuses } from '@/features/admin/service'
 import { S } from '@/features/admin/strings'
 
 export const metadata: Metadata = { title: '予約' }
@@ -35,6 +36,7 @@ async function Day({ searchParams }: Pick<PageProps<'/admin'>, 'searchParams'>) 
   const raw = typeof sp.date === 'string' ? sp.date : ''
   const date = isDateString(raw) ? raw : today
   await requireAdminPage(date === today ? '/admin' : `/admin?date=${date}`)
+  await settleBookingStatuses()
   const start = weekStart(date)
   const [agenda, week, menus] = await Promise.all([getDayAgenda(date), getWeek(start), getAdminMenus()])
   const linkMenus = menus

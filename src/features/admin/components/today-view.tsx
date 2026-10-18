@@ -88,7 +88,10 @@ export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[
           {items.map((it) =>
             it.b ? (
               <li key={it.key}>
-                <Link className="v2-bk" href={`/admin/bookings/${it.b.id}`}>
+                <Link
+                  className={`v2-bk ${it.b.status === 'completed' ? 'is-done' : ''}`}
+                  href={`/admin/bookings/${it.b.id}`}
+                >
                   <span className="t num">
                     {hhmm(it.b.startMin)}
                     <small>〜{hhmm(it.b.endMin)}</small>
@@ -97,6 +100,8 @@ export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[
                     <b>
                       {it.b.name ?? S.day.noName}
                       {it.b.unacknowledged ? <i className="v2-new">{S.day.newBadge}</i> : null}
+                      {it.b.status === 'in_progress' ? <i className="v2-st now">{S.day.inProgress}</i> : null}
+                      {it.b.status === 'completed' ? <i className="v2-st">{S.day.done}</i> : null}
                     </b>
                     <span className="v2-sub">
                       {it.b.menuName}

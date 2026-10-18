@@ -197,6 +197,23 @@ export function BookingActions(props: Props) {
               {S.detail.cancelOpen}
             </button>
           ) : null}
+          {status === 'in_progress' ? (
+            <>
+              <p className="v2-cap">{S.detail.autoNote}</p>
+              <button className="btn btn-ghost" type="button" disabled={pending} onClick={() => change('no_show')}>
+                {S.detail.notCame}
+              </button>
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
+      {status === 'completed' && !props.deleted ? (
+        <section className="v2-actions" aria-label={S.detail.statusSection}>
+          <p className="v2-cap">{S.detail.autoDoneNote}</p>
+          <button className="btn btn-ghost" type="button" disabled={pending} onClick={() => change('no_show')}>
+            {S.detail.notCame}
+          </button>
         </section>
       ) : null}
 

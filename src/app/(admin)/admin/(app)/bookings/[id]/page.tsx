@@ -7,6 +7,7 @@ import { requireAdminPage } from '@/features/admin/auth'
 import { BookingActions } from '@/features/admin/components/booking-actions'
 import { Icon } from '@/features/admin/components/icon'
 import { getBookingDetail } from '@/features/admin/queries'
+import { settleBookingStatuses } from '@/features/admin/service'
 import { S } from '@/features/admin/strings'
 
 export const metadata: Metadata = { title: '予約詳細' }
@@ -36,6 +37,7 @@ function historyText(action: string, diff: Record<string, unknown>): string {
 async function Detail({ params }: Pick<PageProps<'/admin/bookings/[id]'>, 'params'>) {
   const { id } = await params
   await requireAdminPage(`/admin/bookings/${id}`)
+  await settleBookingStatuses()
   const b = await getBookingDetail(id)
   if (!b) {
     return (

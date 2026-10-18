@@ -3619,3 +3619,20 @@ button.v2-choice {
   font-size: var(--text-14);
   overflow-wrap: anywhere;
 }
+/* B2 自動ステータス */
+.v2-st {
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--fg-muted);
+  font: 700 11px / 18px var(--font-sans);
+  font-style: normal;
+}
+.v2-st.now {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.v2-bk.is-done {
+  opacity: 0.7;
+}

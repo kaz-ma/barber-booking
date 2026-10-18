@@ -212,6 +212,14 @@ async function resolveCustomer(tx: Tx, input: CreateManualBookingInput): Promise
 // ------------------------------------------------------------------ status changes (S-A-04)
 
 const UNDOABLE: readonly BookingStatus[] = ['cancelled_by_owner', 'cancelled_late', 'no_show']
+
+/** customers.last_visit_at from the customer's remaining completed bookings. */
+async function recomputeLastVisit(tx: Tx, customerId: string): Promise<void> {
+  await tx.execute(sql`
+    UPDATE customers SET last_visit_at = (
+      SELECT max(upper(b.during)) FROM bookings b WHERE b.customer_id = ${customerId} AND b.status = 'completed')
+    WHERE id = ${customerId}`)
+}
 const CANCELLED: readonly BookingStatus[] = ['cancelled_by_customer', 'cancelled_by_owner', 'cancelled_late']
 
 export type StatusChangeOk = { status: BookingStatus; undoToken?: string; expiresAt?: string }
@@ -271,6 +279,7 @@ export async function updateBookingStatus(
           .update(customers)
           .set({ noShowCount: sql`${customers.noShowCount} + 1` })
           .where(eq(customers.id, row.customer_id))
+        if (from === 'completed') await recomputeLastVisit(tx, row.customer_id)
       }
       if (input.to === 'completed') {
         await tx
@@ -304,6 +313,84 @@ export async function updateBookingStatus(
 }
 
 /**
+ * autoAdvanceBookings (B2, 2026-10-18): the owner no longer taps 来店 / 施術開始 / 終了 for every
+ * booking. A booking whose start has passed becomes 施術中 and one whose (display) end has
+ * passed becomes 終了, with the same side effect as tapping 終了 (customers.last_visit_at).
+ * Exceptions are recorded by hand: 無断 from 施術中 / 終了, or 1 つ前に戻す; a booking the owner
+ * stepped back after its start (or end) is not moved again. Runs when the admin
+ * app opens a day or a booking and from the nightly cron; only bookings that ended within the
+ * last 30 days are touched. Never touches cancelled, deleted or future bookings.
+ */
+export async function autoAdvanceBookings(ctx: AdminCtx = {}): Promise<{ started: number; completed: number }> {
+  const now = (ctx.now ?? new Date()).toISOString()
+  return db.transaction(async (tx) => {
+    const done = await tx.execute<{ id: string; customer_id: string; prev: string; end_at: string }>(sql`
+      WITH due AS (
+        SELECT id, customer_id, status AS prev, upper(during) - make_interval(mins => buffer_min) AS end_at
+        FROM bookings
+        WHERE deleted_at IS NULL
+          AND upper(during) - make_interval(mins => buffer_min) <= ${now}::timestamptz
+          AND upper(during) > ${now}::timestamptz - interval '30 days'
+          -- Left alone once the owner has stepped it back by hand (after its start / end).
+          AND (
+            (status = 'in_progress' AND status_changed_at < upper(during) - make_interval(mins => buffer_min))
+            OR (status IN ('confirmed', 'arrived') AND status_changed_at < lower(during))
+          )
+        FOR UPDATE
+      )
+      UPDATE bookings b SET status = 'completed', status_changed_at = ${now}::timestamptz, updated_at = ${now}::timestamptz
+      FROM due WHERE b.id = due.id
+      RETURNING due.id, due.customer_id, due.prev, due.end_at`)
+    for (const r of done.rows) {
+      await tx
+        .update(customers)
+        .set({
+          lastVisitAt: sql`GREATEST(coalesce(${customers.lastVisitAt}, ${r.end_at}::timestamptz), ${r.end_at}::timestamptz)`,
+        })
+        .where(eq(customers.id, r.customer_id))
+      await audit(tx, {
+        actor: 'system',
+        action: 'booking.auto_status',
+        entityType: 'booking',
+        entityId: r.id,
+        diff: { from: r.prev, to: 'completed' },
+      })
+    }
+    const started = await tx.execute<{ id: string; prev: string }>(sql`
+      WITH due AS (
+        SELECT id, status AS prev FROM bookings
+        WHERE deleted_at IS NULL AND status IN ('confirmed', 'arrived')
+          AND lower(during) <= ${now}::timestamptz
+          AND upper(during) - make_interval(mins => buffer_min) > ${now}::timestamptz
+          AND status_changed_at < lower(during)
+        FOR UPDATE
+      )
+      UPDATE bookings b SET status = 'in_progress', status_changed_at = ${now}::timestamptz, updated_at = ${now}::timestamptz
+      FROM due WHERE b.id = due.id
+      RETURNING due.id, due.prev`)
+    for (const r of started.rows) {
+      await audit(tx, {
+        actor: 'system',
+        action: 'booking.auto_status',
+        entityType: 'booking',
+        entityId: r.id,
+        diff: { from: r.prev, to: 'in_progress' },
+      })
+    }
+    return { started: started.rows.length, completed: done.rows.length }
+  })
+}
+
+/** autoAdvanceBookings for page renders: a failure is logged and never breaks the page. */
+export async function settleBookingStatuses(now: Date = new Date()): Promise<void> {
+  try {
+    await autoAdvanceBookings({ now })
+  } catch (err) {
+    logger.error('admin.auto_status_failed', errorFields(err))
+  }
+}
+
+/**
  * stepBackBookingStatus (CR-24): arrived -> confirmed, in_progress -> arrived,
  * completed -> in_progress. Undoes the side effects of the forward step: late minutes are
  * cleared, and customers.last_visit_at is recomputed from the remaining completed bookings.
@@ -326,12 +413,7 @@ export async function stepBackBookingStatus(
         .update(bookings)
         .set({ status: to, statusChangedAt: now, ...(to === 'confirmed' ? { lateMinutes: null } : {}) })
         .where(eq(bookings.id, row.id))
-      if (row.status === 'completed') {
-        await tx.execute(sql`
-          UPDATE customers SET last_visit_at = (
-            SELECT max(upper(b.during)) FROM bookings b WHERE b.customer_id = ${row.customer_id} AND b.status = 'completed')
-          WHERE id = ${row.customer_id}`)
-      }
+      if (row.status === 'completed') await recomputeLastVisit(tx, row.customer_id)
       await audit(tx, {
         actor: 'owner',
         action: 'booking.step_back',
@@ -429,6 +511,7 @@ export async function undoBookingChange(undoToken: string, ctx: AdminCtx = {}): 
           .set({ noShowCount: sql`GREATEST(${customers.noShowCount} - 1, 0)` })
           .where(eq(customers.id, row.customer_id))
       }
+      if (p.prev === 'completed') await recomputeLastVisit(tx, row.customer_id)
       await audit(tx, {
         actor: 'owner',
         action: 'booking.undo',
