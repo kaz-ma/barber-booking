@@ -211,6 +211,8 @@ export const settings = pgTable(
     timezone: text('timezone').notNull().default('Asia/Tokyo'),
     allowSameDay: boolean('allow_same_day').notNull().default(true),
     digestHourJst: smallint('digest_hour_jst').notNull().default(21),
+    /** B8: SHA-256 of the owner's calendar feed token (the raw token is shown once). */
+    calendarFeedTokenHash: bytea('calendar_feed_token_hash'),
     updatedAt: tz('updated_at').notNull().defaultNow(),
   },
   () => [
@@ -221,6 +223,10 @@ export const settings = pgTable(
     check('settings_cancel_deadline', sql`cancel_deadline_min BETWEEN 0 AND 10080`),
     check('settings_timezone', sql`timezone = 'Asia/Tokyo'`),
     check('settings_digest_hour', sql`digest_hour_jst BETWEEN 0 AND 23`),
+    check(
+      'settings_calendar_feed_hash_len',
+      sql`calendar_feed_token_hash IS NULL OR octet_length(calendar_feed_token_hash) = 32`,
+    ),
   ],
 )
 
@@ -341,18 +347,50 @@ export const timeBlocks = pgTable(
     during: tstzrange('during').notNull(),
     kind: blockKind('kind').notNull(),
     label: text('label'),
+    /** B7: generated from a weekly rule (one row per day; a deleted day stays deleted). */
+    recurringId: uuid('recurring_id').references((): AnyPgColumn => recurringBlocks.id),
     createdAt: tz('created_at').notNull().defaultNow(),
     updatedAt: tz('updated_at').notNull().defaultNow(),
     deletedAt: tz('deleted_at'),
   },
   () => [
     check('time_blocks_label_len', sql`char_length(label) <= 50`),
+    uniqueIndex('time_blocks_recurring_day_uidx')
+      .on(sql`recurring_id`, sql`lower(during)`)
+      .where(sql`recurring_id IS NOT NULL`),
     check(
       'time_blocks_during_half_open',
       sql`lower_inc(during) AND NOT upper_inc(during) AND NOT isempty(during) AND NOT lower_inf(during) AND NOT upper_inf(during)`,
     ),
     check('time_blocks_max_span', sql`upper(during) - lower(during) <= interval '60 days'`),
     index('time_blocks_during_gist').using('gist', sql`resource_id`, sql`during`).where(sql`deleted_at IS NULL`),
+  ],
+)
+
+/**
+ * B7 毎週の休憩 (2026-10-18): "every Tue–Sun 21:00–21:30". Materialized into time_blocks for the
+ * bookable horizon (on save and nightly), so the availability SQL and the EXCLUDE model stay
+ * untouched. weekday_mask: bit n = weekday n (0 = Sunday, as business_hours).
+ */
+export const recurringBlocks = pgTable(
+  'recurring_blocks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    weekdayMask: smallint('weekday_mask').notNull(),
+    startMin: smallint('start_min').notNull(),
+    endMin: smallint('end_min').notNull(),
+    kind: blockKind('kind').notNull(),
+    label: text('label'),
+    createdAt: tz('created_at').notNull().defaultNow(),
+    deletedAt: tz('deleted_at'),
+  },
+  () => [
+    check('recurring_blocks_mask', sql`weekday_mask BETWEEN 1 AND 127`),
+    check(
+      'recurring_blocks_range',
+      sql`start_min BETWEEN 0 AND 1439 AND end_min BETWEEN 1 AND 1440 AND end_min > start_min`,
+    ),
+    check('recurring_blocks_label_len', sql`char_length(label) <= 50`),
   ],
 )
 

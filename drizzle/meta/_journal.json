@@ -50,6 +50,20 @@
       "when": 1792360995358,
       "tag": "0006_audit_karte",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792361484434,
+      "tag": "0007_recurring_blocks",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792361719536,
+      "tag": "0008_calendar_feed",
+      "breakpoints": true
     }
   ]
 }

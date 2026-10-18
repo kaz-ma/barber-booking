@@ -1,0 +1,2 @@
+ALTER TABLE "settings" ADD COLUMN "calendar_feed_token_hash" "bytea";--> statement-breakpoint
+ALTER TABLE "settings" ADD CONSTRAINT "settings_calendar_feed_hash_len" CHECK (calendar_feed_token_hash IS NULL OR octet_length(calendar_feed_token_hash) = 32);

@@ -13,6 +13,8 @@ export const LIMITS = {
   bookingIp: { windowSec: 600, limit: 5 },
   bookingPhonePerJstDay: 3,
   cancelIp: { windowSec: 60, limit: 10 },
+  /** B8 calendar feed: calendar apps poll every 15 minutes or so. */
+  calendarIp: { windowSec: 60, limit: 10 },
   /** /api/csp-report: browsers batch reports; anything above this is noise (SR-11). */
   cspReportIp: { windowSec: 60, limit: 20 },
 } as const
@@ -24,6 +26,7 @@ export const rateKeys = {
   bookingIp: (ip: string) => `book:ip:${piiHmac(ip)}`,
   bookingPhone: (e164: string) => `book:phone:${piiHmac(e164)}`,
   cancelIp: (ip: string) => `cancel:ip:${piiHmac(ip)}`,
+  calendarIp: (ip: string) => `calendar:ip:${piiHmac(ip)}`,
   cspReportIp: (ip: string) => `csp:ip:${piiHmac(ip)}`,
 }
 

@@ -244,3 +244,15 @@ export const instagramSchema = z.object({
   ),
 })
 export const remindedSchema = z.object({ customerId: Uuid, undo: z.boolean().optional() })
+
+// ---------------------------------------------------------------- B7 recurring breaks
+export const createRecurringSchema = z
+  .object({
+    weekdays: z.array(z.number().int().min(0).max(6)).min(1, { error: 'weekdaysRequired' }).max(7),
+    startMin: z.number().int().min(0).max(1439),
+    endMin: z.number().int().min(1).max(1440),
+    kind: z.enum(BLOCK_KINDS, { error: 'kindRequired' }),
+    label: z.preprocess(emptyToUndefined, z.string().trim().max(50, { error: 'labelTooLong' }).optional()),
+  })
+  .refine((v) => v.endMin > v.startMin, { path: ['endMin'], error: 'endBeforeStart' })
+export const ruleIdSchema = z.object({ ruleId: Uuid })

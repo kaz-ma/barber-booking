@@ -211,6 +211,18 @@ export const S = {
     lastDateHelp: '連休のときだけ変更',
     overlapTitle: '予約と重なっています',
     overlapKeep: '（予約は残ります）',
+    repeat: '毎週くり返す',
+    weekdays: 'くり返す曜日',
+    repeatHelp:
+      '定休日と、すでに予約や休みが入っている日は自動で飛ばします。予約できる期間の先まで毎晩自動で追加されます。',
+    repeatCta: '毎週の休みにする',
+    repeatSaved: (n: number) => `毎週の休みを登録しました（これから${n}日分）`,
+    rules: '毎週の休み',
+    rulesNone: '毎週の休みはありません。「休みを入れる」で「毎週くり返す」を選ぶと登録できます。',
+    ruleDelete: 'やめる',
+    ruleDeleteConfirm: 'この毎週の休みをやめます。これから先の分も消えます（過去の分は残ります）。よろしいですか？',
+    ruleDeleted: (n: number) => `毎週の休みをやめました（${n}日分を削除）`,
+    everyWeek: (days: string) => `毎週 ${days}`,
   },
 
   detail: {
@@ -362,6 +374,35 @@ export const S = {
     saveFailed: '保存できませんでした。入力内容はそのまま残っています。',
   },
 
+  story: {
+    title: '今週の空きを画像にする',
+    open: '今週の空きを画像にする',
+    openSub: 'Instagram のストーリーにそのまま投稿できます',
+    lead: '今日から 7 日間の空き時間を、サイトと同じデザインの縦長画像にします。',
+    menu: 'どのメニューの空きにするか',
+    share: '画像を保存・共有する',
+    alt: '今週の空き状況の画像',
+    failed: '画像を作れませんでした。少し待ってからもう一度お試しください。',
+  },
+
+  cal: {
+    on: 'カレンダーに表示しています',
+    off: 'カレンダーには表示していません',
+    lead: 'iPhone の「カレンダー」アプリに予約が自動で並びます（15 分ごとくらいに更新）。キャンセルされた予約は消えます。',
+    start: 'カレンダーに追加する',
+    reissue: '追加し直す（URL を作り直す）',
+    reissueConfirm: '新しい URL を作ると、いま登録しているカレンダーは更新されなくなります。よろしいですか？',
+    subscribe: 'iPhone のカレンダーに登録する',
+    subscribeHelp:
+      '押すと「照会」の確認が出るので「照会」→「追加」を押してください。この URL はこの画面でしか表示されません。',
+    copyUrl: 'URL をコピー（パソコンのカレンダーに入れるとき）',
+    copied: 'URL をコピーしました',
+    stop: 'カレンダーへの表示をやめる',
+    stopConfirm: 'カレンダーへの表示をやめます。登録しているカレンダーは更新されなくなります。よろしいですか？',
+    stopped: 'カレンダーへの表示をやめました。カレンダーアプリ側の登録も削除してください。',
+    privacy: 'お客様のお名前は載せず「予約 カット」のようにメニューだけを表示します。',
+  },
+
   next: {
     title: '次のお客様',
     now: '施術中のお客様',
@@ -476,6 +517,8 @@ export const S = {
     notificationsSub: '予約の通知、Face ID、ログアウト',
     customers: 'お客様',
     customersSub: 'そろそろ来店のお客様、検索、カルテ',
+    calendar: 'iPhone のカレンダーに表示',
+    calendarSub: '予約を iPhone の「カレンダー」に自動で並べる',
     backToList: '設定に戻る',
     savedToast: '保存しました',
     saveFailed: '保存できませんでした',
@@ -624,6 +667,7 @@ export const S = {
     rate_limited: '短時間に操作が集中しました。しばらくしてからお試しください。',
     generic: '処理できませんでした',
     photoTooLarge: '写真が大きすぎます。もう一度撮り直してください。',
+    weekdaysRequired: 'くり返す曜日を 1 つ以上選んでください。',
     photoInvalid: '写真を読み込めませんでした（JPEG 以外の形式かもしれません）。',
     photoStorageFull: '写真の保存容量がいっぱいです。古い写真を削除してください。',
     photoTooMany: '1 回の来店で残せる写真は 6 枚までです。',

@@ -35,7 +35,7 @@ src/domain/                   pure functions (phone, kana, pricing, status machi
 src/lib/                      env, db (schema, availability SQL), rate-limit, tokens, hash, logger, i18n …
 src/components/ui/            generic UI primitives
 messages/{ja,en}.json         next-intl messages (identical key sets, enforced by a test)
-drizzle/                      SQL migrations (0000/0002/0004 hand-written, 0001/0003/0005/0006 generated)
+drizzle/                      SQL migrations (0000/0002/0004 hand-written, 0001/0003/0005–0008 generated)
 ```
 
 Dependency rules (enforced by ESLint `import/no-restricted-paths` and Biome):

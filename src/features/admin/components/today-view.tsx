@@ -9,6 +9,7 @@ import { BookingLinkSheet, type LinkMenu } from './booking-link-sheet'
 import { Icon } from './icon'
 import { usePush } from './push-provider'
 import { Sheet } from './sheet'
+import { StorySheet } from './story-sheet'
 import { hhmm } from './time-utils'
 import { useToast } from './toast'
 import { describeFailure } from './use-admin-action'
@@ -39,6 +40,7 @@ export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[
   const toast = useToast()
   const [addOpen, setAddOpen] = useState(false)
   const [linkOpen, setLinkOpen] = useState(false)
+  const [storyOpen, setStoryOpen] = useState(false)
   const [block, setBlock] = useState<AgendaBlock | null>(null)
   const [pending, startTransition] = useTransition()
   const online = useOnline()
@@ -191,6 +193,22 @@ export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[
               </span>
             </button>
           ) : null}
+          {menus.length > 0 ? (
+            <button
+              className="v2-choice"
+              type="button"
+              onClick={() => {
+                setAddOpen(false)
+                setStoryOpen(true)
+              }}
+            >
+              <Icon name="share" />
+              <span>
+                <b>{S.story.open}</b>
+                <small>{S.story.openSub}</small>
+              </span>
+            </button>
+          ) : null}
           <Link className="v2-choice" href={`/admin/blocks/new?date=${agenda.date}`}>
             <Icon name="block" />
             <span>
@@ -200,6 +218,7 @@ export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[
           </Link>
         </div>
       </Sheet>
+      {storyOpen ? <StorySheet open onClose={() => setStoryOpen(false)} menus={menus} /> : null}
       <BookingLinkSheet open={linkOpen} onClose={() => setLinkOpen(false)} date={agenda.date} menus={menus} />
       <Sheet open={block !== null} onClose={() => setBlock(null)} title={S.sheet.blockDetailTitle}>
         {block ? (

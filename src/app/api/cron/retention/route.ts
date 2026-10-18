@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { materializeRecurringBlocks } from '@/features/admin/recurring'
 import { autoAdvanceBookings } from '@/features/admin/service'
 import { isAuthorizedCron } from '@/features/notifications/cron-auth'
 import { runRetention } from '@/features/notifications/retention'
@@ -13,6 +14,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
     // B2: finish the day's bookings even if the admin app was not opened.
     const statuses = await autoAdvanceBookings()
-    return Response.json({ ...(await runRetention()), statuses }, { headers: { 'Cache-Control': 'no-store' } })
+    // B7: keep the weekly breaks filled up to the booking horizon.
+    const recurringDays = await materializeRecurringBlocks()
+    return Response.json(
+      { ...(await runRetention()), statuses, recurringDays },
+      { headers: { 'Cache-Control': 'no-store' } },
+    )
   })
 }

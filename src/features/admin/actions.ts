@@ -8,13 +8,16 @@ import { CACHE_TAGS } from '@/lib/cache-tags'
 import { clientIp } from '@/lib/client-ip'
 import { guardAction } from '@/lib/unexpected-error'
 import { requireAdmin } from './auth'
+import * as calendarFeed from './calendar-feed'
 import * as karte from './karte'
+import * as recurring from './recurring'
 import {
   anonymizeSchema,
   blockIdSchema,
   bookingIdSchema,
   businessHoursSchema,
   createManualBookingSchema,
+  createRecurringSchema,
   createTimeBlockSchema,
   customerIdSchema,
   dateSchema,
@@ -32,6 +35,7 @@ import {
   reissueSchema,
   remindedSchema,
   restrictionSchema,
+  ruleIdSchema,
   setMenuActiveSchema,
   settingsSchema,
   subscriptionIdSchema,
@@ -448,6 +452,50 @@ export async function markRemindedAction(input: unknown): Promise<ActionResult<n
     const parsed = remindedSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await karte.markReminded(parsed.data)
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+// ---------------------------------------------------------------- B7 recurring breaks
+
+export async function createRecurringBlockAction(
+  input: unknown,
+): Promise<ActionResult<{ ruleId: string; created: number }>> {
+  return guardAction('admin.create_recurring_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = createRecurringSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    const result = await recurring.createRecurringBlock(parsed.data)
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+export async function deleteRecurringBlockAction(input: unknown): Promise<ActionResult<{ removed: number }>> {
+  return guardAction('admin.delete_recurring_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = ruleIdSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    const result = await recurring.deleteRecurringBlock(parsed.data.ruleId)
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+// ---------------------------------------------------------------- B8 calendar feed
+
+export async function issueCalendarFeedAction(): Promise<ActionResult<{ webcalUrl: string; httpsUrl: string }>> {
+  return guardAction('admin.issue_calendar_feed_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    return calendarFeed.issueCalendarFeed()
+  })
+}
+
+export async function revokeCalendarFeedAction(): Promise<ActionResult<null>> {
+  return guardAction('admin.revoke_calendar_feed_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const result = await calendarFeed.revokeCalendarFeed()
     if (result.status === 'ok') refresh()
     return result
   })

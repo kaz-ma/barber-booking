@@ -3787,3 +3787,59 @@ button.v2-choice {
   margin-left: auto;
   color: var(--fg-muted);
 }
+/* B7 毎週の休み */
+.v2-wdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+.v2-wdays span {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.v2-wdays input:checked + span {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg-card);
+}
+.v2-wdays input:focus-visible + span {
+  outline: 2px solid var(--focus, var(--info));
+  outline-offset: 2px;
+}
+.rr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.rr-days {
+  display: block;
+}
+.rr-add {
+  margin: var(--space-3) 0 var(--space-8);
+}
+.cal-card {
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+/* B5 ストーリー画像 */
+.story-preview {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+.story-preview img {
+  width: min(62%, 260px);
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-1);
+}
+.story-preview .pole {
+  width: 100%;
+}

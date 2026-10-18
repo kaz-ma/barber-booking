@@ -18,6 +18,7 @@ export async function resetDb(): Promise<void> {
       'bookings',
       'customers',
       'time_blocks',
+      'recurring_blocks',
       'business_hour_overrides',
       'audit_log',
       'rate_limits',

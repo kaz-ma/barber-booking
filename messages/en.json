@@ -398,7 +398,9 @@
           "Occupation category (student or working adult)",
           "Notes (requests)",
           "Booking details (menu, date and time)",
-          "IP address and browser information at the time of booking (to record consent and prevent abuse)"
+          "IP address and browser information at the time of booking (to record consent and prevent abuse)",
+          "Treatment notes taken at your visit and, if you agree, photos of the finished style",
+          "Your Instagram account name (only if we talk via DM)"
         ],
         "after": [],
         "aside": "",
@@ -412,7 +414,9 @@
           "Managing your booking and contacting you about it",
           "Applying the student rate",
           "Handling same-day cancellations and no-shows",
-          "Statistics to improve our service (not personally identifiable)"
+          "Statistics to improve our service (not personally identifiable)",
+          "Keeping a record of your treatment for your next visits",
+          "Letting you know when your next visit may be due (sent by us by hand via Instagram DM)"
         ],
         "after": ["If you are under 16, please book with a parent's or guardian's consent."],
         "aside": "",
@@ -446,7 +450,7 @@
         ],
         "items": [],
         "after": [],
-        "aside": "This site uses the US cloud providers Vercel Inc. and Neon Inc., and its servers are in the United States. Under contract, these providers do not handle your personal data. We take the measures above with an understanding of the US data protection framework.",
+        "aside": "This site uses the US cloud providers Vercel Inc. and Neon Inc., and its servers are in Singapore. Under contract, these providers do not handle your personal data. We take the measures above with an understanding of the data protection frameworks of the US and Singapore.",
         "rows": []
       },
       {

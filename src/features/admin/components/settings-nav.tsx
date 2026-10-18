@@ -2,11 +2,16 @@ import Link from 'next/link'
 import { S } from '../strings'
 import { Icon, type IconName } from './icon'
 
-type Item = 'hours' | 'menus' | 'notifications' | 'customers'
+type Item = 'hours' | 'menus' | 'notifications' | 'customers' | 'calendar'
 
 const ITEMS: {
   key: Item
-  href: '/admin/settings/hours' | '/admin/settings/menus' | '/admin/settings/notifications' | '/admin/customers'
+  href:
+    | '/admin/settings/hours'
+    | '/admin/settings/menus'
+    | '/admin/settings/notifications'
+    | '/admin/customers'
+    | '/admin/settings/calendar'
   label: string
   sub: string
   icon: IconName
@@ -26,6 +31,13 @@ const ITEMS: {
     label: S.settings.customers,
     sub: S.settings.customersSub,
     icon: 'userplus',
+  },
+  {
+    key: 'calendar',
+    href: '/admin/settings/calendar',
+    label: S.settings.calendar,
+    sub: S.settings.calendarSub,
+    icon: 'week',
   },
 ]
 
