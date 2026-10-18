@@ -467,7 +467,9 @@ try {
   await step('Booking link from the shop (B1): menu and time chosen; an outdated time falls back', async () => {
     const page = await newPage()
     // A real open time from the same endpoint the shop's link sheet uses.
-    const month = await (await fetch(`${BASE}/api/availability?menu=cut&month=${new Date().toISOString().slice(0, 7)}`)).json()
+    const month = await (
+      await fetch(`${BASE}/api/availability?menu=cut&month=${new Date().toISOString().slice(0, 7)}`)
+    ).json()
     let day = month.days.filter((d) => d.slots.length > 0).at(-1)
     if (!day && month.nextMonth) {
       const next = await (await fetch(`${BASE}/api/availability?menu=cut&month=${month.nextMonth}`)).json()
