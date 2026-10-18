@@ -1,0 +1,2 @@
+ALTER TABLE "audit_log" DROP CONSTRAINT "audit_log_entity_type";--> statement-breakpoint
+ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_entity_type" CHECK (entity_type IN ('booking', 'customer', 'time_block', 'menu', 'business_hours', 'override', 'settings', 'push_subscription', 'session', 'karte'));

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { type ReactNode, useEffect, useState, useTransition } from 'react'
 import { type BookingStatus, stepBackTarget } from '@/domain/booking-status'
 import {
   acknowledgeBookingAction,
@@ -34,6 +34,8 @@ type Props = {
   unacknowledged: boolean
   ownerNote: string | null
   deleted: boolean
+  /** B3: the karte panel, placed right after the status buttons. */
+  karte?: ReactNode
 }
 
 /** Call straight from the click handler: iOS refuses clipboard writes after an await. */
@@ -225,6 +227,8 @@ export function BookingActions(props: Props) {
           </button>
         </div>
       ) : null}
+
+      {props.karte}
 
       <div className="field v2-memo-field">
         <label className="label" htmlFor="memo">

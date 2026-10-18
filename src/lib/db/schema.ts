@@ -84,7 +84,11 @@ export const customers = pgTable(
     mergedIntoCustomerId: uuid('merged_into_customer_id').references((): AnyPgColumn => customers.id),
     lineUserId: text('line_user_id').unique(),
     instagramUserId: text('instagram_user_id').unique(),
+    /** Instagram username entered by the owner (B6: open the DM thread via ig.me). */
+    instagramHandle: text('instagram_handle'),
     lastVisitAt: tz('last_visit_at'),
+    /** B6: when the owner last sent a "time for your next visit" DM. */
+    lastRemindedAt: tz('last_reminded_at'),
     anonymizedAt: tz('anonymized_at'),
     createdAt: tz('created_at').notNull().defaultNow(),
     updatedAt: tz('updated_at').notNull().defaultNow(),
@@ -100,7 +104,11 @@ export const customers = pgTable(
     check('customers_name_present', sql`anonymized_at IS NOT NULL OR name IS NOT NULL`),
     check(
       'customers_anonymized_clean',
-      sql`anonymized_at IS NULL OR (name IS NULL AND name_kana IS NULL AND phone_e164 IS NULL AND phone_display IS NULL AND line_user_id IS NULL AND instagram_user_id IS NULL)`,
+      sql`anonymized_at IS NULL OR (name IS NULL AND name_kana IS NULL AND phone_e164 IS NULL AND phone_display IS NULL AND line_user_id IS NULL AND instagram_user_id IS NULL AND instagram_handle IS NULL)`,
+    ),
+    check(
+      'customers_instagram_handle_format',
+      sql`instagram_handle IS NULL OR instagram_handle ~ '^[A-Za-z0-9._]{1,30}$'`,
     ),
     check('customers_not_self_merged', sql`merged_into_customer_id IS DISTINCT FROM id`),
     uniqueIndex('customers_phone_e164_uidx')
@@ -422,7 +430,7 @@ export const auditLog = pgTable(
     check('audit_log_action', sql`action ~ '^[a-z_]+\\.[a-z_]+$'`),
     check(
       'audit_log_entity_type',
-      sql`entity_type IN ('booking', 'customer', 'time_block', 'menu', 'business_hours', 'override', 'settings', 'push_subscription', 'session')`,
+      sql`entity_type IN ('booking', 'customer', 'time_block', 'menu', 'business_hours', 'override', 'settings', 'push_subscription', 'session', 'karte')`,
     ),
     index('audit_log_entity_idx').on(sql`entity_type`, sql`entity_id`, sql`created_at DESC`),
   ],
@@ -440,6 +448,63 @@ export const rateLimits = pgTable(
     primaryKey({ columns: [t.key, t.windowStart] }),
     check('rate_limits_key_len', sql`char_length(key) <= 128`),
     index('rate_limits_window_idx').on(sql`window_start`),
+  ],
+)
+
+// ---------------------------------------------------------------- karte (B3, 2026-10-18)
+/**
+ * One record per visit: the owner's treatment notes ("ツーブロック 6mm …"). PII-bearing: deleted
+ * on anonymization, included in the customer export, never written to logs or audit diffs.
+ */
+export const karteRecords = pgTable(
+  'karte_records',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customers.id),
+    bookingId: uuid('booking_id').references(() => bookings.id),
+    body: text('body'),
+    createdAt: tz('created_at').notNull().defaultNow(),
+    updatedAt: tz('updated_at').notNull().defaultNow(),
+  },
+  () => [
+    check('karte_records_body_len', sql`char_length(body) <= 2000`),
+    uniqueIndex('karte_records_booking_uidx').on(sql`booking_id`).where(sql`booking_id IS NOT NULL`),
+    index('karte_records_customer_idx').on(sql`customer_id`, sql`created_at DESC`),
+  ],
+)
+
+/**
+ * Photos of a visit, stored in Postgres (owner decision 2026-10-18: no extra storage service).
+ * The browser shrinks them to a JPEG of at most 1280 px (~150 KB) before upload; the row cap is
+ * 600 KB. Taken only after the customer agreed (consents.kind = 'photo_karte').
+ */
+export const kartePhotos = pgTable(
+  'karte_photos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    karteId: uuid('karte_id')
+      .notNull()
+      .references(() => karteRecords.id, { onDelete: 'cascade' }),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customers.id),
+    consentId: uuid('consent_id')
+      .notNull()
+      .references(() => consents.id),
+    contentType: text('content_type').notNull(),
+    data: bytea('data').notNull(),
+    width: smallint('width').notNull(),
+    height: smallint('height').notNull(),
+    createdAt: tz('created_at').notNull().defaultNow(),
+  },
+  () => [
+    check('karte_photos_content_type', sql`content_type = 'image/jpeg'`),
+    check('karte_photos_size', sql`octet_length(data) BETWEEN 100 AND 614400`),
+    check('karte_photos_dims', sql`width BETWEEN 1 AND 4096 AND height BETWEEN 1 AND 4096`),
+    index('karte_photos_karte_idx').on(sql`karte_id`, sql`created_at`),
+    index('karte_photos_customer_idx').on(sql`customer_id`),
   ],
 )
 

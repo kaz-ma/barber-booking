@@ -6,6 +6,8 @@ import { jstDate } from '@/domain/time'
 import { requireAdminPage } from '@/features/admin/auth'
 import { BookingActions } from '@/features/admin/components/booking-actions'
 import { Icon } from '@/features/admin/components/icon'
+import { KartePanel } from '@/features/admin/components/karte-panel'
+import { getBookingKarte } from '@/features/admin/karte'
 import { getBookingDetail } from '@/features/admin/queries'
 import { settleBookingStatuses } from '@/features/admin/service'
 import { S } from '@/features/admin/strings'
@@ -38,7 +40,7 @@ async function Detail({ params }: Pick<PageProps<'/admin/bookings/[id]'>, 'param
   const { id } = await params
   await requireAdminPage(`/admin/bookings/${id}`)
   await settleBookingStatuses()
-  const b = await getBookingDetail(id)
+  const [b, karte] = await Promise.all([getBookingDetail(id), getBookingKarte(id)])
   if (!b) {
     return (
       <>
@@ -120,6 +122,7 @@ async function Detail({ params }: Pick<PageProps<'/admin/bookings/[id]'>, 'param
           unacknowledged={b.acknowledgedAt === null}
           ownerNote={b.ownerNote}
           deleted={deleted}
+          karte={karte && !deleted ? <KartePanel bookingId={b.id} karte={karte} /> : null}
         />
 
         <details className="v2-more">

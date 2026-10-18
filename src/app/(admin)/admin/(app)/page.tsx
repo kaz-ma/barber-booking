@@ -6,7 +6,10 @@ import { BarberPole } from '@/components/ui/barber-pole'
 import { formatDateJa, weekdayJa, weekStart } from '@/domain/jst-format'
 import { addDays, isDateString, jstDate } from '@/domain/time'
 import { requireAdminPage } from '@/features/admin/auth'
+import { Icon } from '@/features/admin/components/icon'
+import { PreviousKarte } from '@/features/admin/components/karte-panel'
 import { DayView, ResubscribeBanner } from '@/features/admin/components/today-view'
+import { getNextCustomer, type NextCustomer } from '@/features/admin/karte'
 import { getAdminMenus, getDayAgenda, getWeek } from '@/features/admin/queries'
 import { settleBookingStatuses } from '@/features/admin/service'
 import { S } from '@/features/admin/strings'
@@ -38,7 +41,12 @@ async function Day({ searchParams }: Pick<PageProps<'/admin'>, 'searchParams'>) 
   await requireAdminPage(date === today ? '/admin' : `/admin?date=${date}`)
   await settleBookingStatuses()
   const start = weekStart(date)
-  const [agenda, week, menus] = await Promise.all([getDayAgenda(date), getWeek(start), getAdminMenus()])
+  const [agenda, week, menus, next] = await Promise.all([
+    getDayAgenda(date),
+    getWeek(start),
+    getAdminMenus(),
+    date === today ? getNextCustomer() : null,
+  ])
   const linkMenus = menus
     .filter((m) => m.isActive)
     .map((m) => ({ slug: m.slug, nameJa: m.nameJa, nameEn: m.nameEn, durationMin: m.durationMin }))
@@ -97,9 +105,28 @@ async function Day({ searchParams }: Pick<PageProps<'/admin'>, 'searchParams'>) 
           {formatDateJa(date)}
           {isToday ? <span className="v2-chip">{S.today.todayChip}</span> : null}
         </h2>
+        {next ? <NextCard next={next} /> : null}
         <DayView agenda={agenda} menus={linkMenus} />
       </main>
     </>
+  )
+}
+
+/** B4 次のお客様: who is next (or in the chair) today, with their latest karte. */
+function NextCard({ next }: { next: NextCustomer }) {
+  return (
+    <section className="v2-card nx" aria-labelledby="nx-h">
+      <span className="nx-label" id="nx-h">
+        {next.now ? S.next.now : S.next.title}
+      </span>
+      <Link className="nx-who" href={`/admin/bookings/${next.bookingId}`}>
+        <b className="num">{next.start.slice(11, 16)}</b>
+        <b>{next.name ? `${next.name}様` : S.day.noName}</b>
+        <span className="v2-cap">{next.menuName}</span>
+        <Icon name="chev-r" />
+      </Link>
+      {next.karte ? <PreviousKarte entry={next.karte} /> : <span className="v2-cap">{S.next.noKarte}</span>}
+    </section>
   )
 }
 

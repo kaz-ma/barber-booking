@@ -8,6 +8,7 @@ import { CACHE_TAGS } from '@/lib/cache-tags'
 import { clientIp } from '@/lib/client-ip'
 import { guardAction } from '@/lib/unexpected-error'
 import { requireAdmin } from './auth'
+import * as karte from './karte'
 import {
   anonymizeSchema,
   blockIdSchema,
@@ -20,11 +21,16 @@ import {
   endpointSchema,
   hourOverrideSchema,
   idsSchema,
+  instagramSchema,
+  karteNoteSchema,
+  kartePhotoFieldsSchema,
   moveMenuSchema,
   otpCodeSchema,
   ownerNoteSchema,
+  photoIdSchema,
   pushSubscriptionSchema,
   reissueSchema,
+  remindedSchema,
   restrictionSchema,
   setMenuActiveSchema,
   settingsSchema,
@@ -371,6 +377,77 @@ export async function anonymizeCustomerAction(input: unknown): Promise<ActionRes
     const parsed = anonymizeSchema.safeParse(input)
     if (!parsed.success) return invalid(parsed.error)
     const result = await service.anonymizeCustomer(parsed.data)
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+// ---------------------------------------------------------------- B3 karte / B6 revisit
+
+export async function saveKarteNoteAction(input: unknown): Promise<ActionResult<null>> {
+  return guardAction('admin.save_karte_note_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = karteNoteSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    return karte.saveKarteNote(parsed.data)
+  })
+}
+
+/** multipart: bookingId, consent ('1' when the owner ticked the agreement), photo (JPEG blob). */
+export async function addKartePhotoAction(form: FormData): Promise<ActionResult<{ photoId: string }>> {
+  return guardAction('admin.add_karte_photo_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = kartePhotoFieldsSchema.safeParse({
+      bookingId: form.get('bookingId'),
+      consent: form.get('consent') ?? undefined,
+    })
+    if (!parsed.success) return invalid(parsed.error)
+    const file = form.get('photo')
+    if (!(file instanceof Blob) || file.size > karte.PHOTO_MAX_BYTES) {
+      return { status: 'invalid', fieldErrors: { photo: ['photoTooLarge'] } }
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const result = await karte.addKartePhoto({
+      bookingId: parsed.data.bookingId,
+      consent: parsed.data.consent === '1',
+      bytes,
+    })
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+export async function deleteKartePhotoAction(input: unknown): Promise<ActionResult<null>> {
+  return guardAction('admin.delete_karte_photo_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = photoIdSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    const result = await karte.deleteKartePhoto(parsed.data.photoId)
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+export async function setInstagramHandleAction(input: unknown): Promise<ActionResult<null>> {
+  return guardAction('admin.set_instagram_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = instagramSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    const result = await karte.setInstagramHandle({
+      customerId: parsed.data.customerId,
+      handle: parsed.data.handle === '' ? null : parsed.data.handle,
+    })
+    if (result.status === 'ok') refresh()
+    return result
+  })
+}
+
+export async function markRemindedAction(input: unknown): Promise<ActionResult<null>> {
+  return guardAction('admin.mark_reminded_failed', async () => {
+    if (!(await requireAdmin())) return UNAUTHORIZED
+    const parsed = remindedSchema.safeParse(input)
+    if (!parsed.success) return invalid(parsed.error)
+    const result = await karte.markReminded(parsed.data)
     if (result.status === 'ok') refresh()
     return result
   })

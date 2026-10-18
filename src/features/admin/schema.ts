@@ -223,3 +223,24 @@ export function safeAdminNext(next: string | undefined): string {
   if (next.startsWith('/admin/login')) return '/admin'
   return next
 }
+
+// ---------------------------------------------------------------- B3 karte / B6 revisit
+export const karteNoteSchema = z.object({ bookingId: Uuid, body: Note(2000) })
+export const photoIdSchema = z.object({ photoId: Uuid })
+/** Multipart fields of the photo upload (the file itself is checked in the action). */
+export const kartePhotoFieldsSchema = z.object({ bookingId: Uuid, consent: z.enum(['0', '1']).default('0') })
+export const instagramSchema = z.object({
+  customerId: Uuid,
+  handle: z.preprocess(
+    (v) =>
+      typeof v === 'string'
+        ? v
+            .trim()
+            .replace(/^@/, '')
+            .replace(/^https?:\/\/(www\.)?instagram\.com\//, '')
+            .replace(/\/.*$/, '')
+        : v,
+    z.union([z.literal(''), z.string().regex(/^[A-Za-z0-9._]{1,30}$/, { error: 'instagramInvalid' })]),
+  ),
+})
+export const remindedSchema = z.object({ customerId: Uuid, undo: z.boolean().optional() })

@@ -1124,6 +1124,12 @@ export async function exportCustomer(customerId: string): Promise<ActionResult<{
       .from(consents)
       .where(eq(consents.customerId, customerId))
       .orderBy(desc(consents.acceptedAt))
+    const karte = await tx.execute<{ at: string; menu: string | null; body: string | null; photos: number }>(sql`
+      SELECT coalesce(lower(b.during), k.created_at) AS at, m.name_ja AS menu, k.body,
+             (SELECT count(*)::int FROM karte_photos p WHERE p.karte_id = k.id) AS photos
+      FROM karte_records k LEFT JOIN bookings b ON b.id = k.booking_id LEFT JOIN menus m ON m.id = b.menu_id
+      WHERE k.customer_id = ${customerId} ORDER BY 1
+    `)
     const data = {
       exportedAt: new Date().toISOString(),
       customer: {
@@ -1137,6 +1143,7 @@ export async function exportCustomer(customerId: string): Promise<ActionResult<{
         lateCancelCount: c.lateCancelCount,
         bookingRestriction: c.bookingRestriction,
         lastVisitAt: c.lastVisitAt,
+        instagram: c.instagramHandle,
         anonymizedAt: c.anonymizedAt,
         createdAt: c.createdAt,
       },
@@ -1153,6 +1160,8 @@ export async function exportCustomer(customerId: string): Promise<ActionResult<{
         createdAt: toJstIso(new Date(r.created_at)),
       })),
       consents: consentRows,
+      // Photos themselves are not embedded; the count says how many are kept.
+      karte: karte.rows.map((k) => ({ date: toJstIso(new Date(k.at)), menu: k.menu, notes: k.body, photos: k.photos })),
     }
     await audit(tx, { actor: 'owner', action: 'customer.export', entityType: 'customer', entityId: customerId })
     return {
@@ -1201,6 +1210,8 @@ export async function anonymizeCustomer(
       })
       .where(eq(bookings.customerId, c.id))
     await tx.update(consents).set({ ipHash: null, userAgent: null }).where(eq(consents.customerId, c.id))
+    // B3: treatment notes and photos are personal data (photos cascade with their record).
+    await tx.execute(sql`DELETE FROM karte_records WHERE customer_id = ${c.id}`)
     await tx
       .update(customers)
       .set({
@@ -1210,6 +1221,7 @@ export async function anonymizeCustomer(
         phoneDisplay: null,
         lineUserId: null,
         instagramUserId: null,
+        instagramHandle: null,
         phoneHash: c.phone_e164 ? Buffer.from(piiHmac(c.phone_e164), 'base64url') : null,
         anonymizedAt: now,
       })

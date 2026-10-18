@@ -6,6 +6,9 @@ import { jstDate } from '@/domain/time'
 import { requireAdminPage } from '@/features/admin/auth'
 import { CustomerActions } from '@/features/admin/components/customer-actions'
 import { Icon } from '@/features/admin/components/icon'
+import { InstagramField } from '@/features/admin/components/instagram-field'
+import { PreviousKarte } from '@/features/admin/components/karte-panel'
+import { getCustomerKarte } from '@/features/admin/karte'
 import { getCustomerDetail } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
 
@@ -25,7 +28,7 @@ export default function CustomerPage({ params }: PageProps<'/admin/customers/[id
 async function Customer({ params }: Pick<PageProps<'/admin/customers/[id]'>, 'params'>) {
   const { id } = await params
   await requireAdminPage(`/admin/customers/${id}`)
-  const c = await getCustomerDetail(id)
+  const [c, karte] = await Promise.all([getCustomerDetail(id), getCustomerKarte(id)])
   return (
     <>
       <header className="ah paper">
@@ -64,6 +67,17 @@ async function Customer({ params }: Pick<PageProps<'/admin/customers/[id]'>, 'pa
                 <dd>{S.detail.customerStats(c.visitCount, c.noShowCount, c.lateCancelCount)}</dd>
               </div>
             </dl>
+            {c.name ? <InstagramField customerId={c.id} handle={c.instagramHandle} /> : null}
+            <h2 className="sec-h">{S.karte.history}</h2>
+            {karte.length === 0 ? (
+              <p className="v2-cap">{S.karte.historyNone}</p>
+            ) : (
+              <div className="kt-history">
+                {karte.map((k) => (
+                  <PreviousKarte key={k.id} entry={k} label={S.karte.visit} />
+                ))}
+              </div>
+            )}
             <CustomerActions customerId={c.id} restriction={c.restriction} hasPhone={Boolean(c.phoneE164)} />
             <h2 className="sec-h">{S.customers.bookingsHead}</h2>
             <ul className="list">

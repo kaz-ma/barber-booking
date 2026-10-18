@@ -42,8 +42,10 @@ export async function runRetention(now: Date = new Date()): Promise<{ anonymized
       const hash = c.phone_e164 ? Buffer.from(piiHmac(c.phone_e164), 'base64url') : null
       await tx.execute(sql`
         UPDATE customers SET name = NULL, name_kana = NULL, phone_e164 = NULL, phone_display = NULL,
-               line_user_id = NULL, instagram_user_id = NULL, phone_hash = ${hash}, anonymized_at = ${t}::timestamptz
+               line_user_id = NULL, instagram_user_id = NULL, instagram_handle = NULL, phone_hash = ${hash},
+               anonymized_at = ${t}::timestamptz
         WHERE id = ${c.id}`)
+      await tx.execute(sql`DELETE FROM karte_records WHERE customer_id = ${c.id}`)
       await tx.execute(sql`
         UPDATE bookings SET note = NULL, owner_note = NULL, cancel_token_hash = NULL,
                cancel_reason = CASE WHEN cancel_reason IN ('deleted', 'anonymized') THEN cancel_reason END

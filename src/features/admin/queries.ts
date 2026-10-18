@@ -553,6 +553,7 @@ export async function searchCustomers(q: string): Promise<CustomerListItem[]> {
 }
 
 export type CustomerDetail = CustomerListItem & {
+  instagramHandle: string | null
   phoneE164: string | null
   phoneUnverified: boolean
   bookings: { id: string; start: string; status: string; menuName: string }[]
@@ -560,8 +561,8 @@ export type CustomerDetail = CustomerListItem & {
 
 export async function getCustomerDetail(id: string): Promise<CustomerDetail | null> {
   if (!isUuid(id)) return null
-  const res = await db.execute<CustomerRow & { phone_unverified: boolean }>(sql`
-    SELECT c.id, c.name, c.name_kana, c.phone_e164, c.phone_unverified, c.last_visit_at, c.booking_restriction,
+  const res = await db.execute<CustomerRow & { phone_unverified: boolean; instagram_handle: string | null }>(sql`
+    SELECT c.id, c.name, c.name_kana, c.phone_e164, c.phone_unverified, c.instagram_handle, c.last_visit_at, c.booking_restriction,
            c.no_show_count, c.late_cancel_count, c.created_at,
            (SELECT count(*)::int FROM bookings v WHERE v.customer_id = c.id AND v.status = 'completed') AS visit_count
     FROM customers c WHERE c.id = ${id} AND c.anonymized_at IS NULL`)
@@ -575,6 +576,7 @@ export async function getCustomerDetail(id: string): Promise<CustomerDetail | nu
     ...toSuggestion(r),
     noShowCount: r.no_show_count,
     lateCancelCount: r.late_cancel_count,
+    instagramHandle: r.instagram_handle,
     phoneE164: r.phone_e164,
     phoneUnverified: r.phone_unverified,
     bookings: b.rows.map((x) => ({

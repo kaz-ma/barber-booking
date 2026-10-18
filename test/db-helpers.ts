@@ -11,6 +11,8 @@ import { seedReferenceData } from '@/lib/db/seed'
 export async function resetDb(): Promise<void> {
   await db.transaction(async (tx) => {
     for (const table of [
+      'karte_photos',
+      'karte_records',
       'consents',
       'notification_log',
       'bookings',

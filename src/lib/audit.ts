@@ -12,6 +12,7 @@ type AuditEntity =
   | 'settings'
   | 'push_subscription'
   | 'session'
+  | 'karte'
 
 /** Diff values are allow-listed scalars; never names, phone numbers or free text (§9). */
 type AuditDiff = Record<string, string | number | boolean | null>

@@ -36,6 +36,20 @@
       "when": 1791844514112,
       "tag": "0004_consent_ip_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792360424737,
+      "tag": "0005_karte",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792360995358,
+      "tag": "0006_audit_karte",
+      "breakpoints": true
     }
   ]
 }

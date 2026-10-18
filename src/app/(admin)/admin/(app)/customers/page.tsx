@@ -3,9 +3,12 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { requireAdminPage } from '@/features/admin/auth'
 import { Icon } from '@/features/admin/components/icon'
+import { RevisitList } from '@/features/admin/components/revisit-list'
 import { SettingsHeader } from '@/features/admin/components/settings-nav'
+import { getRevisitList } from '@/features/admin/karte'
 import { searchCustomers } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
+import { REVISIT_WEEKS } from '@/features/admin/types'
 
 export const metadata: Metadata = { title: '顧客' }
 
@@ -27,9 +30,13 @@ async function Customers({ searchParams }: Pick<PageProps<'/admin/customers'>, '
   await requireAdminPage('/admin/customers')
   const sp = await searchParams
   const q = typeof sp.q === 'string' ? sp.q.slice(0, 50) : ''
-  const items = await searchCustomers(q)
+  const w = Number(sp.weeks)
+  const weeks = (REVISIT_WEEKS as readonly number[]).includes(w) ? w : 5
+  const [items, revisit] = await Promise.all([searchCustomers(q), q ? null : getRevisitList({ weeks })])
   return (
     <>
+      {revisit ? <RevisitList items={revisit} weeks={weeks} /> : null}
+      <h2 className="v2-sec-h">{S.customers.searchHead}</h2>
       <form className="search-row" action="/admin/customers" method="get">
         <label className="vh" htmlFor="q">
           {S.customers.search}

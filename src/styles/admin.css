@@ -3636,3 +3636,154 @@ button.v2-choice {
 .v2-bk.is-done {
   opacity: 0.7;
 }
+/* B3 カルテ */
+.kt {
+  gap: var(--space-3);
+}
+.kt-h {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-16);
+  font-weight: 700;
+}
+.kt-prev {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+.kt-prev-h {
+  font-size: var(--text-12);
+  font-weight: 700;
+  color: var(--fg-muted);
+}
+.kt-body {
+  font-size: var(--text-14);
+  white-space: pre-wrap;
+}
+.kt-photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.kt-photos li {
+  position: relative;
+}
+.kt-photos img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+}
+.kt-del {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+}
+.kt-del .ic {
+  width: 16px;
+  height: 16px;
+}
+.kt-consent {
+  margin-top: 0;
+  font-weight: 400;
+  font-size: var(--text-14);
+}
+/* B6 そろそろ来店 */
+.rv {
+  margin-bottom: var(--space-4);
+}
+.rv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.rv-head .v2-sec-h {
+  flex: 1;
+  margin-bottom: 0;
+}
+.rv-weeks {
+  display: flex;
+  gap: var(--space-1);
+}
+.rv-weeks a {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-12);
+  font-weight: 700;
+  text-decoration: none;
+}
+.rv-weeks a[aria-current] {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg-card);
+}
+.rv-list {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.rv-who {
+  display: grid;
+  text-decoration: none;
+}
+.rv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.rv-none {
+  padding: var(--space-3) 0;
+}
+.kt-history {
+  display: grid;
+  gap: var(--space-2);
+}
+.ig-field {
+  margin: var(--space-4) 0;
+}
+.ig-field .prefix {
+  flex: 1;
+}
+/* B4 次のお客様 */
+.nx {
+  margin-bottom: var(--space-3);
+  border-left: 4px solid var(--accent);
+}
+.nx-label {
+  font-size: var(--text-12);
+  font-weight: 700;
+  color: var(--accent);
+}
+.nx-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--text-18);
+  text-decoration: none;
+}
+.nx-who .ic {
+  margin-left: auto;
+  color: var(--fg-muted);
+}
