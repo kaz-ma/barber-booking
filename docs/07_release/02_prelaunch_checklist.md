@@ -21,7 +21,7 @@
 | A1 ★ | `main` の CI が緑 | GitHub → Actions → CI（`npm audit --omit=dev --audit-level=high`、typecheck、lint、`npm test`、build） | 開 | |
 | A2 | E2E が通る | ローカルで `node test/e2e/run.mjs`（6 シナリオすべて pass） | 開 | |
 | A3 ★ | 本番デプロイが Ready、ビルドログに env 検証エラー・警告なし | Vercel → Deployments → 最新の Production → Build Logs | 開 | |
-| A4 | Next.js が 16.4.x の最新パッチ（2026-10-14 のセキュリティ更新を含む） | `npm view next@16.4 version` と `package.json` を比較 | 開 | |
+| A4 | Next.js が 16.4.x の最新パッチ（2026-10-14 のセキュリティ更新を含む） | `npm view next@16.4 version` と `package.json` を比較 | 済 | 2026-10-19 16.4.2 に更新（CI・E2E 通過） |
 | A5 | Node.js 24.x でビルドされている | Build Logs 冒頭の Node バージョン | 開 | |
 
 ## B. データベース
