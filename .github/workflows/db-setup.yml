@@ -7,7 +7,8 @@
 # with the price still unset, or hides the unpriced ones again (scripts/demo-menus.ts). Redeploy
 # afterwards: menus are cached.
 #
-# Secrets (Settings → Secrets and variables → Actions, environment "production-db"):
+# Repository secrets (Settings → Secrets and variables → Actions → Repository secrets). Not an
+# environment: on GitHub Free, environment secrets only work in public repositories.
 #   PROD_DATABASE_URL  Neon "Direct connection" string (no -pooler, sslmode=require)
 #   ADMIN_EMAIL        the stylist's email address (same value as Vercel ADMIN_EMAIL)
 # The scripts print no connection string or email; secrets are masked by Actions anyway.
@@ -38,7 +39,6 @@ jobs:
   setup:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment: production-db
     env:
       DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
       DATABASE_URL_UNPOOLED: ${{ secrets.PROD_DATABASE_URL }}

@@ -3,10 +3,12 @@ name: Backup
 # Daily encrypted pg_dump of the production database (FR-S-08, NFR-OP-01, 08_security.md §10).
 # Restore steps: docs/07_release/01_deploy_guide.md §9 and 03_rollback_and_incident.md §3.
 #
-# Secrets (put them on the `backup` environment, deployment branches limited to `main`;
-# do NOT add required reviewers there, or every scheduled run waits for an approval):
-#   PROD_DATABASE_URL     Neon DIRECT (unpooled, no "-pooler") URL, ideally of a read-only role
-#                         (backup_ro, pg_read_all_data), with sslmode=require.
+# Repository secrets (Settings → Secrets and variables → Actions → Repository secrets). Not an
+# environment: on GitHub Free, environment secrets only work in public repositories, and this
+# job only runs in a private one.
+#   BACKUP_DATABASE_URL   Neon DIRECT (unpooled, no "-pooler") URL of a read-only role
+#                         (backup_ro, pg_read_all_data), sslmode=require. Optional: when unset,
+#                         PROD_DATABASE_URL (the one DB setup uses) is used.
 #   BACKUP_AGE_RECIPIENT  age public key (age1...). Preferred: CI can encrypt but never decrypt.
 #   BACKUP_PASSPHRASE     fallback when BACKUP_AGE_RECIPIENT is unset: gpg --symmetric (AES256).
 #
@@ -31,7 +33,6 @@ jobs:
   backup:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    environment: backup
     env:
       # Must be >= the Neon server major (pg_dump cannot dump a newer server). The dump step
       # checks it. Neon's default for new projects is 17 at the time of writing (verify in the
@@ -50,11 +51,11 @@ jobs:
 
       - name: Check secrets
         env:
-          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          PROD_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL || secrets.PROD_DATABASE_URL }}
           BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
-          if [ -z "$PROD_DATABASE_URL" ]; then echo "::error::PROD_DATABASE_URL is not set"; exit 1; fi
+          if [ -z "$PROD_DATABASE_URL" ]; then echo "::error::Set BACKUP_DATABASE_URL or PROD_DATABASE_URL"; exit 1; fi
           if [ -z "$BACKUP_AGE_RECIPIENT" ] && [ -z "$BACKUP_PASSPHRASE" ]; then
             echo "::error::Set BACKUP_AGE_RECIPIENT (preferred) or BACKUP_PASSPHRASE"; exit 1
           fi
@@ -75,7 +76,7 @@ jobs:
       - name: Dump, verify and encrypt
         id: dump
         env:
-          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          PROD_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL || secrets.PROD_DATABASE_URL }}
           BACKUP_AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |

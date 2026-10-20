@@ -283,8 +283,11 @@ Firewall → **Configure → New Rule**:
    ```
    【要実機確認: Neon で `pg_read_all_data` を付与できるか。できない場合は Neon コンソールで作るロールに `GRANT USAGE ON SCHEMA public, drizzle` と `GRANT SELECT ON ALL TABLES/SEQUENCES` を付ける】
 2. 接続文字列 `postgresql://backup_ro:<pw>@<直結ホスト>/neondb?sslmode=require`（`-pooler` なし）を用意する。
-3. GitHub → Settings → **Environments → New environment** `backup`。Deployment branches を `main` のみに制限する。**Required reviewers は付けない**（付けると毎日の定時実行が承認待ちで止まる。DES-08 §10 の「必須レビュー付き」はこの理由で採らない）。
-4. `backup` 環境の Secrets に `PROD_DATABASE_URL`（手順 2）と `BACKUP_AGE_RECIPIENT`（§2.2 の `age1…`）を登録する。
+3. リポジトリを**非公開**にする（Settings → General → Danger Zone → Change visibility → Make private）。公開のままだとジョブは失敗する。
+4. GitHub → Settings → Secrets and variables → Actions → **Repository secrets** に登録する（Environments は使わない: GitHub Free では環境のシークレットが公開リポジトリでしか使えないため。2026-10-20 変更）:
+   - `BACKUP_PASSPHRASE`: パスワードマネージャーで作った 32 文字以上のランダムな文字列（復元に必須。パスワードマネージャーにだけ保存）。age を使う場合は代わりに `BACKUP_AGE_RECIPIENT`（§2.2 の `age1…`）
+   - `BACKUP_DATABASE_URL`: 手順 2 の読み取り専用ロールの直結 URL（任意。未登録なら `PROD_DATABASE_URL` を使う）
+   - `PROD_DATABASE_URL`・`ADMIN_EMAIL`: DB setup 用（§5）。以前 `production-db` 環境に登録していた場合は、同じ値をここにも登録する
 5. Actions → Backup → **Run workflow** で 1 回実行し、緑になり `db-backup-…` アーティファクトができることを確認する。
 6. 失敗時は GitHub の通知メールが届く。リポジトリ所有者の通知設定で Actions の失敗通知をオンにしておく。
 
