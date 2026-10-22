@@ -513,6 +513,18 @@ function BookingSteps({
         </p>
         <h2 id="book-h">{t('heading')}</h2>
       </div>
+      {/* Where you are, at a glance (DG-001 v0.5); the step headings below carry it for screen readers. */}
+      <ol className="bprog" aria-hidden="true">
+        {STEPS.map((step, i) => {
+          const at = STEPS.indexOf(ready ? open : 'menu')
+          return (
+            <li key={step} className={i < at ? 'done' : i === at ? 'on' : undefined}>
+              <b className="num">{i + 1}</b>
+              {stepTitle[step]}
+            </li>
+          )
+        })}
+      </ol>
       <ol className="bsteps">
         {STEPS.map((step, i) => {
           const isOpen = ready ? open === step : step === 'menu'

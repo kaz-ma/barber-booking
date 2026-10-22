@@ -32,6 +32,7 @@ MADR を簡略化した次の見出しで、1 決定 1 ファイル（`NNNN-keba
 | [ADR-0010](0010-one-page-booking-and-month-availability-endpoint.md) | 予約はトップページ 1 枚、空き状況は月単位の `GET /api/availability` で一括取得（DB 3 往復、一時的な接続失敗は 1 回再試行） | Accepted（2026-10-13） | FR-C-01〜08, AGENTS.md 規則 3 |
 | [ADR-0011](0011-admin-pwa-simplified-three-tabs.md) | 管理 PWA を 3 タブ（予約・お知らせ・設定）にし、週ストリップ＋一覧、次の操作 1 ボタン、設定は一覧に簡素化 | Accepted（2026-10-13） | FR-A-02〜12, FR-A-16 |
 | [ADR-0012](0012-owner-automation-karte-and-motion.md) | 予約リンク、自動ステータス、カルテ（写真は DB）、次のお客様、ストーリー画像、そろそろ来店、毎週の休み、カレンダー購読、控えめな動き | Accepted（2026-10-18） | FR-A-02〜14 |
+| [ADR-0013](0013-legibility-first-visual-design.md) | 見やすさ優先のデザイン: 白×墨×赤、Zen Kaku Gothic New＋Inter、本文 17px、ヒーローのみ茶色、トップにヒーロー直下の 3 項目と CTA | Accepted（2026-10-22） | DG-001 v0.5, S-C-01 |
 
 ## 今後 ADR 化する候補
 

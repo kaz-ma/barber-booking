@@ -1,13 +1,24 @@
 import '@/styles/globals.css'
 import '@/styles/admin.css'
 import type { Metadata, Viewport } from 'next'
-import { Lato, Noto_Sans_JP } from 'next/font/google'
+import { Inter, Zen_Kaku_Gothic_New } from 'next/font/google'
 import { headers } from 'next/headers'
 import { siteUrl } from '@/lib/site'
 
-// Self-hosted at build time by next/font (font-src 'self'). Noto is large: no preload.
-const lato = Lato({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-lato-next', display: 'swap' })
-const noto = Noto_Sans_JP({ subsets: ['latin'], variable: '--font-noto-next', display: 'swap', preload: false })
+// Self-hosted at build time by next/font (font-src 'self'). Japanese font is large: no preload.
+const latin = Inter({
+  subsets: ['latin'],
+  weight: ['500', '700', '800'],
+  variable: '--font-latin-next',
+  display: 'swap',
+})
+const jp = Zen_Kaku_Gothic_New({
+  subsets: ['latin'],
+  weight: ['500', '700', '900'],
+  variable: '--font-jp-next',
+  display: 'swap',
+  preload: false,
+})
 
 /*
  * Admin PWA root layout (U-07): Japanese only, outside next-intl. Rendered per request
@@ -42,7 +53,7 @@ export default async function AdminRootLayout({ children }: LayoutProps<'/admin'
   // Request-time read: the whole admin tree renders per request so the CSP nonce applies.
   await headers()
   return (
-    <html lang="ja" className={`admin-html ${lato.variable} ${noto.variable}`}>
+    <html lang="ja" className={`admin-html ${latin.variable} ${jp.variable}`}>
       <body className="admin paper">{children}</body>
     </html>
   )

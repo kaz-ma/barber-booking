@@ -20,7 +20,7 @@ export function AccessSection({ hours, leadTimeMin }: { hours: HoursSummary; lea
   const closed = hours.closedWeekdays.map((d) => tAvail(`weekdaysLong.${WEEKDAY_KEYS[d] ?? 'sun'}`))
   const ranges = hours.ranges.map((r) => formatRange(r, locale))
   return (
-    <section className="sec" aria-labelledby="access-h">
+    <section className="sec access-band" aria-labelledby="access-h">
       <div className="sec-head">
         <p className="caps" lang="en">
           {t('accessCaps')}

@@ -27,7 +27,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * S-C-01 top (DG-001 §5.10, 03_screen_specs v0.8): header → photo → booking (① menu → ② date
+ * S-C-01 top (DG-001 §5.10, 03_screen_specs v1.1): header → photo with a line on it, three
+ * facts and the booking button → booking (① menu → ② date
  * & time → ③ details, all on this page) → access → languages → Instagram → footer. Menus, hours
  * and settings are cached reference data (static shell); availability is fetched by the
  * booking section from GET /api/availability. With no bookable menu the menu list is shown
@@ -71,11 +72,11 @@ export default async function TopPage() {
     <>
       <SiteHeader />
       <main id="main">
-        <section className="hero wrap" aria-labelledby="hero-h">
+        <section className="hero" aria-labelledby="hero-h">
           <h1 className="sr-only" id="hero-h">
             {t('h1')}
           </h1>
-          <Hero />
+          <Hero hours={hours} />
         </section>
 
         <div className="wrap">

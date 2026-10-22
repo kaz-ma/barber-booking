@@ -1,6 +1,6 @@
 /* =====================================================================
-   Neuer Barber 予約サイト — デザイントークン（方向 A「ヘリテージ・ペーパー」）
-   DG-001 v0.1 / 2026-10-12 / docs/05_design_comps/design_guide.md と対で読む
+   Neuer Barber 予約サイト — デザイントークン（v0.5「見やすさ優先」: 白×墨×赤、ヒーローのみ茶色）
+   DG-001 v0.5 / 2026-10-22（v0.1〜v0.4 は方向 A「ヘリテージ・ペーパー」） / docs/05_design_comps/design_guide.md と対で読む
    Copied from docs/05_design_comps/tokens.css (source of truth). Keep in sync.
    3 層: (1) プリミティブ → (2) セマンティック → (3) 用途（各部品の CSS）
    第 2 層以降で色名（--burgundy-40 など）を直接参照しない。部品はセマンティックだけを使う。
@@ -32,13 +32,23 @@
   --burgundy-70: #d9777b;
   --burgundy-75: #e38b8b;
 
+  /* 白×墨×赤（DG-001 v0.5、2026-10-22 デザイン A 案「見やすさ優先」） */
+  --white: #ffffff;      /* ページ・カード */
+  --cloud-96: #f5f4f1;   /* 沈み面（アクセス・閉じたステップ） */
+  --cloud-89: #e3e1dc;   /* 区切り線・カードの縁（情報を持たせない） */
+  --grey-35: #5a5a5a;    /* 補助文字 7.0:1 */
+  --grey-42: #6b6b6b;    /* × 予約できません・非活性 5.3:1 */
+  --ink-08: #141414;     /* 本文・操作部品の縁 18.6:1 */
+  --red-40: #a3121c;     /* CTA・「今ここ」 7.4:1（白の上） */
+  --red-30: #7e0d15;     /* 押下 */
+
   /* 状態の青（◎ 予約できます・フォーカスリング） */
   --blue-40: #0f5f8f;
   --blue-80: #7cc0e8;
 
   /* スペーシング（4px 基準・8px リズム） */
-  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
-  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
 
   /* 角丸 */
   --radius-sm: 4px;   /* ボタン・セル・カード（A の基本） */
@@ -60,9 +70,9 @@
   --tracking-body: 0.02em;   /* 本文 0–0.02em */
   --tracking-caps: 0.16em;   /* 小さな大文字ラベル */
 
-  /* フォント（本番は next/font が --font-lato / --font-noto を注入する） */
-  --font-lato: "Lato";
-  --font-noto: "Noto Sans JP";
+  /* フォント（本番は next/font が --font-latin / --font-jp を注入する） */
+  --font-latin: "Lato";
+  --font-jp: "Noto Sans JP";
 
   /* モーション（Material 3 トークン） */
   --duration-short1: 50ms;  --duration-short2: 100ms; --duration-short3: 150ms; --duration-short4: 200ms;
@@ -81,34 +91,45 @@
      細かい繊維ノイズ（256px）＋横流れの漉きムラ（512px）を multiply で --paper-98 に重ねる。
      上限: 描画後の輝度の幅 ≤ 7.5%（相対輝度差 / --paper-98 の輝度）。
      文字のコントラストは「テクスチャの最暗ピクセル」で判定する（DG-001 §6・§7）。 */
-  --paper-texture:
+  --paper-texture-legacy:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .27  0 0 0 0 .15  0 0 0 .048 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.012 .18' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .33  0 0 0 0 .18  0 0 0 .035 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>");
 }
 
 /* ---------------------------------------------------------------------
    (2) セマンティック — 用途名。ライト（顧客サイト・管理 PWA の既定）
+   2026-10-22: 紙（ベージュ）から白×墨×赤へ。紙テクスチャは使わない（--paper-texture: none）。
    --------------------------------------------------------------------- */
 :root {
-  --bg: var(--paper-98);
-  --bg-card: var(--paper-99);
+  --paper-texture: none;
+  --bg: var(--white);
+  --bg-card: var(--white);
   --surface: var(--bg-card);          /* DES-07 §5.2 の名前との互換 */
-  --bg-sunken: var(--paper-90);
-  --fg: var(--ink-10);
-  --fg-muted: var(--ink-35);
-  --fg-subtle: var(--ink-45);         /* × の文字・非活性 */
-  --accent: var(--burgundy-40);       /* CTA と「選択中」だけ */
-  --accent-pressed: var(--burgundy-30);
-  --on-accent: var(--paper-98);
-  --border: var(--ink-10);            /* 操作できる部品の枠（3:1 以上） */
-  --border-subtle: var(--paper-80);   /* 装飾罫・区切り（情報を持たせない） */
+  --bg-sunken: var(--cloud-96);
+  --fg: var(--ink-08);
+  --fg-muted: var(--grey-35);
+  --fg-subtle: var(--grey-42);        /* × の文字・非活性 */
+  --accent: var(--red-40);            /* CTA と「今ここ・選択中」だけ */
+  --accent-pressed: var(--red-30);
+  --on-accent: var(--white);
+  --border: var(--ink-08);            /* 操作できる部品の枠（3:1 以上） */
+  --border-subtle: var(--cloud-89);   /* 装飾罫・区切り・カードの縁（情報を持たせない） */
+  /* ヒーロー（写真まわり）は店内の茶色を残す（色は .photo-placeholder の既存グラデーション）。
+     写真の上の文字は白、下に黒の幕（0 → 72%）を敷いて 4.5:1 以上を保つ */
+  --on-hero: var(--white);
+  --hero-scrim: rgb(0 0 0 / 0.72);
+  /* フッター（墨の帯） */
+  --foot-bg: var(--ink-08);
+  --foot-fg: #e9e7e2;                 /* 14.9:1 on --foot-bg */
+  --foot-muted: #a19f98;              /* 7.0:1 on --foot-bg */
+  --foot-line: #2c2c2c;
   --ring: var(--blue-40);             /* フォーカスリング 2px + offset 2px */
   --status-open: var(--blue-40);      /* ◎ 予約できます */
   --status-full: var(--ink-45);       /* × 満席・締切 */
   --status-closed: var(--ink-45);     /* × 定休・休業 */
 
-  --font-sans: var(--font-lato), var(--font-noto), system-ui, sans-serif; /* 数字・欧文は Lato、和文は Noto */
-  --font-num: var(--font-lato), system-ui, sans-serif;
+  --font-sans: var(--font-latin), var(--font-jp), system-ui, sans-serif; /* 欧文・数字は Inter、和文は Zen Kaku Gothic New */
+  --font-num: var(--font-latin), system-ui, sans-serif;
   --gutter: var(--space-4);           /* ≤ 640px。≥ 768px は --space-6 */
   --section-gap: var(--space-12);     /* B から: セクション間 48px */
   --target-min: 44px;
@@ -178,8 +199,8 @@
      --color-status-full: var(--status-full);
      --color-status-closed: var(--status-closed);
 
-     --font-sans: var(--font-lato), var(--font-noto), system-ui, sans-serif;
-     --font-num: var(--font-lato), system-ui, sans-serif;
+     --font-sans: var(--font-latin), var(--font-jp), system-ui, sans-serif;
+     --font-num: var(--font-latin), system-ui, sans-serif;
 
      --text-base--line-height: var(--leading-body);   和文本文 1.7
      --radius-sm: var(--radius-sm);

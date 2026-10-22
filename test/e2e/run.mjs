@@ -314,7 +314,15 @@ try {
     assert(ld['@type'] === 'HairSalon' && !('telephone' in ld), 'JSON-LD HairSalon without telephone')
     assert((await page.locator('link[rel="alternate"][hreflang="en"]').count()) === 1, 'hreflang en')
     assert((await page.locator('link[rel="alternate"][hreflang="x-default"]').count()) === 1, 'hreflang x-default')
-    assert((await page.getByRole('link', { name: '予約する' }).count()) === 1, 'one 予約する link (header)')
+    assert(
+      (await page.getByRole('link', { name: '予約する', exact: true }).count()) === 1,
+      'one 予約する link (header)',
+    )
+    assert(
+      (await page.locator('a.hero-cta[href="#book"]').count()) === 1,
+      'hero: one red button to the booking section (DG-001 v0.5)',
+    )
+    assert((await page.locator('.hero-facts dt').count()) === 3, 'hero: hours, closing day and walk')
     assert((await page.getByRole('button', { name: 'この内容で予約する' }).count()) === 0, 'no final button yet')
     assert((await page.locator('a[href*="/book/time"]').count()) === 0, 'no direct link to /book/time (OI-25)')
     await noTel(page)
@@ -330,7 +338,7 @@ try {
       if (r.url().includes('/api/availability')) apiCalls++
     })
     await page.goto(`${BASE}/ja`)
-    await page.locator('header').getByRole('link', { name: '予約する' }).click()
+    await page.locator('header').getByRole('link', { name: '予約する', exact: true }).click()
     await page.waitForURL(/\/ja#book$/)
     await oneH1(page)
     await shot(page, '04_menu_initial_ja', false)

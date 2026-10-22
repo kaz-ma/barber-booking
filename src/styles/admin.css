@@ -107,7 +107,7 @@ body.admin {
   border: 0;
 }
 .caps {
-  font: 700 var(--text-12) / var(--text-12--lh) var(--font-lato);
+  font: 700 var(--text-12) / var(--text-12--lh) var(--font-latin);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--fg-muted);
@@ -1355,7 +1355,7 @@ html.admin-html[data-theme="dark"] {
   border-radius: 50%;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  font: 700 14px / 1 var(--font-lato);
+  font: 700 14px / 1 var(--font-latin);
   letter-spacing: 1px;
 }
 .fig .app {
@@ -1441,7 +1441,7 @@ html.admin-html[data-theme="dark"] {
   letter-spacing: 0.08em;
 }
 .wm span {
-  font: 700 13px / 16px var(--font-lato);
+  font: 700 13px / 16px var(--font-latin);
   letter-spacing: 0.2em;
   color: var(--fg);
   margin-right: var(--space-2);
@@ -2340,7 +2340,7 @@ html.admin-html[data-theme="dark"] {
   font-feature-settings: "palt";
 }
 .m-main .en {
-  font: 700 11px / 16px var(--font-lato);
+  font: 700 11px / 16px var(--font-latin);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--fg-muted);
@@ -2456,7 +2456,7 @@ html.admin-html[data-theme="dark"] {
   height: 24px;
   border-radius: 50%;
   border: 1px solid var(--fg-subtle);
-  font: 700 var(--text-12) / 1 var(--font-lato);
+  font: 700 var(--text-12) / 1 var(--font-latin);
   color: var(--fg-subtle);
   background: var(--bg-card);
 }
