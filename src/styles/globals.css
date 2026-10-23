@@ -3247,6 +3247,10 @@ button.cd:active {
 .site .access .hrs {
   margin-top: var(--space-3);
 }
+/* keep "label value" together where it fits, but wrap rather than overflow on narrow phones */
+.site .access .hrs .nw {
+  white-space: normal;
+}
 
 /* footer: an ink band with light text */
 .site .site-foot {
