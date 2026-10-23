@@ -2866,9 +2866,28 @@ button.cd:active {
    Unlayered and scoped to body.site so it wins over the component layer without touching the
    admin PWA. */
 .site {
+  /* Generous whitespace (DG-001 v0.6): wider side margins and section gaps than the admin. */
+  --section-gap: var(--space-20);
   font-size: 1.0625rem;
   line-height: 1.8;
   font-weight: 500;
+}
+@media (min-width: 375px) {
+  .site {
+    --gutter: var(--space-5);
+  }
+  /* the header keeps 16px so the wordmark and the 予約する button stay on one line; the done
+     page too, so it still fits one screen */
+  .site .site-head .in,
+  .site .done-main {
+    padding-inline: var(--space-4);
+  }
+}
+@media (min-width: 768px) {
+  .site {
+    --gutter: var(--space-8);
+    --section-gap: var(--space-32);
+  }
 }
 .site .site-head,
 .site .mini-head,
@@ -2898,8 +2917,8 @@ button.cd:active {
 
 /* section / document heads: red caps, big heavy title, no double rule */
 .site .sec-head {
-  gap: 2px;
-  margin-bottom: var(--space-5);
+  gap: var(--space-1);
+  margin-bottom: var(--space-8);
 }
 .site .sec-head .caps,
 .site .doc-head .caps {
@@ -2913,6 +2932,22 @@ button.cd:active {
 }
 .site .doc-head h1 {
   font-weight: 900;
+}
+.site .doc-head {
+  padding-top: var(--space-6);
+}
+.site .toc {
+  margin-top: var(--space-10);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+.site .pol {
+  padding-top: var(--space-16);
+}
+.site .pol h2 {
+  margin-bottom: var(--space-4);
+}
+.site .kv {
+  gap: var(--space-4);
 }
 .site .sec-head h2 {
   font-size: 1.75rem;
@@ -2949,7 +2984,7 @@ button.cd:active {
 }
 .hero-copy {
   position: absolute;
-  inset: auto 0 22px;
+  inset: auto 0 var(--space-8);
   z-index: 1;
   max-width: 1008px;
   margin-inline: auto;
@@ -2978,7 +3013,7 @@ button.cd:active {
 }
 .hero-facts > div {
   min-width: 0;
-  padding: 14px 6px;
+  padding: var(--space-6) 6px;
   text-align: center;
   border-right: 1px solid var(--border-subtle);
 }
@@ -2986,6 +3021,7 @@ button.cd:active {
   border-right: 0;
 }
 .hero-facts dt {
+  margin-bottom: var(--space-1);
   font-size: var(--text-12);
   line-height: 1.5;
   font-weight: 700;
@@ -3005,9 +3041,9 @@ button.cd:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--target-cta);
-  margin-top: var(--space-5);
-  padding: 14px var(--space-5);
+  min-height: 60px;
+  margin-top: var(--space-10);
+  padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-lg);
   background: var(--accent);
   color: var(--on-accent);
@@ -3032,7 +3068,7 @@ button.cd:active {
 }
 @media (min-width: 1024px) {
   .hero-copy {
-    bottom: var(--space-10);
+    bottom: var(--space-16);
   }
   .hero-title {
     font-size: 2.5rem;
@@ -3042,8 +3078,8 @@ button.cd:active {
 /* booking: a 3-part progress bar, then the steps as roomy cards; steps not reached sit sunken */
 .bprog {
   display: flex;
-  gap: 6px;
-  margin: 0 0 var(--space-4);
+  gap: var(--space-2);
+  margin: 0 0 var(--space-8);
   padding: 0;
   list-style: none;
 }
@@ -3071,7 +3107,7 @@ button.cd:active {
   font-weight: 800;
 }
 .site .bsteps {
-  gap: 10px;
+  gap: var(--space-4);
   margin-top: 0;
 }
 .site .bstep {
@@ -3083,12 +3119,33 @@ button.cd:active {
   border-color: transparent;
 }
 .site .bstep.open {
-  border-color: var(--border-subtle);
-  box-shadow: 0 2px 12px rgb(20 20 20 / 0.06);
+  /* the open step drops its frame: its menu cards / calendar use the full width */
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+.site .bstep.open .bstep-head {
+  padding-inline: 0;
+}
+.site .bstep.open .bstep-body {
+  padding-inline: 0;
+}
+.site .bstep.open .btime .cal {
+  margin-inline: 0;
+  width: 100%;
+}
+.site .shop .btn {
+  white-space: nowrap;
+}
+.site .btime .bnote {
+  margin-top: var(--space-3);
+}
+.site .btime .slots-h {
+  margin-top: var(--space-8);
 }
 .site .bstep-head {
-  min-height: 56px;
-  padding: 0 var(--space-3) 0 var(--space-4);
+  min-height: 64px;
+  padding: 0 var(--space-3) 0 var(--space-5);
   gap: 10px;
 }
 .site .bstep-head .no {
@@ -3111,18 +3168,19 @@ button.cd:active {
 }
 .site .bstep-body {
   /* 12px sides: the calendar bleeds into it to keep day cells ≥ 44px (.btime .cal) */
-  padding: 0 var(--space-3) var(--space-5);
+  padding: var(--space-1) var(--space-3) var(--space-6);
 }
 
 /* menu: one card per menu, big price on the right, red edge when chosen */
 .site .mrows {
-  gap: 10px;
+  gap: var(--space-3);
 }
 .site .mrow,
 .site .mrow:first-child {
-  column-gap: 12px;
-  min-height: 72px;
-  padding: 14px var(--space-4);
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+  min-height: 84px;
+  padding: var(--space-5) var(--space-5) var(--space-5) var(--space-4);
   border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   background: var(--bg-card);
@@ -3165,7 +3223,7 @@ button.cd:active {
 /* access: a sunken band edge to edge (box-shadow + clip-path: no horizontal scroll) */
 .site .access-band {
   margin-top: var(--section-gap);
-  padding-block: var(--space-10);
+  padding-block: var(--space-16) var(--space-20);
   background: var(--bg-sunken);
   box-shadow: 0 0 0 100vmax var(--bg-sunken);
   clip-path: inset(0 -100vmax);
@@ -3178,14 +3236,33 @@ button.cd:active {
 .site .access-band .amap {
   border-radius: var(--radius-lg);
 }
+.site .access-band .access {
+  margin: var(--space-6) 0;
+  padding: var(--space-6) var(--space-5);
+}
+.site .access .walk {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+}
+.site .access .hrs {
+  margin-top: var(--space-3);
+}
 
 /* footer: an ink band with light text */
 .site .site-foot {
   --ring: var(--blue-80);
+  margin-top: var(--section-gap);
+  padding: var(--space-16) 0 var(--space-12);
   background: var(--foot-bg);
   color: var(--foot-fg);
   border-top: 0;
   box-shadow: none;
+}
+.site .site-foot nav {
+  margin: var(--space-8) 0;
+}
+.site .site-foot nav a {
+  min-height: 56px;
 }
 .site .site-foot nav a {
   border-bottom-color: var(--foot-line);

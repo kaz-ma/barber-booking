@@ -27,7 +27,7 @@ export default function DonePage({ params }: PageProps<'/[locale]/book/done/[tok
   return (
     <>
       <MiniHeader />
-      <main id="main" className="wrap pt-6">
+      <main id="main" className="wrap done-main pt-6">
         <Suspense fallback={<div className="done-card h-[560px]" aria-hidden="true" />}>
           <DoneContent params={params} />
         </Suspense>
