@@ -63,6 +63,7 @@ export function InboxList({ unread, read, nowIso }: { unread: InboxItem[]; read:
             {item.name ?? S.day.noName}
             {item.name ? '様' : ''} ・ {item.menuName}
           </span>
+          <Icon name="chev-r" />
         </Link>
       </li>
     )

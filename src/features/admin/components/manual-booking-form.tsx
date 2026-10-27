@@ -611,7 +611,7 @@ function ManualBookingFormInner({ menus, initialDate, initialStart }: FormProps)
           {hasOverlap ? S.manual.changeTime : pending ? S.saving : S.save}
         </button>
         {!hasOverlap && !canSave ? (
-          <p className="vh" id="save-h">
+          <p className="cap" id="save-h">
             {S.manual.saveDisabledWhy}
           </p>
         ) : null}

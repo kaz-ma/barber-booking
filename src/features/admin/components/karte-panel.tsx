@@ -180,6 +180,7 @@ export function KartePanel({ bookingId, karte }: { bookingId: string; karte: Boo
               }}
             />
           </label>
+          {needsConsent && !consent ? <p className="v2-cap">{S.karte.consentFirst}</p> : null}
           {uploading ? <BarberPole /> : null}
         </>
       ) : null}

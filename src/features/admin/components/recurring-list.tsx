@@ -52,7 +52,7 @@ export function RecurringList({ rules }: { rules: RecurringBlock[] }) {
                   )}
                 </span>
               </span>
-              <button className="btn btn-ghost btn-sm" type="button" disabled={pending} onClick={() => stop(r)}>
+              <button className="btn btn-secondary btn-sm" type="button" disabled={pending} onClick={() => stop(r)}>
                 {S.blockForm.ruleDelete}
               </button>
             </li>

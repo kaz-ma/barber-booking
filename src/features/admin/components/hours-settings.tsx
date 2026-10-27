@@ -249,7 +249,7 @@ export function HoursSettings({ hours, settings }: { hours: AdminHours; settings
       </div>
 
       <div className="cta-bar above-tabs">
-        <p className="cap">{S.settings.immediate}</p>
+        <p className="cap">{changes === 0 ? S.settings.saveNoChanges : S.settings.immediate}</p>
         <button
           className={`btn btn-primary btn-block ${changes === 0 ? 'is-off' : ''}`}
           type="button"

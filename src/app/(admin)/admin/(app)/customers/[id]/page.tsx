@@ -12,7 +12,7 @@ import { getCustomerKarte } from '@/features/admin/karte'
 import { getCustomerDetail } from '@/features/admin/queries'
 import { S } from '@/features/admin/strings'
 
-export const metadata: Metadata = { title: '顧客詳細' }
+export const metadata: Metadata = { title: 'お客様の詳細' }
 
 /** S-A-11 顧客詳細 (FR-A-13, 14; Should). */
 export default function CustomerPage({ params }: PageProps<'/admin/customers/[id]'>) {

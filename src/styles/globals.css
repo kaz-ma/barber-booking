@@ -3122,6 +3122,13 @@ button.cd:active {
   border-color: transparent;
   color: var(--border-subtle);
 }
+/* a button that can't be used yet: plain grey (not a dashed frame), with its reason next to it */
+.site .btn-primary[aria-disabled="true"] {
+  background: var(--bg-sunken);
+  border-color: transparent;
+  color: var(--fg-subtle);
+  box-shadow: none;
+}
 /* press feedback on touch screens (hover never fires there) */
 .site .btn-secondary:active {
   background: var(--bg-sunken);

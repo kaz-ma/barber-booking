@@ -419,6 +419,7 @@ export const S = {
     saved: 'カルテを保存しました',
     addPhoto: '写真を追加',
     consent: '写真を残すことをお客様に了承いただきました（初回だけ）',
+    consentFirst: '上のチェックを入れると写真を追加できます',
     photoAdded: '写真を追加しました',
     photoFailed: '写真を追加できませんでした。もう一度お試しください。',
     photoDeleted: '写真を削除しました',
@@ -523,6 +524,7 @@ export const S = {
     savedToast: '保存しました',
     saveFailed: '保存できませんでした',
     immediate: '保存すると顧客サイトにすぐ反映されます',
+    saveNoChanges: '変更すると保存できます',
     saveChanges: (n: number) => (n > 0 ? `変更 ${n} 件を保存する` : '保存する'),
     weekHead: '毎週の受付時間',
     weekCap: 'オフ = 定休日',
@@ -633,7 +635,7 @@ export const S = {
   },
 
   customers: {
-    title: '顧客',
+    title: 'お客様',
     search: '名前・ふりがな・電話番号',
     searchButton: '検索',
     searchHead: 'お客様を探す',

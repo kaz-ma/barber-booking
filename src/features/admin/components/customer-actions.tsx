@@ -123,7 +123,7 @@ export function CustomerActions({
           </p>
         ) : null}
         <button
-          className="btn btn-secondary btn-block mt-4"
+          className="btn btn-danger btn-block mt-4"
           type="button"
           disabled={pending || (hasPhone && last4.length !== 4)}
           onClick={anonymize}

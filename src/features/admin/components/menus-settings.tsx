@@ -181,6 +181,7 @@ export function MenusSettings({
                   {S.menus.duration} <b>{m.durationMin}</b> 分
                 </span>
               </span>
+              <Icon name="chev-r" />
             </button>
             <label className="sw m-sw">
               <input

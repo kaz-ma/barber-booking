@@ -99,7 +99,7 @@ export function RevisitList({ items, weeks }: { items: RevisitItem[]; weeks: num
                     {S.revisit.openIg}
                   </a>
                 ) : null}
-                <button className="btn btn-ghost btn-sm" type="button" disabled={pending} onClick={() => sent(it)}>
+                <button className="btn btn-secondary btn-sm" type="button" disabled={pending} onClick={() => sent(it)}>
                   <Icon name="check" />
                   {S.revisit.sent}
                 </button>

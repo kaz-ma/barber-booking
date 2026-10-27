@@ -125,6 +125,7 @@ export function DayView({ agenda, menus }: { agenda: DayAgenda; menus: LinkMenu[
                     <b>{S.blockKind[it.k.kind] ?? it.k.kind}</b>
                     {it.k.label ? <span className="v2-sub">{it.k.label}</span> : null}
                   </span>
+                  <Icon name="chev-r" />
                 </button>
               </li>
             ) : null,

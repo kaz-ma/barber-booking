@@ -3843,3 +3843,120 @@ button.v2-choice {
 .story-preview .pole {
   width: 100%;
 }
+
+/* ---- 押せる所・押せない所を一目で（DG-001 v0.8, 2026-10-27） ----
+   Same rule as the customer site: a frame or button shape = tappable, plain text = not.
+   Status labels lose their outline, expanders get an arrow, rows that open something get ›,
+   a button that can't be used yet is plain grey with the reason under it, and every tap shows. */
+.req {
+  padding: 0;
+  border: 0;
+}
+.chip {
+  border-color: transparent;
+  background: var(--bg-sunken);
+  color: var(--fg);
+}
+.chip-fill {
+  background: var(--fg);
+  color: var(--bg-card);
+}
+.chip-info {
+  background: var(--bg-sunken);
+  color: var(--info);
+}
+.chip-muted,
+.chip-cancel {
+  border-color: transparent;
+  background: var(--bg-sunken);
+  color: var(--fg-muted);
+}
+.v2-kind.cx {
+  border: 0;
+}
+.btn[aria-disabled="true"].is-off,
+.btn[disabled],
+.is-off {
+  background: var(--bg-sunken);
+  border: 1px solid transparent;
+  color: var(--fg-subtle);
+  box-shadow: none;
+}
+.btn[disabled]:active,
+.btn[aria-disabled="true"]:active {
+  transform: none;
+}
+.v2-more summary {
+  justify-content: space-between;
+  list-style: none;
+  color: var(--fg);
+}
+.v2-more summary::-webkit-details-marker {
+  display: none;
+}
+.v2-more summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform var(--duration-short3) var(--ease-standard);
+}
+.v2-more[open] summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.v2-ib {
+  position: relative;
+  padding-right: 40px;
+}
+.v2-ib > .ic,
+.m-main > .ic {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  transform: translateY(-50%);
+  color: var(--fg-muted);
+}
+.m-main {
+  position: relative;
+  padding-right: 36px;
+}
+.m-main > .ic {
+  right: var(--space-2);
+}
+.v2-blk {
+  grid-template-columns: 64px 1fr auto;
+}
+.v2-blk > .ic {
+  color: var(--fg-muted);
+}
+.danger-zone {
+  border: 1px solid var(--danger);
+}
+.btn-danger {
+  background: var(--bg-card);
+  color: var(--danger);
+  border: 2px solid var(--danger);
+}
+.btn-danger:not([disabled]):active {
+  background: var(--bg-sunken);
+}
+.danger-zone h2 {
+  color: var(--danger);
+}
+/* press feedback on touch screens (hover never fires there) */
+.v2-bk:active,
+.v2-blk:active,
+.m-main:active,
+.list a:active,
+.v2-more summary:active {
+  background-color: var(--bg-sunken);
+}
+.btn-secondary:not([disabled], [aria-disabled="true"]):active {
+  background: var(--bg-sunken);
+}
+.btn-primary:not([disabled], [aria-disabled="true"]):active {
+  background: var(--accent-pressed);
+}
