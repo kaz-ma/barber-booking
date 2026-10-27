@@ -394,6 +394,7 @@ function BookingSteps({
   }
 
   const stepTitle: Record<Step, string> = { menu: t('stepMenu'), time: t('stepTime'), info: t('stepInfo') }
+  const guideOf: Record<Step, string> = { menu: t('guideMenu'), time: t('guideTime'), info: t('guideInfo') }
   const reached = (s: Step) => s === 'menu' || (s === 'time' ? !!menuSlug : !!menuSlug && !!startsAt)
   const summaryOf: Record<Step, ReactNode> = {
     menu: menu ? (
@@ -513,24 +514,16 @@ function BookingSteps({
         </p>
         <h2 id="book-h">{t('heading')}</h2>
       </div>
-      {/* Where you are, at a glance (DG-001 v0.5); the step headings below carry it for screen readers. */}
-      <ol className="bprog" aria-hidden="true">
-        {STEPS.map((step, i) => {
-          const at = STEPS.indexOf(ready ? open : 'menu')
-          return (
-            <li key={step} className={i < at ? 'done' : i === at ? 'on' : undefined}>
-              <b className="num">{i + 1}</b>
-              {stepTitle[step]}
-            </li>
-          )
-        })}
-      </ol>
       <ol className="bsteps">
         {STEPS.map((step, i) => {
           const isOpen = ready ? open === step : step === 'menu'
           const done = !isOpen && reached(step) && summaryOf[step] !== null && step !== 'info'
+          // Reached but closed without a summary: only ③ after going back to change ① or ②.
+          const resumable = !isOpen && !done && reached(step)
           return (
-            <li key={step} className={isOpen ? 'bstep open' : done ? 'bstep done' : 'bstep'}>
+            <li key={step} className={isOpen ? 'bstep open' : done || resumable ? 'bstep done' : 'bstep'}>
+              {/* A done step's whole row is the "change" button (stretched over the head); a step not
+                  reached yet is plain grey text with the reason, so nothing looks tappable that isn't. */}
               <div className="bstep-head">
                 <span className="no" aria-hidden="true">
                   {done ? <Icon name="check" /> : i + 1}
@@ -544,18 +537,21 @@ function BookingSteps({
                 >
                   {stepTitle[step]}
                 </h3>
-                {done ? (
-                  <>
-                    <p className="bsum">{summaryOf[step]}</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={t('changeAria', { step: stepTitle[step] })}
-                      onClick={() => go(step)}
-                    >
-                      {tc('change')}
-                    </Button>
-                  </>
+                {done || resumable ? (
+                  <button
+                    type="button"
+                    className="bstep-change"
+                    aria-label={done ? t('changeAria', { step: stepTitle[step] }) : undefined}
+                    onClick={() => go(step)}
+                  >
+                    {done ? tc('change') : t('resume')}
+                    <Icon name="chevronRight" />
+                  </button>
+                ) : null}
+                {done ? <p className="bsum">{summaryOf[step]}</p> : null}
+                {isOpen ? <p className="bguide">{guideOf[step]}</p> : null}
+                {!isOpen && !reached(step) ? (
+                  <p className="blocked">{step === 'time' ? t('lockedTime') : t('lockedInfo')}</p>
                 ) : null}
               </div>
               {isOpen || closing === step ? (

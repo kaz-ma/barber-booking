@@ -3004,45 +3004,34 @@ button.cd:active {
   font-feature-settings: "palt";
   text-wrap: balance;
 }
-.hero-facts {
+.hero-info {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-  padding-inline: max(0px, calc((100% - 1008px) / 2));
-  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-2);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  line-height: 1.6;
 }
-.hero-facts > div {
-  min-width: 0;
-  padding: var(--space-6) 6px;
-  text-align: center;
-  border-right: 1px solid var(--border-subtle);
+.hero-info li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
-.hero-facts > div:last-child {
-  border-right: 0;
-}
-.hero-facts dt {
-  margin-bottom: var(--space-1);
-  font-size: var(--text-12);
-  line-height: 1.5;
-  font-weight: 700;
+.hero-info .ic {
+  margin-top: 2px;
   color: var(--fg-muted);
 }
-.hero-facts dd {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.35;
-  font-weight: 900;
-  text-wrap: balance;
-}
-.hero-facts dd.num {
-  font-weight: 800;
+.hero-info .sep {
+  margin: 0 6px;
+  color: var(--fg-muted);
 }
 .hero-cta {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 60px;
-  margin-top: var(--space-10);
+  margin-top: var(--space-8);
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-lg);
   background: var(--accent);
@@ -3075,37 +3064,7 @@ button.cd:active {
   }
 }
 
-/* booking: a 3-part progress bar, then the steps as roomy cards; steps not reached sit sunken */
-.bprog {
-  display: flex;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-8);
-  padding: 0;
-  list-style: none;
-}
-.bprog li {
-  flex: 1;
-  min-width: 0;
-  padding-top: var(--space-2);
-  border-top: 4px solid var(--border-subtle);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  font-weight: 700;
-  color: var(--fg-muted);
-  transition: border-color var(--duration-medium1) var(--ease-standard);
-}
-.bprog li.done {
-  border-top-color: var(--fg);
-  color: var(--fg);
-}
-.bprog li.on {
-  border-top-color: var(--accent);
-  color: var(--fg);
-}
-.bprog b {
-  margin-right: 4px;
-  font-weight: 800;
-}
+/* booking: the steps as roomy cards; a step not reached yet is plain grey text (DG-001 v0.7) */
 .site .bsteps {
   gap: var(--space-4);
   margin-top: 0;
@@ -3115,8 +3074,16 @@ button.cd:active {
   border-radius: var(--radius-lg);
 }
 .site .bstep:not(.open, .done) {
-  background: var(--bg-sunken);
+  background: none;
   border-color: transparent;
+  border-top-color: var(--border-subtle);
+  border-radius: 0;
+}
+.site .bstep:not(.open, .done) .bstep-head {
+  padding-inline: 0;
+}
+.site .bstep:not(.open, .done) .no {
+  border-color: var(--border-subtle);
 }
 .site .bstep.open {
   /* the open step drops its frame: its menu cards / calendar use the full width */
@@ -3134,6 +3101,34 @@ button.cd:active {
   margin-inline: 0;
   width: 100%;
 }
+/* forms: 必須 / 任意 as plain words, not boxes that look like buttons */
+.site .req {
+  padding: 0;
+  border: 0;
+  color: var(--accent);
+  font-size: var(--text-12);
+}
+.site .req.opt {
+  color: var(--fg-muted);
+}
+/* calendar: only open days are boxes; closed / full days and a month you can't go to are plain */
+.site .cd.x {
+  border-color: transparent;
+}
+.site .cd.x.today {
+  border-color: var(--fg);
+}
+.site .month .btn-icon:disabled {
+  border-color: transparent;
+  color: var(--border-subtle);
+}
+/* press feedback on touch screens (hover never fires there) */
+.site .btn-secondary:active {
+  background: var(--bg-sunken);
+}
+.site .btn-primary:not([aria-disabled="true"]):active {
+  background: var(--accent-pressed);
+}
 .site .shop .btn {
   white-space: nowrap;
 }
@@ -3144,9 +3139,59 @@ button.cd:active {
   margin-top: var(--space-8);
 }
 .site .bstep-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 2px;
   min-height: 64px;
-  padding: 0 var(--space-3) 0 var(--space-5);
-  gap: 10px;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+}
+.site .bstep-head > p {
+  grid-column: 2 / -1;
+}
+/* done step: the whole card is the "変更" button (its ::after covers the card) */
+.site .bstep.done {
+  position: relative;
+  transition: background-color var(--duration-short3) var(--ease-standard);
+}
+.site .bstep.done:hover,
+.site .bstep.done:has(.bstep-change:active) {
+  background: var(--bg-sunken);
+}
+.bstep-change {
+  grid-column: 3;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--target-min);
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--fg);
+  font: 700 var(--text-14) / 1 var(--font-sans);
+  cursor: pointer;
+}
+.bstep-change::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.bstep-change .ic {
+  width: 16px;
+  height: 16px;
+}
+.bguide,
+.blocked {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--fg-muted);
+}
+.blocked {
+  color: var(--fg-subtle);
 }
 .site .bstep-head .no {
   width: 26px;
@@ -3165,6 +3210,7 @@ button.cd:active {
 }
 .site .bsum {
   font-size: 0.9375rem;
+  white-space: normal;
 }
 .site .bstep-body {
   /* 12px sides: the calendar bleeds into it to keep day cells ≥ 44px (.btime .cal) */
@@ -3235,6 +3281,31 @@ button.cd:active {
 }
 .site .access-band .amap {
   border-radius: var(--radius-lg);
+}
+.amap-open {
+  position: relative;
+  display: block;
+  color: inherit;
+}
+.amap-hint {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px var(--space-3) 6px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--fg);
+  color: var(--bg-card);
+  font-size: var(--text-12);
+  line-height: 1.2;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgb(20 20 20 / 0.2);
+}
+.amap-hint .ic {
+  width: 14px;
+  height: 14px;
 }
 .site .access-band .access {
   margin: var(--space-6) 0;

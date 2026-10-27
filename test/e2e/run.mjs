@@ -322,7 +322,7 @@ try {
       (await page.locator('a.hero-cta[href="#book"]').count()) === 1,
       'hero: one red button to the booking section (DG-001 v0.5)',
     )
-    assert((await page.locator('.hero-facts dt').count()) === 3, 'hero: hours, closing day and walk')
+    assert((await page.locator('.hero-info li').count()) === 2, 'hero: hours and walk as plain text')
     assert((await page.getByRole('button', { name: 'この内容で予約する' }).count()) === 0, 'no final button yet')
     assert((await page.locator('a[href*="/book/time"]').count()) === 0, 'no direct link to /book/time (OI-25)')
     await noTel(page)
